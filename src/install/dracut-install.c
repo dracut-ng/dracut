@@ -1814,20 +1814,20 @@ static int install_dependent_modules(struct kmod_ctx *ctx, struct kmod_list *mod
                 _cleanup_destroy_hashmap_ Hashmap *modules = hashmap_new(string_hash_func, string_compare_func);
                 find_modules_from_sysfs_node(ctx, supplier_path, modules);
 
-                _cleanup_destroy_hashmap_ Hashmap *suppliers = hashmap_new(string_hash_func, string_compare_func);
-                find_suppliers_for_sys_node(suppliers, supplier_path, strlen(supplier_path));
-
                 if (!hashmap_isempty(modules)) { // Supplier is a module
                         const char *module;
                         Iterator j;
                         HASHMAP_FOREACH(module, modules, j) {
                                 _cleanup_kmod_module_unref_ struct kmod_module *mod = NULL;
                                 if (!kmod_module_new_from_name(ctx, module, &mod)) {
+                                        Hashmap *suppliers = find_suppliers_paths_for_module(kmod_module_get_name(mod));
                                         if (install_dependent_module(ctx, mod, suppliers, &ret))
                                                 return -1;
                                 }
                         }
                 } else { // Supplier is builtin
+                        _cleanup_destroy_hashmap_ Hashmap *suppliers = hashmap_new(string_hash_func, string_compare_func);
+                        find_suppliers_for_sys_node(suppliers, supplier_path, strlen(supplier_path));
                         install_dependent_modules(ctx, NULL, suppliers);
                 }
         }
