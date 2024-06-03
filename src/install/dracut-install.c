@@ -1676,6 +1676,10 @@ static void find_suppliers_for_sys_node(Hashmap *suppliers, const char *node_pat
                         closedir(d);
                 }
                 strcat(node_path, "/.."); // Also find suppliers of parents
+                char *parent_path = realpath(node_path, NULL);
+                if (parent_path != NULL)
+                        if (hashmap_put(suppliers, parent_path, parent_path) < 0)
+                                free(parent_path);
         }
 }
 
