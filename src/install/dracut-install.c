@@ -1663,7 +1663,7 @@ static void find_suppliers_for_sys_node(Hashmap *suppliers, const char *node_pat
                 if (d) {
                         size_t real_path_len = strlen(real_path);
                         while ((dir = readdir(d)) != NULL) {
-                                if (strstr(dir->d_name, "supplier:platform") != NULL) {
+                                if (strstr(dir->d_name, "supplier:") != NULL) {
                                         if ((size_t)snprintf(real_path + real_path_len, sizeof(real_path) - real_path_len, "/%s/supplier",
                                                              dir->d_name) < sizeof(real_path) - real_path_len) {
                                                 char *real_supplier_path = realpath(real_path, NULL);
