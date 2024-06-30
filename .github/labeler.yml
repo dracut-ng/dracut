@@ -418,6 +418,10 @@ fstab-sys:
   - changed-files:
     - any-glob-to-any-file: 'modules.d/95fstab-sys/*'
 
+hwdb:
+  - changed-files:
+    - any-glob-to-any-file: 'modules.d/95hwdb/*'
+
 iscsi:
   - changed-files:
     - any-glob-to-any-file: 'modules.d/95iscsi/*'
