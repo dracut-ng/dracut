@@ -144,8 +144,8 @@ fsck_single() {
     [ $# -lt 2 ] && return 255
     _dev=$(readlink -f "$(label_uuid_to_dev "$_dev")")
     [ -e "$_dev" ] || return 255
-    _fs=$(det_fs "$_dev" "$_fs")
-    fsck_able "$_fs" || return 255
+    det_fs "$_dev" "$_fs"
+    fsck_able "$FS" || return 255
 
     info "Checking $_fs: $_dev"
     export FSTAB_FILE
@@ -178,27 +178,23 @@ fsck_batch() {
     return $_ret
 }
 
-# verify supplied filesystem type:
-# if user provided the fs and we couldn't find it, assume user is right
-# if we found the fs, assume we're right
+# Determine or verify a supplied filesystem type:
+#  If user provided the fs type, $2, and we couldn't find it, assume user is right.
+#  If we found the fs type, assume we're right.
+# Works for block devices or image files - $1.
+# Sets global variable 'FS' to avoid additional subprocess calls.
 det_fs() {
-    local _dev="$1"
-    local _orig="${2:-auto}"
-    local _fs
-
-    _fs=$(udevadm info --query=property --name="$_dev" \
-        | while read -r line || [ -n "$line" ]; do
-            if str_starts "$line" "ID_FS_TYPE="; then
-                echo "${line#ID_FS_TYPE=}"
-                break
-            fi
-        done)
-    _fs=${_fs:-auto}
-
-    if [ "$_fs" = "auto" ]; then
-        _fs="$_orig"
-    fi
-    echo "$_fs"
+    local "_orig=${2:-auto}"
+    # shellcheck disable=SC2034
+    FS=$(blkid "$1")
+    case $FS in
+        *' TYPE="'*)
+            FS="${FS#* TYPE=\"}"
+            FS="${FS%%\"*}"
+            ;;
+        *) FS="$_orig" ;;
+    esac
+    echo "$FS"
 }
 
 write_fs_tab() {
