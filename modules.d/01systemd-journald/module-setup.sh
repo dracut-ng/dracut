@@ -54,10 +54,17 @@ install() {
     # Install library file(s)
     _arch=${DRACUT_ARCH:-$(uname -m)}
     inst_libdir_file \
-        {"tls/$_arch/",tls/,"$_arch/",}"libgcrypt.so*" \
         {"tls/$_arch/",tls/,"$_arch/",}"liblz4.so.*" \
         {"tls/$_arch/",tls/,"$_arch/",}"liblzma.so.*" \
         {"tls/$_arch/",tls/,"$_arch/",}"libzstd.so.*"
+
+    # The journal forward secure sealing feature loads libgcrypt with dlopen
+    # rather than explicitly linking against it, so we need to explicitly
+    # install it. However, systemd can be built without any libgcrypt
+    # dependency, so check whether systemd-resolved explicitly links against it.
+    if $DRACUT_LDD "${dracutsysrootdir}${systemdutildir}/systemd-resolved" | grep -q libgcrypt; then
+        inst_libdir_file {"tls/$_arch/",tls/,"$_arch/",}"libgcrypt.so*"
+    fi
 
     # Install the hosts local user configurations if enabled.
     if [[ $hostonly ]]; then
