@@ -264,6 +264,21 @@ inst() {
     fi
 }
 
+inst_recur() {
+    local x
+    for x in "$dracutsysrootdir${1%/}"/*; do
+        x=${x#"$dracutsysrootdir"}
+        if [[ -d "$dracutsysrootdir$x" ]]; then
+            inst_dir "$x"
+            inst_recur "$x"
+        elif [[ -f "$dracutsysrootdir$x" ]]; then
+            inst "$x"
+        else
+            break
+        fi
+    done
+}
+
 inst_simple() {
     local dstdir="${dstdir:-"$initdir"}"
     local _ret _hostonly_install
