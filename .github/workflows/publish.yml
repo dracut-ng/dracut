@@ -1,7 +1,11 @@
 name: Publish to GitHub Pages
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 concurrency:
@@ -42,5 +46,6 @@ jobs:
       with:
         path: build/site
     - name: Deploy to GitHub Pages
+      if: github.event_name == 'push'
       id: deployment
       uses: actions/deploy-pages@v4
