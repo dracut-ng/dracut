@@ -31,11 +31,6 @@ depends() {
 
 # called by dracut
 install() {
-    inst_script "$moddir/dracut-emergency.sh" /bin/dracut-emergency
-    inst_simple "$moddir/emergency.service" "${systemdsystemunitdir}"/emergency.service
-    inst_simple "$moddir/dracut-emergency.service" "${systemdsystemunitdir}"/dracut-emergency.service
-    inst_simple "$moddir/emergency.service" "${systemdsystemunitdir}"/rescue.service
-
     ln_r "${systemdsystemunitdir}/initrd.target" "${systemdsystemunitdir}/default.target"
 
     inst_script "$moddir/dracut-cmdline.sh" /bin/dracut-cmdline
@@ -65,8 +60,6 @@ install() {
     done
 
     inst_simple "$moddir/dracut-tmpfiles.conf" "$tmpfilesdir/dracut-tmpfiles.conf"
-
-    inst_multiple sulogin
 
     [ -e "${initdir}/usr/lib" ] || mkdir -m 0755 -p "${initdir}"/usr/lib
 

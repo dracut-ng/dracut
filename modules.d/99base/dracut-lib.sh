@@ -896,6 +896,15 @@ emergency_shell() {
     echo
 
     _emergency_action=$(getarg rd.emergency)
+
+    #  emergency dracut module is not included
+    if ! [ -e /bin/dracut-emergency ]; then
+        _emergency_action=poweroff
+
+        source_hook "shutdown-emergency"
+        warn "emergency dracut module is not included, shutting down!"
+    fi
+
     [ -z "$_emergency_action" ] \
         && [ -e /run/initramfs/.die ] \
         && _emergency_action=poweroff
