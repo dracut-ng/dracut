@@ -159,7 +159,6 @@ EOF
     test_dracut \
         --no-hostonly \
         --add "dmsquash-live qemu" \
-        --omit "systemd" \
         --drivers "ntfs3" \
         --install "mkfs.ext4" \
         -a bash \
@@ -169,7 +168,6 @@ EOF
     test_dracut \
         --no-hostonly \
         --add "dmsquash-live-autooverlay qemu" \
-        --omit "systemd" \
         --install "mkfs.ext4" \
         -a bash \
         "$TESTDIR"/initramfs.testing-autooverlay
