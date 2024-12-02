@@ -30,11 +30,8 @@ install() {
     # regular files, but not with directory trees.
 
     inst_multiple -o \
+        "/.extra/sysext/*.raw" \
         "/usr/lib/confexts/*.raw" \
-        "/var/lib/confexts/*.raw" \
-        "/var/lib/extensions/*.raw" \
-        "/etc/extension-release.d/extension-release.*" \
-        "/usr/lib/extension-release.d/extension-release.*" \
         "$systemdsystemunitdir"/systemd-confext.service \
         "$systemdsystemunitdir/systemd-confext.service.d/*.conf" \
         "$systemdsystemunitdir"/systemd-sysext.service \
@@ -52,6 +49,8 @@ install() {
     if [[ $hostonly ]]; then
         inst_multiple -H -o \
             "/etc/extensions/*.raw" \
+            "/var/lib/confexts/*.raw" \
+            "/var/lib/extensions/*.raw" \
             "$systemdsystemconfdir"/systemd-confext.service \
             "$systemdsystemconfdir/systemd-confext.service.d/*.conf" \
             "$systemdsystemconfdir"/systemd-sysext.service \
