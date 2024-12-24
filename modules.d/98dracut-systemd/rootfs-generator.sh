@@ -50,6 +50,12 @@ generator_mount_rootfs() {
         [ -d "$GENERATOR_DIR"/initrd-root-fs.target.requires ] || mkdir -p "$GENERATOR_DIR"/initrd-root-fs.target.requires
         ln -s ../sysroot.mount "$GENERATOR_DIR"/initrd-root-fs.target.requires/sysroot.mount
     fi
+    if ! [ -L "$GENERATOR_DIR"/dev-gpt\\x2dauto\\x2droot.device ]; then
+        ln -s /dev/null "$GENERATOR_DIR"/dev-gpt\\x2dauto\\x2droot.device
+    fi
+    if ! [ -L "$GENERATOR_DIR"/dev-gpt\\x2dauto\\x2droot\\x2dluks.device ]; then
+        ln -s /dev/null "$GENERATOR_DIR"/dev-gpt\\x2dauto\\x2droot\\x2dluks.device
+    fi
 }
 
 generator_fsck_after_pre_mount() {
