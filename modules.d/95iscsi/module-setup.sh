@@ -210,7 +210,7 @@ install() {
     if ! dracut_module_included "systemd"; then
         inst "$moddir/mount-lun.sh" "/bin/mount-lun.sh"
     else
-        inst_multiple -o \
+        inst_service -o \
             "$systemdsystemunitdir"/iscsi.service \
             "$systemdsystemunitdir"/iscsi-init.service \
             "$systemdsystemunitdir"/iscsid.service \
@@ -219,9 +219,6 @@ install() {
             "$systemdsystemunitdir"/iscsiuio.socket \
             "$systemdsystemunitdir"/sockets.target.wants/iscsid.socket \
             "$systemdsystemunitdir"/sockets.target.wants/iscsiuio.socket
-        if grep -q '^ExecStartPre=/usr/lib/open-iscsi/startup-checks.sh$' "$systemdsystemunitdir/iscsid.service"; then
-            inst_simple /usr/lib/open-iscsi/startup-checks.sh
-        fi
 
         for i in \
             iscsid.socket \
