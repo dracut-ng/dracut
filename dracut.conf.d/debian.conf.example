@@ -1,0 +1,2 @@
+# Dracut config file customized for Debian/Ubuntu.
+i18n_vars="/etc/locale.conf:LANG /etc/default/console-setup:FONT,FONT_MAP,CONSOLE_MAP-FONT_UNIMAP /etc/default/keyboard:XKBLAYOUT-KEYMAP,XKBVARIANT-EXT_KEYMAPS"
