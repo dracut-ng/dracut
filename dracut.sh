@@ -2632,30 +2632,21 @@ if [[ $uefi == yes ]]; then
     cp "$uefi_stub" "$tmp_uefi_stub"
     objcopy --remove-section .sbat "$tmp_uefi_stub" &> /dev/null
 
-    if objcopy \
-        ${DRACUT_REPRODUCIBLE:+--enable-deterministic-archives --preserve-dates} \
-        ${uefi_osrelease:+--add-section .osrel="$uefi_osrelease" --change-section-vma .osrel=$(printf 0x%x "$uefi_osrelease_offs")} \
-        ${uefi_cmdline:+--add-section .cmdline="$uefi_cmdline" --change-section-vma .cmdline=$(printf 0x%x "$uefi_cmdline_offs")} \
-        ${uefi_splash_image:+--add-section .splash="$uefi_splash_image" --change-section-vma .splash=$(printf 0x%x "$uefi_splash_offs")} \
-        --add-section .sbat="$sbat_out" --change-section-vma .sbat="$(printf 0x%x "$uefi_sbat_offs")" \
-        --add-section .linux="$kernel_image" --change-section-vma .linux="$(printf 0x%x "$uefi_linux_offs")" \
-        --add-section .initrd="${DRACUT_TMPDIR}/initramfs.img" --change-section-vma .initrd="$(printf 0x%x "$uefi_initrd_offs")" \
-        --image-base="$(printf 0x%x "$base_image")" \
-        "$tmp_uefi_stub" "${uefi_outdir}/linux.efi"; then
-        if [[ -n ${uefi_secureboot_key} && -n ${uefi_secureboot_cert} ]]; then
-            if sbsign \
-                ${uefi_secureboot_engine:+--engine "$uefi_secureboot_engine"} \
-                --key "${uefi_secureboot_key}" \
-                --cert "${uefi_secureboot_cert}" \
-                --output "$outfile" "${uefi_outdir}/linux.efi" \
-                && sbverify --cert "${uefi_secureboot_cert}" "$outfile" > /dev/null 2>&1; then
-                dinfo "*** Creating signed UEFI image file '$outfile' done ***"
-            else
-                rm -f -- "$outfile"
-                dfatal "*** Creating signed UEFI image file '$outfile' failed ***"
-                exit 1
-            fi
-        else
+    if command -v ukify &> /dev/null; then
+        dinfo "*** Using ukify to create UKI ***"
+        if ukify build \
+            --linux "$kernel_image" \
+            --initrd "${DRACUT_TMPDIR}/initramfs.img" \
+            ${uefi_cmdline:+--cmdline @"$uefi_cmdline"} \
+            ${uefi_osrelease:+--os-release @"$uefi_osrelease"} \
+            ${uefi_splash_image:+--splash "$uefi_splash_image"} \
+            --stub "$uefi_stub" \
+            --sbat "$sbat_out" \
+            ${uefi_secureboot_engine:+--signing-engine "$uefi_secureboot_engine"} \
+            ${uefi_secureboot_key:+--secureboot-private-key "$uefi_secureboot_key"} \
+            ${uefi_secureboot_cert:+--secureboot-certificate "$uefi_secureboot_cert"} \
+            --output "${uefi_outdir}/linux.efi"; then
+
             if cp --reflink=auto "${uefi_outdir}/linux.efi" "$outfile"; then
                 dinfo "*** Creating UEFI image file '$outfile' done ***"
             else
@@ -2663,11 +2654,49 @@ if [[ $uefi == yes ]]; then
                 dfatal "Creation of $outfile failed"
                 exit 1
             fi
+        else
+            rm -f -- "$outfile"
+            dfatal "*** Creating UEFI image file '$outfile' failed ***"
+            exit 1
         fi
     else
-        rm -f -- "$outfile"
-        dfatal "*** Creating UEFI image file '$outfile' failed ***"
-        exit 1
+        if objcopy \
+            ${DRACUT_REPRODUCIBLE:+--enable-deterministic-archives --preserve-dates} \
+            ${uefi_osrelease:+--add-section .osrel="$uefi_osrelease" --change-section-vma .osrel=$(printf 0x%x "$uefi_osrelease_offs")} \
+            ${uefi_cmdline:+--add-section .cmdline="$uefi_cmdline" --change-section-vma .cmdline=$(printf 0x%x "$uefi_cmdline_offs")} \
+            ${uefi_splash_image:+--add-section .splash="$uefi_splash_image" --change-section-vma .splash=$(printf 0x%x "$uefi_splash_offs")} \
+            --add-section .sbat="$sbat_out" --change-section-vma .sbat="$(printf 0x%x "$uefi_sbat_offs")" \
+            --add-section .linux="$kernel_image" --change-section-vma .linux="$(printf 0x%x "$uefi_linux_offs")" \
+            --add-section .initrd="${DRACUT_TMPDIR}/initramfs.img" --change-section-vma .initrd="$(printf 0x%x "$uefi_initrd_offs")" \
+            --image-base="$(printf 0x%x "$base_image")" \
+            "$tmp_uefi_stub" "${uefi_outdir}/linux.efi"; then
+            if [[ -n ${uefi_secureboot_key} && -n ${uefi_secureboot_cert} ]]; then
+                if sbsign \
+                    ${uefi_secureboot_engine:+--engine "$uefi_secureboot_engine"} \
+                    --key "${uefi_secureboot_key}" \
+                    --cert "${uefi_secureboot_cert}" \
+                    --output "$outfile" "${uefi_outdir}/linux.efi" \
+                    && sbverify --cert "${uefi_secureboot_cert}" "$outfile" > /dev/null 2>&1; then
+                    dinfo "*** Creating signed UEFI image file '$outfile' done ***"
+                else
+                    rm -f -- "$outfile"
+                    dfatal "*** Creating signed UEFI image file '$outfile' failed ***"
+                    exit 1
+                fi
+            else
+                if cp --reflink=auto "${uefi_outdir}/linux.efi" "$outfile"; then
+                    dinfo "*** Creating UEFI image file '$outfile' done ***"
+                else
+                    rm -f -- "$outfile"
+                    dfatal "Creation of $outfile failed"
+                    exit 1
+                fi
+            fi
+        else
+            rm -f -- "$outfile"
+            dfatal "*** Creating UEFI image file '$outfile' failed ***"
+            exit 1
+        fi
     fi
 else
     if cp --reflink=auto "${DRACUT_TMPDIR}/initramfs.img" "$outfile"; then
