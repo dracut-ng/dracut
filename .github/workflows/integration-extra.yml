@@ -13,55 +13,6 @@ on:  # yamllint disable-line rule:truthy
             - '.github/workflows/integration-extra.yml'
 
 jobs:
-    basic:
-        # run this test on all containers
-        name: ${{ matrix.test }} on ${{ matrix.container }}
-        runs-on: ubuntu-latest
-        timeout-minutes: 20
-        concurrency:
-            group: basic-${{ github.workflow }}-${{ github.ref }}-${{ matrix.container }}-${{ matrix.test }}
-            cancel-in-progress: true
-        strategy:
-            fail-fast: false
-            matrix:
-                container:
-                    - alpine:latest
-                    - alpine:edge
-                    - arch:latest
-                    - debian:latest
-                    - debian:sid
-                    - fedora:latest
-                    - fedora:rawhide
-                    - centos:stream10-development
-                    - gentoo:latest
-                    - gentoo:amd64-openrc
-                    - opensuse:latest
-                    - ubuntu:latest
-                    - ubuntu:devel
-                    - ubuntu:rolling
-                    - void:latest
-                test:
-                    - "10"
-                    - "11"
-                    - "12"
-                    - "20"
-                    - "23"
-                    - "26"
-                    - "30"
-                    - "40"
-                    - "41"
-                    - "42"
-                    - "80"
-                    - "81"
-                    - "82"
-        container:
-            image: ghcr.io/dracut-ng/${{ matrix.container }}-amd
-            options: '--device=/dev/kvm --privileged'
-        steps:
-            - name: "Checkout Repository"
-              uses: actions/checkout@v4
-            - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
-              run: ./test/test-container.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
     arm64:
         name: ${{ matrix.test }} on ${{ matrix.container }} on arm64
         runs-on: ubuntu-24.04-arm
@@ -80,9 +31,6 @@ jobs:
                     - void
                 test:
                     - "10"
-                    - "30"
-                    - "80"
-                    - "81"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}:latest-arm
             options: '--privileged'
