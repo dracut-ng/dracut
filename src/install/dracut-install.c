@@ -312,6 +312,9 @@ static int copy_xattr(int dest_fd, int src_fd)
                 goto out;
 
         for (name = name_buf; name != name_buf + name_len; name = strchr(name, '\0') + 1) {
+                if (streq(name, "security.selinux"))
+                        continue;
+
                 value_len = fgetxattr(src_fd, name, NULL, 0);
                 if (value_len < 0) {
                         ret = -1;
@@ -405,7 +408,7 @@ normal_copy:
         const char *preservation = (geteuid() == 0
                                     && no_xattr == false) ? "--preserve=mode,xattr,timestamps,ownership" : "--preserve=mode,timestamps,ownership";
         if (pid == 0) {
-                execlp("cp", "cp", "--reflink=auto", "--sparse=auto", preservation, "-fL", src, dst, NULL);
+                execlp("cp", "cp", "--reflink=auto", "--sparse=auto", preservation, "-fLZ", src, dst, NULL);
                 _exit(errno == ENOENT ? 127 : 126);
         }
 
@@ -417,7 +420,7 @@ normal_copy:
         }
         ret = WIFSIGNALED(ret) ? 128 + WTERMSIG(ret) : WEXITSTATUS(ret);
         if (ret != 0)
-                log_error("ERROR: 'cp --reflink=auto --sparse=auto %s -fL %s %s' failed with %d", preservation, src, dst, ret);
+                log_error("ERROR: 'cp --reflink=auto --sparse=auto %s -fLZ %s %s' failed with %d", preservation, src, dst, ret);
         log_debug("cp ret = %d", ret);
         return ret;
 }
