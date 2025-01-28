@@ -10,6 +10,10 @@ TEST_DESCRIPTION="root filesystem over iSCSI with $USE_NETWORK"
 run_server() {
     # Start server first
     echo "iSCSI TEST SETUP: Starting DHCP/iSCSI server"
+    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    echo "$ ls -alh $TESTDIR"
+    ls -alh "$TESTDIR"
+    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 
     declare -a disk_args=()
     declare -i disk_index=0

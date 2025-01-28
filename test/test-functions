@@ -71,7 +71,7 @@ wait_for_server_startup() {
     local lines printed_lines=0 server_pid
     server_pid=$(cat "$TESTDIR"/server.pid)
 
-    echo "Waiting for the server to startup"
+    echo "Waiting for the server to startup (server QEMU PID: $server_pid)"
     while ! grep -q Serving "$TESTDIR"/server.log; do
         if [ "$V" -ge 1 ]; then
             lines=$(wc -l "$TESTDIR"/server.log | cut -f 1 -d ' ')
@@ -86,6 +86,10 @@ wait_for_server_startup() {
         fi
         sleep 1
     done
+    echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    echo "$ cat $TESTDIR/server.log"
+    cat "$TESTDIR"/server.log
+    echo "---------------------------------------------------------"
 }
 
 ovmf_code() {

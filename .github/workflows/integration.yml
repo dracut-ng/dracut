@@ -204,8 +204,10 @@ jobs:
             matrix:
                 container:
                     - opensuse
+                    - ubuntu
                 test:
                     - "70"
+                    - "71"
                 include:
                     # on openSUSE run tests with network-legacy
                     - container: "opensuse"
