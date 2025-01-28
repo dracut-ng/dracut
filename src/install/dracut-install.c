@@ -612,10 +612,55 @@ static int resolve_deps(const char *src)
         log_debug("%s %s", ldd, fullsrcpath);
         pid_t ldd_pid;
         if ((ldd_pid = fork()) == 0) {
+                char **cmdline = NULL;
+                int start, pos, idx = 0;
+                /* Account for at least 2 elements plus the terminating NULL in cmdline */
+                int args = 3;
+
+                /* Estimate the number of space-separated elements in the "ldd" string */
+                pos = 0;
+                while (isspace(ldd[pos]))
+                        pos++;
+                for (; ldd[pos]; pos++) {
+                        if (isspace(ldd[pos])) {
+                                if (pos)
+                                        args++;
+                                while (isspace(ldd[pos]))
+                                        pos++;
+                        }
+                }
+
+                cmdline = malloc(args * sizeof(char *));
+                memset(cmdline, 0, args * sizeof(char *));
+
+                pos = 0;
+                while (isspace(ldd[pos]))
+                        pos++;
+                start = pos;
+                for (; ldd[pos]; pos++) {
+                        while (ldd[pos] && !isspace(ldd[pos]))
+                                pos++;
+
+                        cmdline[idx] = malloc(pos - start + 1);
+                        memcpy(cmdline[idx], ldd + start, pos - start);
+                        cmdline[idx][pos - start] = 0;
+                        idx++;
+
+                        if (!ldd[pos])
+                                break;
+
+                        while (isspace(ldd[pos]))
+                                pos++;
+                        start = pos;
+                }
+
+                cmdline[idx++] = fullsrcpath;
+                cmdline[idx] = NULL;
+
                 dup2(fds[1], 1);
                 dup2(fds[1], 2);
                 putenv("LC_ALL=C");
-                execlp(ldd, ldd, fullsrcpath, (char *)NULL);
+                execvp(cmdline[0], cmdline);
                 _exit(errno == ENOENT ? 127 : 126);
         }
         close(fds[1]);
