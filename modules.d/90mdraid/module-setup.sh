@@ -28,7 +28,7 @@ check() {
 
 # called by dracut
 depends() {
-    echo rootfs-block
+    echo rootfs-block initqueue
     return 0
 }
 
@@ -129,5 +129,4 @@ install() {
         fi
     fi
     inst_hook pre-shutdown 30 "$moddir/mdmon-pre-shutdown.sh"
-    dracut_need_initqueue
 }

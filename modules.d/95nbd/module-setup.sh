@@ -35,5 +35,4 @@ install() {
     if dracut_module_included "systemd-initrd"; then
         inst_script "$moddir/nbd-generator.sh" "$systemdutildir"/system-generators/dracut-nbd-generator
     fi
-    dracut_need_initqueue
 }

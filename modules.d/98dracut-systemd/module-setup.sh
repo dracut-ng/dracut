@@ -42,7 +42,6 @@ install() {
     inst_script "$moddir/dracut-cmdline-ask.sh" /usr/bin/dracut-cmdline-ask
     inst_script "$moddir/dracut-pre-udev.sh" /usr/bin/dracut-pre-udev
     inst_script "$moddir/dracut-pre-trigger.sh" /usr/bin/dracut-pre-trigger
-    inst_script "$moddir/dracut-initqueue.sh" /usr/bin/dracut-initqueue
     inst_script "$moddir/dracut-pre-mount.sh" /usr/bin/dracut-pre-mount
     inst_script "$moddir/dracut-mount.sh" /usr/bin/dracut-mount
     inst_script "$moddir/dracut-pre-pivot.sh" /usr/bin/dracut-pre-pivot
@@ -54,7 +53,6 @@ install() {
     for i in \
         dracut-cmdline.service \
         dracut-cmdline-ask.service \
-        dracut-initqueue.service \
         dracut-mount.service \
         dracut-pre-mount.service \
         dracut-pre-pivot.service \

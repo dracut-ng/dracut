@@ -6,7 +6,7 @@ check() {
 }
 
 depends() {
-    echo base
+    echo base initqueue
     return 0
 }
 
@@ -17,5 +17,4 @@ install() {
     inst_hook cmdline 91 "$moddir/dhcp-root.sh"
     inst_multiple ip awk grep
     inst_multiple -o arping arping2
-    dracut_need_initqueue
 }

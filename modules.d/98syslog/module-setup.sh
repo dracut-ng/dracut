@@ -7,6 +7,12 @@ check() {
 }
 
 # called by dracut
+depends() {
+    echo initqueue
+    return 0
+}
+
+# called by dracut
 install() {
     local _installs
     if find_binary rsyslogd > /dev/null; then
@@ -29,5 +35,4 @@ install() {
         mkdir -m 0755 -p "${initdir}"/etc/templates
         inst_simple "${moddir}/rsyslog.conf" /etc/templates/rsyslog.conf
     fi
-    dracut_need_initqueue
 }

@@ -97,6 +97,4 @@ install() {
 
     inst_libdir_file {"tls/$_arch/",tls/,"$_arch/",}"libnss_dns.so.*" \
         {"tls/$_arch/",tls/,"$_arch/",}"libnss_mdns4_minimal.so.*"
-
-    dracut_need_initqueue
 }

@@ -283,5 +283,4 @@ EOF
     mkdir -p "${initdir}/var/lib/iscsi/nodes"
     # Fedora 34 iscsid wants a non-empty /var/lib/iscsi/nodes directory
     : > "${initdir}/var/lib/iscsi/nodes/.dracut"
-    dracut_need_initqueue
 }

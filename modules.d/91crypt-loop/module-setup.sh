@@ -9,7 +9,7 @@ check() {
 
 # called by dracut
 depends() {
-    echo crypt
+    echo crypt initqueue
 }
 
 # called by dracut
@@ -21,5 +21,4 @@ installkernel() {
 install() {
     inst_multiple losetup
     inst "$moddir/crypt-loop-lib.sh" "/lib/dracut-crypt-loop-lib.sh"
-    dracut_need_initqueue
 }

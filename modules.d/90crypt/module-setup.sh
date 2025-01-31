@@ -18,7 +18,7 @@ check() {
 
 # called by dracut
 depends() {
-    echo dm rootfs-block
+    echo dm rootfs-block initqueue
 }
 
 # called by dracut
@@ -154,6 +154,4 @@ install() {
     inst_libdir_file \
         {"tls/$_arch/",tls/,"$_arch/",}"/ossl-modules/fips.so" \
         {"tls/$_arch/",tls/,"$_arch/",}"/ossl-modules/legacy.so"
-
-    dracut_need_initqueue
 }

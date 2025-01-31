@@ -18,7 +18,7 @@ check() {
 # called by dracut
 depends() {
     # We depend on dm_mod being loaded
-    echo rootfs-block dm
+    echo rootfs-block dm initqueue
     return 0
 }
 
@@ -112,6 +112,4 @@ install() {
             cache_dump cache_restore cache_check cache_repair \
             era_check era_dump era_invalidate era_restore
     fi
-
-    dracut_need_initqueue
 }
