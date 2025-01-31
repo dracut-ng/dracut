@@ -11,7 +11,7 @@ check() {
 depends() {
     # if dmsetup is not installed, then we cannot support fedora/red hat
     # style live images
-    echo dm rootfs-block img-lib overlayfs
+    echo dm rootfs-block img-lib overlayfs initqueue
     return 0
 }
 
@@ -35,5 +35,4 @@ install() {
         inst_script "$moddir/dmsquash-generator.sh" "$systemdutildir"/system-generators/dracut-dmsquash-generator
         inst_simple "$moddir/checkisomd5@.service" "/etc/systemd/system/checkisomd5@.service"
     fi
-    dracut_need_initqueue
 }

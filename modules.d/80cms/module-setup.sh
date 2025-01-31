@@ -12,7 +12,7 @@ check() {
 depends() {
     arch=${DRACUT_ARCH:-$(uname -m)}
     [ "$arch" = "s390" ] || [ "$arch" = "s390x" ] || return 1
-    echo znet bash
+    echo znet bash initqueue
     return 0
 }
 
@@ -33,5 +33,4 @@ install() {
 
     inst_libdir_file "gconv/*"
     #inst /usr/lib/locale/locale-archive
-    dracut_need_initqueue
 }

@@ -20,7 +20,7 @@ check() {
 
 # called by dracut
 depends() {
-    echo bash
+    echo bash initqueue
 }
 
 # called by dracut
@@ -63,5 +63,4 @@ install() {
 
         [[ $_zipl ]] && printf "%s\n" "$_zipl" > "${initdir}/etc/cmdline.d/91zipl.conf"
     fi
-    dracut_need_initqueue
 }

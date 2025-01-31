@@ -156,5 +156,4 @@ install() {
     inst_simple "/etc/nvme/config.json"
     inst_rules /usr/lib/udev/rules.d/71-nvmf-iopolicy-netapp.rules
     inst_rules "$moddir/95-nvmf-initqueue.rules"
-    dracut_need_initqueue
 }

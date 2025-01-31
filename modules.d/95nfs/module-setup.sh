@@ -137,7 +137,5 @@ install() {
             >> "$initdir/${_confdir}/group"
     done
 
-    dracut_need_initqueue
-
     inst_libdir_file 'libnfsidmap_nsswitch.so*' 'libnfsidmap/*.so' 'libnfsidmap*.so*'
 }

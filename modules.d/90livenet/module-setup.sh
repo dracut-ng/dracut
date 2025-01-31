@@ -20,5 +20,4 @@ install() {
     if dracut_module_included "systemd-initrd"; then
         inst_script "$moddir/livenet-generator.sh" "$systemdutildir"/system-generators/dracut-livenet-generator
     fi
-    dracut_need_initqueue
 }

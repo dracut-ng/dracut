@@ -2,7 +2,16 @@
 
 # called by dracut
 depends() {
-    echo udev-rules
+    local deps
+    deps="udev-rules"
+
+    if [[ $hostonly_cmdline == "yes" ]]; then
+        if [[ -n ${host_devs[*]} ]] || [[ -n ${user_devs[*]} ]]; then
+            deps+=" initqueue"
+        fi
+    fi
+
+    echo "$deps"
     return 0
 }
 
@@ -53,7 +62,6 @@ install() {
     [[ $hostonly ]] && grep '^root:' "$dracutsysrootdir"/etc/shadow >> "$initdir/etc/shadow"
 
     # install our scripts and hooks
-    inst_script "$moddir/initqueue.sh" "/sbin/initqueue"
     inst_script "$moddir/loginit.sh" "/sbin/loginit"
     inst_script "$moddir/rdsosreport.sh" "/sbin/rdsosreport"
 

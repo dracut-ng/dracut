@@ -119,5 +119,4 @@ install() {
     inst_hook cmdline 99 "$moddir/parse-fcoe.sh"
     inst_hook cleanup 90 "$moddir/cleanup-fcoe.sh"
     inst_hook shutdown 40 "$moddir/stop-fcoe.sh"
-    dracut_need_initqueue
 }
