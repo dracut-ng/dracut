@@ -368,6 +368,31 @@ inst_script() {
     fi
 }
 
+# Install the specified systemd service files and all referenced programs in
+# ExecStart*, ExecStop*, ExecReload*.
+inst_service() {
+    local _optional
+    local -a needed_files service_files
+
+    if [[ $1 == "-o" ]]; then
+        _optional="-o"
+        shift
+        for service_file in "$@"; do
+            if test -e "$service_file"; then
+                service_files+=("$service_file")
+            fi
+        done
+    else
+        service_files=("$@")
+    fi
+
+    if test ${#service_files[@]} -eq 0; then
+        return 0
+    fi
+    readarray -t needed_files < <(sed -nr 's/^Exec(Start|Stop|Reload)[^ ]*=[-@:+!]*([^ ]+).*$/\2/p' "${service_files[@]}")
+    inst_multiple ${_optional:+-o} "$@" "${needed_files[@]}"
+}
+
 # empty function for compatibility
 inst_fsck_help() {
     :
