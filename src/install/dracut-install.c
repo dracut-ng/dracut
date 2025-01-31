@@ -1437,12 +1437,15 @@ static int install_all(int argc, char **argv)
         return r;
 }
 
-static int install_firmware_fullpath(const char *fwpath)
+static int install_firmware_fullpath(const char *fwpath, bool maybe_compressed)
 {
         const char *fw = fwpath;
         _cleanup_free_ char *fwpath_compressed = NULL;
         int ret;
         if (access(fwpath, F_OK) != 0) {
+                if (!maybe_compressed)
+                        return 1;
+
                 _asprintf(&fwpath_compressed, "%s.zst", fwpath);
                 if (access(fwpath_compressed, F_OK) != 0) {
                         strcpy(fwpath_compressed + strlen(fwpath) + 1, "xz");
@@ -1458,6 +1461,23 @@ static int install_firmware_fullpath(const char *fwpath)
                 log_debug("dracut_install '%s' OK", fwpath);
         }
         return ret;
+}
+
+static bool install_firmware_glob(const char *fwpath)
+{
+        size_t i;
+        _cleanup_globfree_ glob_t globbuf;
+        bool found = false;
+        int ret;
+
+        glob(fwpath, 0, NULL, &globbuf);
+        for (i = 0; i < globbuf.gl_pathc; i++) {
+                ret = install_firmware_fullpath(globbuf.gl_pathv[i], false);
+                if (ret == 0)
+                        found = true;
+        }
+
+        return found;
 }
 
 static int install_firmware(struct kmod_module *mod)
@@ -1490,17 +1510,19 @@ static int install_firmware(struct kmod_module *mod)
 
                         if (strpbrk(value, "*?[") != NULL
                             && access(fwpath, F_OK) != 0) {
-                                size_t i;
-                                _cleanup_globfree_ glob_t globbuf;
+                                found_this = install_firmware_glob(fwpath);
+                                if (!found_this) {
+                                        _cleanup_free_ char *fwpath_compressed = NULL;
 
-                                glob(fwpath, 0, NULL, &globbuf);
-                                for (i = 0; i < globbuf.gl_pathc; i++) {
-                                        ret = install_firmware_fullpath(globbuf.gl_pathv[i]);
-                                        if (ret == 0)
-                                                found_this = true;
+                                        _asprintf(&fwpath_compressed, "%s.zst", fwpath);
+                                        found_this = install_firmware_glob(fwpath_compressed);
+                                        if (!found_this) {
+                                                strcpy(fwpath_compressed + strlen(fwpath) + 1, "xz");
+                                                found_this = install_firmware_glob(fwpath_compressed);
+                                        }
                                 }
                         } else {
-                                ret = install_firmware_fullpath(fwpath);
+                                ret = install_firmware_fullpath(fwpath, true);
                                 if (ret == 0)
                                         found_this = true;
                         }
