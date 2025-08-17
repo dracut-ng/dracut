@@ -13,6 +13,7 @@ filtersubvol() {
     while [ $# -gt 0 ]; do
         case $1 in
             'subvol='*) : ;;
+            'subvolid='*) : ;;
             *) printf '%s' "${1}," ;;
         esac
         shift
