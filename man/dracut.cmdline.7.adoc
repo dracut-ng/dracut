@@ -946,6 +946,13 @@ Requires the dracut 'nvmf' module.
     the initramfs was built. Targets specified with rd.nvmf.discover on the
     kernel command line will still be tried.
 
+**rd.nvmf.nm**::
+    Rely on NetworkManagers nm-initrd-generator tool to set up network
+    interfaces from the NVMe Boot Firmware Table (NBFT). This has the effect
+    that the network interfaces generated from the NBFT will have regular
+    interface names rather than ++nbft0++ etc. *This requires NetworkManager
+    1.54.0 or higher*.
+
 **rd.nvmf.hostnqn=**__<hostNQN>__::
     NVMe host NQN to use
 

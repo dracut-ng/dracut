@@ -203,6 +203,12 @@ nbft_parse() {
 
     nbft_json=$(nvme nbft show -H -o json) || return 0
     n_nbft=$(nbft_run_jq ". | length" "$nbft_json") || return 0
+    if [ "$n_nbft" -gt 0 ] && getargbool 0 rd.nvmf.nm; then
+        # nm-initrd-generator will take care of the interface setup.
+        # We set valid_nbft_entry_found to enable netroot (see below).
+        : > /tmp/valid_nbft_entry_found
+        return 0
+    fi
 
     while [ "$j" -lt "$n_nbft" ]; do
         all_hfi_json=$(nbft_run_jq ".[$j].hfi" "$nbft_json") || continue
