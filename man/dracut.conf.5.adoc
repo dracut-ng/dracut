@@ -192,6 +192,9 @@ in its current state will not be included, and modules may make additional
 efforts to save more space. Minor changes in hardware or environment can make
 the image unbootable.
 
+WARNING: If chrooted to another root other than the real root device, use
+`--fstab` and provide a valid _/etc/fstab_.
+
 *hostonly_cmdline=*"__{yes|no}__"::
 If set to "yes", store the kernel command line arguments needed in the
 initramfs. If **hostonly="yes"** and this option is not configured, it's
@@ -209,9 +212,6 @@ _<policy>_ can be any directory name found in /dev/disk (e.g. "by-uuid",
 *tmpdir=*"__<temporary directory>__"::
 Specify temporary directory to use.
 +
-WARNING: If chrooted to another root other than the real root device, use
-`--fstab` and provide a valid _/etc/fstab_.
-
 *use_fstab=*"__{yes|no}__"::
 Use _/etc/fstab_ instead of _/proc/self/mountinfo_ (default=no).
 
