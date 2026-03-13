@@ -372,6 +372,10 @@ ppcmac:
     - changed-files:
           - any-glob-to-any-file: 'modules.d/[0-9][0-9]ppcmac/*'
 
+qcom-adsp:
+    - changed-files:
+          - any-glob-to-any-file: 'modules.d/[0-9][0-9]qcom-adsp/*'
+
 qemu:
     - changed-files:
           - any-glob-to-any-file: 'modules.d/[0-9][0-9]qemu/*'
