@@ -201,6 +201,10 @@ code, there are no specific types or categories for dracut modules.
 | polls CD-ROM
 |
 
+| qcom-adsp
+| Load Qualcomm ADSP module pre-udev
+|
+
 | rescue
 | utilities for rescue mode (such as ping, ssh, vi, fsck.*)
 | utils
