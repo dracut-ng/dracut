@@ -51,47 +51,6 @@ dev_unit_name() {
     printf -- "%s" "$dev"
 }
 
-# set_systemd_timeout_for_dev [-n] <dev> [<timeout>]
-# Set 'rd.timeout' as the systemd timeout for <dev>
-set_systemd_timeout_for_dev() {
-    local _name
-    local _needreload
-    local _noreload
-    local _timeout
-
-    [ -z "${DRACUT_SYSTEMD-}" ] && return 0
-
-    if [ "$1" = "-n" ]; then
-        _noreload=1
-        shift
-    fi
-
-    if [ -n "$2" ]; then
-        _timeout="$2"
-    else
-        _timeout=$(getarg rd.timeout)
-    fi
-
-    _timeout=${_timeout:-infinity}
-
-    _name=$(dev_unit_name "$1")
-
-    if ! [ -f "${PREFIX-}/etc/systemd/system/${_name}.device.d/timeout.conf" ]; then
-        mkdir -p "${PREFIX-}/etc/systemd/system/${_name}.device.d"
-        {
-            echo "[Unit]"
-            echo "JobTimeoutSec=$_timeout"
-            echo "JobRunningTimeoutSec=$_timeout"
-        } > "${PREFIX-}/etc/systemd/system/${_name}.device.d/timeout.conf"
-        type mark_hostonly > /dev/null 2>&1 && mark_hostonly /etc/systemd/system/"${_name}".device.d/timeout.conf
-        _needreload=1
-    fi
-
-    if [ -z "${PREFIX-}" ] && [ "$_needreload" = 1 ] && [ -z "$_noreload" ]; then
-        /sbin/initqueue --onetime --unique --name daemon-reload systemctl daemon-reload
-    fi
-}
-
 # wait_for_dev <dev> [<timeout>]
 #
 # Installs a initqueue-finished script,
@@ -101,6 +60,7 @@ wait_for_dev() {
     local _name
     local _needreload
     local _noreload
+    local _timeout
     local _unit
 
     if [ "$1" = "-n" ]; then
@@ -131,11 +91,27 @@ wait_for_dev() {
         _needreload=1
     fi
 
+    if [ -n "$2" ]; then
+        _timeout="$2"
+    else
+        _timeout=$(getarg rd.timeout)
+    fi
+    _timeout=${_timeout:-infinity}
+
+    if ! [ -f "${PREFIX-}/etc/systemd/system/${_unit}.d/timeout.conf" ]; then
+        mkdir -p "${PREFIX-}/etc/systemd/system/${_unit}.d"
+        {
+            echo "[Unit]"
+            echo "JobTimeoutSec=$_timeout"
+            echo "JobRunningTimeoutSec=$_timeout"
+        } > "${PREFIX-}/etc/systemd/system/${_unit}.d/timeout.conf"
+        type mark_hostonly > /dev/null 2>&1 && mark_hostonly /etc/systemd/system/"${_unit}".d/timeout.conf
+        _needreload=1
+    fi
+
     if [ -z "${PREFIX-}" ] && [ "$_needreload" = 1 ] && [ -z "$_noreload" ]; then
         /sbin/initqueue --onetime --unique --name daemon-reload systemctl daemon-reload
     fi
-
-    set_systemd_timeout_for_dev $_noreload "$@"
 }
 
 cancel_wait_for_dev() {
