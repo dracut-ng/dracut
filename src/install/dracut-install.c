@@ -2708,7 +2708,7 @@ static int install_modules(int argc, char **argv)
 
                         {
                                 char *paths[] = { path1, path2, path3, NULL };
-                                fts = fts_open(paths, FTS_COMFOLLOW | FTS_NOCHDIR | FTS_NOSTAT | FTS_LOGICAL, NULL);
+                                fts = fts_open(paths, FTS_COMFOLLOW | FTS_NOCHDIR | FTS_LOGICAL, NULL);
                         }
 
                         for (FTSENT *ftsent = fts_read(fts); ftsent != NULL; ftsent = fts_read(fts)) {
