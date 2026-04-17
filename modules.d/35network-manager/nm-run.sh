@@ -53,6 +53,8 @@ dhcpopts_create() {
     kf_parse root-path new_root_path < "$1"
     kf_parse next-server new_next_server < "$1"
     kf_parse dhcp-bootfile filename < "$1"
+    kf_parse dhcp4.ntp_servers new_ntp_servers < "$1"
+    kf_parse dhcp6.ntp_servers new_dhcp6_ntp_servers < "$1"
 }
 
 for _i in /sys/class/net/*; do
