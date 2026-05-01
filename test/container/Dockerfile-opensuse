@@ -17,6 +17,7 @@ RUN zypper --non-interactive install --no-recommends \
     btrfsprogs \
     busybox \
     cargo \
+    chrony \
     cpio \
     cryptsetup \
     dhcp-client \
