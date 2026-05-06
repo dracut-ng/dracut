@@ -111,7 +111,7 @@ fi
 
 if arg=$(getarg rd.iscsi.initiator -d iscsi_initiator=) && [ -n "$arg" ] && ! [ -f /run/initiatorname.iscsi ]; then
     iscsi_initiator=$arg
-    echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
+    printf 'InitiatorName=%q\n' "$iscsi_initiator" > /run/initiatorname.iscsi
     ln -fs /run/initiatorname.iscsi /dev/.initiatorname.iscsi
     rm -f /etc/iscsi/initiatorname.iscsi
     mkdir -p /etc/iscsi
@@ -127,7 +127,7 @@ fi
 if [ -z "$iscsi_initiator" ] && [ -f /sys/firmware/ibft/initiator/initiator-name ] && ! [ -f /tmp/iscsi_set_initiator ]; then
     iscsi_initiator=$(while read -r line || [ -n "$line" ]; do echo "$line"; done < /sys/firmware/ibft/initiator/initiator-name)
     if [ -n "$iscsi_initiator" ]; then
-        echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
+        printf 'InitiatorName=%q\n' "$iscsi_initiator" > /run/initiatorname.iscsi
         rm -f /etc/iscsi/initiatorname.iscsi
         mkdir -p /etc/iscsi
         ln -fs /run/initiatorname.iscsi /etc/iscsi/initiatorname.iscsi

@@ -144,7 +144,7 @@ handle_netroot() {
 
     if [ -z "$iscsi_initiator" ] && [ -f /sys/firmware/ibft/initiator/initiator-name ] && ! [ -f /tmp/iscsi_set_initiator ]; then
         iscsi_initiator=$(while read -r line || [ -n "$line" ]; do echo "$line"; done < /sys/firmware/ibft/initiator/initiator-name)
-        echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
+        printf 'InitiatorName=%q\n' "$iscsi_initiator" > /run/initiatorname.iscsi
         rm -f /etc/iscsi/initiatorname.iscsi
         mkdir -p /etc/iscsi
         ln -fs /run/initiatorname.iscsi /etc/iscsi/initiatorname.iscsi
@@ -165,7 +165,7 @@ handle_netroot() {
 
     if [ -z "$iscsi_initiator" ]; then
         iscsi_initiator=$(iscsi-iname)
-        echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
+        printf 'InitiatorName=%q\n' "$iscsi_initiator" > /run/initiatorname.iscsi
         rm -f /etc/iscsi/initiatorname.iscsi
         mkdir -p /etc/iscsi
         ln -fs /run/initiatorname.iscsi /etc/iscsi/initiatorname.iscsi
@@ -189,7 +189,7 @@ handle_netroot() {
         iscsi_lun=0
     fi
 
-    echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
+    printf 'InitiatorName=%q\n' "$iscsi_initiator" > /run/initiatorname.iscsi
     ln -fs /run/initiatorname.iscsi /dev/.initiatorname.iscsi
     if ! [ -e /etc/iscsi/initiatorname.iscsi ]; then
         mkdir -p /etc/iscsi
@@ -210,14 +210,14 @@ handle_netroot() {
 
     if [ "$root" = "dhcp" ] || [ "$netroot" = "dhcp" ]; then
         # if root is not specified try to mount the whole iSCSI LUN
-        printf 'SYMLINK=="disk/by-path/*-iscsi-*-%s", SYMLINK+="root"\n' "$iscsi_lun" >> /etc/udev/rules.d/99-iscsi-root.rules
+        printf 'SYMLINK=="disk/by-path/*-iscsi-*-%s", SYMLINK+="root"\n' "$(printf '%s' "$iscsi_lun" | tr -d '"')" >> /etc/udev/rules.d/99-iscsi-root.rules
         udevadm control --reload
         write_fs_tab /dev/root
         wait_for_dev -n /dev/root
 
         # install mount script
         [ -z "${DRACUT_SYSTEMD-}" ] \
-            && echo "iscsi_lun=$iscsi_lun . /bin/mount-lun.sh " > "$hookdir"/mount/01-$$-iscsi.sh
+            && printf 'iscsi_lun=%q . /bin/mount-lun.sh\n' "$iscsi_lun" > "$hookdir"/mount/01-$$-iscsi.sh
     fi
 
     if strglobin "$iscsi_target_ip" '*:*:*' && ! strglobin "$iscsi_target_ip" '['; then
