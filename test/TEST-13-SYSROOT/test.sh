@@ -39,7 +39,7 @@ test_setup() {
 
         if [ "$root_password" != "$initramfs_root_password" ]; then
             echo "The password for root does not match, failing the test."
-            rm "$TESTDIR"/initramfs.testing
+            return 1
         fi
     fi
 }
