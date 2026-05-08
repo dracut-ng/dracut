@@ -15,7 +15,7 @@ for ifpath in /sys/class/net/*; do
             grep -E "^(NEXT_SERVER|ROOT_PATH)=" "$leases_file" \
                 | sed -e "s/NEXT_SERVER=/new_next_server='/" \
                     -e "s/ROOT_PATH=/new_root_path='/" \
-                    -e "s/$/'/" > "$dhcpopts_file" || true
+                    -e "s/$/'/" > "$dhcpopts_file" || :
         fi
 
         source_hook initqueue/online "$ifname"

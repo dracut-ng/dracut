@@ -18,7 +18,7 @@ DRACUT=${DRACUT-dracut}
 PKGLIBDIR=${PKGLIBDIR-$basedir}
 
 if [[ -f /etc/machine-id ]]; then
-    read -r TOKEN < /etc/machine-id || true
+    read -r TOKEN < /etc/machine-id || :
 fi
 [ -z "${TOKEN-}" ] && . /etc/os-release && TOKEN="$ID"
 

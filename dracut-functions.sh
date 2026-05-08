@@ -648,7 +648,7 @@ get_blockdev_drv_through_sys() {
     local _path
 
     _path=$(realpath "$1")
-    while true; do
+    while :; do
         if [[ -L "$_path"/driver/module ]]; then
             _mod=$(realpath "$_path"/driver/module)
             _mod=$(basename "$_mod")
@@ -1538,7 +1538,7 @@ DRACUT_LDCONFIG=${DRACUT_LDCONFIG:-ldconfig}
 DRACUT_TESTBIN=${DRACUT_TESTBIN:-/bin/sh}
 
 if ! [[ "${DRACUT_INSTALL-}" ]]; then
-    DRACUT_INSTALL=$(find_binary dracut-install || true)
+    DRACUT_INSTALL=$(find_binary dracut-install || :)
 fi
 
 if ! [[ $DRACUT_INSTALL ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then

@@ -44,7 +44,7 @@ generate_random_password() {
 
     entropy_sources="/proc/sys/kernel/random/boot_id /proc/sys/kernel/random/uuid /dev/urandom"
 
-    stat -L /dev/* /proc/* /sys/* > "$tmpf" 2>&1 || true
+    stat -L /dev/* /proc/* /sys/* > "$tmpf" 2>&1 || :
 
     for src in $entropy_sources; do
         [ -e "$src" ] && head -c 4096 "$src" >> "$tmpf" 2> /dev/null
@@ -142,8 +142,8 @@ overlayfs_crypt_setup() {
 
     info "Setting up encrypted overlay on $dev"
 
-    modprobe -q dm_mod 2> /dev/null || true
-    modprobe -q dm_crypt 2> /dev/null || true
+    modprobe -q dm_mod 2> /dev/null || :
+    modprobe -q dm_crypt 2> /dev/null || :
 
     crypt_dev="/dev/mapper/$mapname"
 
@@ -189,7 +189,7 @@ overlayfs_crypt_setup() {
         warn "luksOpen failed on $dev"
         return 1
     fi
-    udevadm settle 2> /dev/null || true
+    udevadm settle 2> /dev/null || :
 
     info "LUKS device opened, waiting for $crypt_dev"
 

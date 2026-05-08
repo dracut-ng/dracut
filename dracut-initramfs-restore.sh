@@ -52,7 +52,7 @@ find_initrd_for_kernel_version() {
     fi
 }
 
-mount -o ro /boot &> /dev/null || true
+mount -o ro /boot &> /dev/null || :
 
 IMG=$(find_initrd_for_kernel_version "$KERNEL_VERSION")
 if [ -z "$IMG" ]; then
