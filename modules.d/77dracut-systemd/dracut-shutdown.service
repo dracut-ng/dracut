@@ -11,5 +11,4 @@ OnFailure=dracut-shutdown-onfailure.service
 [Service]
 RemainAfterExit=yes
 Type=oneshot
-ExecStart=/bin/true
 ExecStop=/usr/lib/dracut/dracut-initramfs-restore
