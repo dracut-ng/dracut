@@ -6,6 +6,9 @@
 |===
 | Module | Description
 
+| chrony
+| Adds support for synchronizing the internal clock via Network Time Protocol (NTP)
+
 | cifs
 | https://docs.kernel.org/admin-guide/cifs/index.html[CIFS], https://repology.org/project/cifs-utils[cifs-utils]
 

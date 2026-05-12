@@ -190,6 +190,13 @@ jobs:
                 test:
                     - "31"
                     - "60"
+                    - "61"
+                exclude:
+                    # In Debian/Ubuntu both chrony and systemd-timesyncd provide
+                    # the virtual package time-daemon, so systemd-timesyncd
+                    # would have to be removed, breaking test 41.
+                    - container: ubuntu:devel
+                      test: "61"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm'

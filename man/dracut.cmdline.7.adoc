@@ -729,6 +729,27 @@ interface name. Better name it "bootnet" or "bluesocket".
     list of physical (ethernet) interfaces. Bridge without parameters assumes
     bridge=br0:eth0
 
+NTP
+~~~
+Requires the dracut 'chrony' module.
+
+**rd.ntp=**__{server|pool|peer}__:__<hostname-or-ip>__[:__<option>__[,<option>...]]::
+    This parameter can be specified multiple times.
+    IPv6 addresses have to be put in brackets.
+    See man:chrony.conf[5,external] for more information about server, pool and
+    peer options.
++
+[listing]
+.Examples
+--
+    rd.ntp=pool:2.europe.pool.ntp.org:iburst
+    rd.ntp=server:185.177.150.95:iburst,prefer
+    rd.ntp=server:[2600:1f18:631e:db00:363d:d9d7:5c80:d560]:iburst,maxdelay,0.3
+--
+
+**rd.ntp.nodhcp**::
+    Disable using NTP sources from DHCP.
+
 NFS
 ~~~
 Requires the dracut 'nfs' module.

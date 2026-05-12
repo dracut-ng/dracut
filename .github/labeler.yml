@@ -88,6 +88,10 @@ caps:
     - changed-files:
           - any-glob-to-any-file: 'modules.d/[0-9][0-9]caps/*'
 
+chrony:
+    - changed-files:
+          - any-glob-to-any-file: 'modules.d/[0-9][0-9]chrony/*'
+
 cifs:
     - changed-files:
           - any-glob-to-any-file: 'modules.d/[0-9][0-9]cifs/*'
