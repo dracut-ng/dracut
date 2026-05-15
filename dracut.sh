@@ -1246,7 +1246,7 @@ if ! [[ $outfile ]]; then
             MACHINE_ID="Default"
         fi
 
-        if [[ -n "${KERNEL_INSTALL_ENTRY_TOKEN-}" ]]; then
+        if [[ -n ${KERNEL_INSTALL_ENTRY_TOKEN-} ]]; then
             ENTRY_TOKEN="$KERNEL_INSTALL_ENTRY_TOKEN"
         elif [[ -f "${dracutsysrootdir-}"/etc/kernel/entry-token ]]; then
             read -r ENTRY_TOKEN < "${dracutsysrootdir-}"/etc/kernel/entry-token
