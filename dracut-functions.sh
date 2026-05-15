@@ -1343,7 +1343,7 @@ inst_libdir_file() {
             for _i in "$@"; do
                 for _f in "${dracutsysrootdir-}$_dir"/$_i; do
                     [[ ${_f#"${dracutsysrootdir-}"} =~ $_pattern ]] || continue
-                    [[ -e $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
+                    [[ -s $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
                 done
             done
         done
@@ -1351,7 +1351,7 @@ inst_libdir_file() {
         for _dir in $libdirs; do
             for _i in "$@"; do
                 for _f in "${dracutsysrootdir-}$_dir"/$_i; do
-                    [[ -e $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
+                    [[ -s $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
                 done
             done
         done
