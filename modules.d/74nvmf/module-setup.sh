@@ -108,13 +108,6 @@ cmdline() {
     gen_nvmf_cmdline() {
         local _dev=$1
         local trtype
-        local traddr
-        local host_traddr
-        local trsvcid
-        local _address
-        local -a _address_parts
-        local nbft_entry
-        local -a version
 
         [[ -L "/sys/dev/block/$_dev" ]] || return 0
         cd -P "/sys/dev/block/$_dev" || return 0
@@ -129,35 +122,39 @@ cmdline() {
             fi
         done
 
-        [ -z "$trtype" ] && return 0
-        nvme list-subsys "${PWD##*/}" | while read -r _ _ trtype _address _; do
-            [[ -z $trtype || $trtype != "${trtype#NQN}" ]] && continue
-            unset traddr
-            unset host_traddr
-            unset trsvcid
-            mapfile -t -d ',' _address_parts < <(printf "%s" "$_address")
-            for i in "${_address_parts[@]}"; do
-                [[ $i =~ ^traddr= ]] && traddr="${i#traddr=}"
-                [[ $i =~ ^host_traddr= ]] && host_traddr="${i#host_traddr=}"
-                [[ $i =~ ^trsvcid= ]] && trsvcid="${i#trsvcid=}"
-            done
-            [[ -z $traddr && -z $host_traddr && -z $trsvcid ]] && continue
-            [[ $trtype == tcp && $nvmf_nbft_mode == nbft ]] \
-                && __nvmf_has_nbft && continue
-            # _nbft_subsystems is set in cmdline() scope below.
-            # It lists all subsystems found in the NBFT in the format
-            # "traddr,trsvcid"
-            # If the subsystem found is listed in the NBFT, don't add it
-            # explicitly to the command line.
-            if [[ $trtype == tcp && $nvmf_nbft_mode == match ]]; then
-                for nbft_entry in "${_nbft_subsystems[@]}"; do
-                    if [[ "$traddr,$trsvcid" == "$nbft_entry" ]]; then
-                        continue 2
-                    fi
-                done
-            fi
-            echo -n " rd.nvmf.discover=$trtype,$traddr,$host_traddr,$trsvcid"
-        done
+        [[ $trtype ]] || return 0
+        [[ $trtype == tcp && $nvmf_nbft_mode == nbft ]] \
+            && __nvmf_has_nbft && return 0
+
+        nvme list-subsys "${PWD##*/}" -o json | jq -j '
+if type == "array" then .[] else . end |
+.Subsystems[]? |
+.Paths[]? |
+select (.Transport == "'"$trtype"'") |
+(if .AddressDetails then
+  {
+     traddr: .AddressDetails.traddr,
+     host_traddr: .AddressDetails.host_traddr,
+     trsvcid: .AddressDetails.trsvcid
+  }
+else
+  (.Address | split(",") | map(split("=") | {(.[0]): .[1]}) | add) as $fields |
+  {
+     traddr: $fields.traddr,
+     host_traddr: $fields.host_traddr,
+     trsvcid: $fields.trsvcid
+  }
+end) as $vals |
+if $vals.traddr == null and $vals.trsvcid == null and $vals.host_traddr == null
+then ""
+# In "match" mode, do not generate discover lines for subsystems specified in the NBFT
+elif ("'"$nvmf_nbft_mode"'" == "match") and
+     (($vals.traddr + "," + $vals.trsvcid) | in ('"$_nbft_subsystems"'))
+then ""
+# "//" is the "alternative" operator in jq. It avoids null values.
+# \(expr) is jq syntax for interpolation of an expression into a string.
+else " rd.nvmf.discover=\(.Transport),\($vals.traddr // ""),\($vals.host_traddr // ""),\($vals.trsvcid // "")"
+end'
     }
 
     if [ -f /etc/nvme/hostnqn ]; then
@@ -180,9 +177,20 @@ cmdline() {
     fi
 
     [[ $hostonly ]] || [[ $mount_needs ]] && {
-        mapfile -t _nbft_subsystems < \
-            <(nvme nbft show -s -o json \
-                | jq -r '.[].subsystem[] | select(.transport == "tcp") | [.traddr, .trsvcid] | join(",")')
+        # Create a string representing the NVMe subsystems reported by the NBFT
+        # in the form of a JSON object.
+        # E.g. '{ "192.168.1.100:4420": 0, ... }'
+        # It's used in the jq code in gen_nvmf_cmdline() above to check whether
+        # or not a given subsystem was specified in the NBFT.
+        # An object (rather than an array) must be used because jq's in()
+        # builtin looks for keys only, not values.
+        # The '+ [{}]' avoids a "null" result for systems without NBFT.
+        # The "add" at the end combines an array of objects into one object.
+        _nbft_subsystems=$(nvme nbft show -s -o json \
+            | jq '[.[].subsystem[] |
+                                   select(.transport == "tcp") |
+                                   {(.traddr + "," + .trsvcid): 0}] + [{}] |
+                                   add')
         pushd . > /dev/null
         for_each_host_dev_and_slaves gen_nvmf_cmdline
         popd > /dev/null || exit
