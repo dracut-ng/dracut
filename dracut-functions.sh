@@ -1342,6 +1342,8 @@ inst_libdir_file() {
         for _dir in $libdirs; do
             for _i in "$@"; do
                 for _f in "${dracutsysrootdir-}$_dir"/$_i; do
+                    # Filter temporary RPM files
+                    [[ $_f == *";"???????? ]] && continue
                     [[ ${_f#"${dracutsysrootdir-}"} =~ $_pattern ]] || continue
                     [[ -s $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
                 done
@@ -1351,6 +1353,8 @@ inst_libdir_file() {
         for _dir in $libdirs; do
             for _i in "$@"; do
                 for _f in "${dracutsysrootdir-}$_dir"/$_i; do
+                    # Filter temporary RPM files
+                    [[ $_f == *";"???????? ]] && continue
                     [[ -s $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
                 done
             done
