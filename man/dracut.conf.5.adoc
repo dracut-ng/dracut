@@ -60,6 +60,8 @@ This option is not recommended to use (use at your own risk).
 *add_drivers+=*" __<kernel modules>__ "::
 Specify a space-separated list of kernel modules to add to the initramfs.
 The kernel modules have to be specified without the ".ko" suffix.
+The kernel module can also be a whole subsystem, if prefixed with a "=",
+like "=drivers/net/team".
 
 *force_drivers+=*" __<list of kernel modules>__ "::
 See add_drivers above. But in this case it is ensured that the drivers
