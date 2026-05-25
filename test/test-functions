@@ -270,6 +270,10 @@ command -v test_check &> /dev/null || test_check() {
     :
 }
 
+command -v test_setup &> /dev/null || test_setup() {
+    :
+}
+
 command -v test_cleanup &> /dev/null || test_cleanup() {
     :
 }
