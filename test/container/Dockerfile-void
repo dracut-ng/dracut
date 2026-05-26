@@ -25,6 +25,7 @@ RUN xbps-install -Syu xbps && xbps-install -yu \
     bash \
     binutils \
     btrfs-progs \
+    busybox \
     cargo \
     clang \
     cpio \
