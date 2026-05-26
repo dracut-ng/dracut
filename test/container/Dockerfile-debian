@@ -30,6 +30,7 @@ RUN case $(dpkg --print-architecture) in \
     asciidoctor \
     bluez \
     btrfs-progs \
+    busybox \
     ca-certificates \
     cargo \
     console-data \
