@@ -7,7 +7,6 @@
 # - network (OpenRC): networkmanager
 
 # Not installed
-# - busybox (to increase coverage)
 # - dash (to increase coverage)
 # - rng-tools (to increase coverage)
 # - ntfs3g (to keep container small)
@@ -60,6 +59,7 @@ emerge --quiet --deep --autounmask-continue=y --with-bdeps=n --noreplace \
     net-fs/nfs-utils \
     net-misc/dhcp \
     net-wireless/bluez \
+    sys-apps/busybox \
     sys-apps/nvme-cli \
     sys-block/nbd \
     sys-block/open-iscsi \
