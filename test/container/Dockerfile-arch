@@ -9,7 +9,6 @@
 # - network: network-manager, systemd-networkd
 
 # Not installed
-# - busybox (no need, tested elsewhere)
 # - cifs-utils (no need, tested elsewhere)
 # - openssh (no need, tested elsewhere)
 # - rng-tools (does not start, https://github.com/dracut-ng/dracut/pull/290#issuecomment-2138184351)
@@ -28,6 +27,7 @@ RUN pacman --noconfirm -Syu \
     asciidoctor \
     bluez \
     btrfs-progs \
+    busybox \
     cargo \
     cpio \
     dhcp \

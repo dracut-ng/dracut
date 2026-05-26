@@ -15,6 +15,7 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest
 RUN zypper --non-interactive install --no-recommends \
     bash-completion \
     btrfsprogs \
+    busybox \
     cargo \
     cpio \
     cryptsetup \
