@@ -17,10 +17,11 @@ parse_overlay_opts() {
     for tok in "$@"; do
         key="${tok%%=*}"
         val="${tok#*=}"
+        # shellcheck disable=SC2034
         [ "$key" = "$tok" ] && val=""
         case "$key" in
             mapname | fstype | mkfs | timeout)
-                eval "${ns}${key}='${val}'"
+                eval "${ns}${key}=\${val}"
                 _RET="${_RET:+$_RET }${ns}${key}"
                 ;;
             *)
