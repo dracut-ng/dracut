@@ -37,7 +37,7 @@ if [ -n "$THIN_POOLS" ]; then
         lvm lvchange -ay "$THIN_POOL" --config "$CONFIG"
     done
 
-    while true; do
+    while :; do
         for THIN_POOL in $THIN_POOLS; do
             lvm lvextend --use-policies --config "$CONFIG" "$THIN_POOL"
         done

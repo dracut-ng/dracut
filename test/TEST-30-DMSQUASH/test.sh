@@ -57,7 +57,7 @@ check_autooverlay_marker() {
 # Reset root.img to single partition state for autooverlay test
 reset_overlay_partition() {
     test_marker_reset
-    sfdisk --delete "$TESTDIR"/root.img 2 2> /dev/null || true
+    sfdisk --delete "$TESTDIR"/root.img 2 2> /dev/null || :
     dd if=/dev/zero of="$TESTDIR"/root.img bs=1M seek=320 count=50 conv=notrunc status=none
     local rootPartitions
     rootPartitions=$(sfdisk -d "$TESTDIR"/root.img | grep -c 'root\.img[0-9]')

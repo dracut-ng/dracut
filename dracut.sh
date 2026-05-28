@@ -1086,7 +1086,7 @@ if [[ $regenerate_all == "yes" ]]; then
             [[ -f $i/modules.dep ]] || [[ -f $i/modules.dep.bin ]] || continue
             "$dracut_cmd" --kver="$i" "${dracut_args[@]}" &
         done
-        while true; do
+        while :; do
             wait -n
             wst=$?
             if [[ $wst == 127 ]]; then
@@ -1622,7 +1622,7 @@ module_check() {
     [ $# -ge 2 ] && _forced=$2
     [[ -f $_moddir/module-setup.sh ]] || return 1
     unset "${module_functions[@]}"
-    check() { true; }
+    check() { :; }
     # shellcheck disable=SC1090
     . "$_moddir"/module-setup.sh
     _is_func check || return 0
@@ -1666,7 +1666,7 @@ module_depends() {
     [[ -z $_moddir ]] && _moddir=$(dracut_module_path "$1")
     [[ -f $_moddir/module-setup.sh ]] || return 1
     unset "${module_functions[@]}"
-    depends() { true; }
+    depends() { :; }
     # shellcheck disable=SC1090
     . "$_moddir"/module-setup.sh
     moddir=$_moddir depends
@@ -1684,7 +1684,7 @@ module_cmdline() {
     [[ -z $_moddir ]] && _moddir=$(dracut_module_path "$1")
     [[ -f $_moddir/module-setup.sh ]] || return 1
     unset "${module_functions[@]}"
-    cmdline() { true; }
+    cmdline() { :; }
     # shellcheck disable=SC1090
     . "$_moddir"/module-setup.sh
     moddir="$_moddir" cmdline
@@ -1702,7 +1702,7 @@ module_config() {
     [[ -z $_moddir ]] && _moddir=$(dracut_module_path "$1")
     [[ -f $_moddir/module-setup.sh ]] || return 1
     unset "${module_functions[@]}"
-    config() { true; }
+    config() { :; }
     # shellcheck disable=SC1090
     . "$_moddir"/module-setup.sh
     moddir="$_moddir" config
@@ -1720,7 +1720,7 @@ module_install() {
     [[ -z $_moddir ]] && _moddir=$(dracut_module_path "$1")
     [[ -f $_moddir/module-setup.sh ]] || return 1
     unset "${module_functions[@]}"
-    install() { true; }
+    install() { :; }
     # shellcheck disable=SC1090
     . "$_moddir"/module-setup.sh
     moddir="$_moddir" install
@@ -1738,7 +1738,7 @@ module_installkernel() {
     [[ -z $_moddir ]] && _moddir=$(dracut_module_path "$1")
     [[ -f $_moddir/module-setup.sh ]] || return 1
     unset "${module_functions[@]}"
-    installkernel() { true; }
+    installkernel() { :; }
     # shellcheck disable=SC1090
     . "$_moddir"/module-setup.sh
     moddir="$_moddir" installkernel
