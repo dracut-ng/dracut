@@ -378,14 +378,14 @@ list_hooks() {
     # priority, '/etc/dracut/hooks' comes after and '/usr/lib/dracut/hooks' is the
     # least priviliged location.
     for hook in "/var/lib/dracut/hooks/$dir/"$pattern; do
-        [ -f "$hook" ] && echo "$hook"
+        [ -f "$hook" ] && printf '%s\n' "$hook"
     done
     for hook in "/etc/dracut/hooks/$dir/"$pattern; do
-        [ -f "$hook" ] && [ ! -f "/var/lib/dracut/hooks/$dir/${hook##*/}" ] && echo "$hook"
+        [ -f "$hook" ] && [ ! -f "/var/lib/dracut/hooks/$dir/${hook##*/}" ] && printf '%s\n' "$hook"
     done
     for hook in "/usr/lib/dracut/hooks/$dir/"$pattern; do
         [ -f "$hook" ] && [ ! -f "/var/lib/dracut/hooks/$dir/${hook##*/}" ] \
-            && [ ! -f "/etc/dracut/hooks/$dir/${hook##*/}" ] && echo "$hook"
+            && [ ! -f "/etc/dracut/hooks/$dir/${hook##*/}" ] && printf '%s\n' "$hook"
     done
 }
 
