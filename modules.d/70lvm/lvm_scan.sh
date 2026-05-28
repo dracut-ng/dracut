@@ -65,7 +65,7 @@ no_lvm_conf_filter() {
     fi
 
     # /etc/lvm/lvm.conf exists with no filter setting
-    true > /run/lvm/initrd_no_filter
+    : > /run/lvm/initrd_no_filter
     return 0
 }
 
