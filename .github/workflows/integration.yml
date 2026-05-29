@@ -98,6 +98,11 @@ jobs:
                     - "50"
                     - "80"
                     - "81"
+                    - "83"
+                exclude:
+                    # busybox applet symlinks regress on Fedora, see #2454
+                    - container: fedora:latest
+                      test: "83"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm'
