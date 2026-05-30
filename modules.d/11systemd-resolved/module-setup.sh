@@ -33,6 +33,8 @@ install() {
 
     inst_sysusers systemd-resolve.conf
 
+    inst_libdir_file "libssl.so*"
+
     inst_multiple -o \
         "$dbussystem"/org.freedesktop.resolve1.conf \
         "$dbussystemservices"/org.freedesktop.resolve1.service \
