@@ -16,6 +16,18 @@ for ifpath in /sys/class/net/*; do
                 | sed -e "s/NEXT_SERVER=/new_next_server='/" \
                     -e "s/ROOT_PATH=/new_root_path='/" \
                     -e "s/$/'/" > "$dhcpopts_file" || :
+        else
+            # Since systemd v261 the DHCP lease is no longer serialized to /run/, use the new networkctl command.
+            lease=$(networkctl --no-pager --no-legend --full dhcp-lease "$ifname" 2> /dev/null) || lease=""
+            if [ -n "$lease" ]; then
+                {
+                    next_server=$(printf '%s\n' "$lease" | sed -n "s/^[[:space:]]*Server Address:[[:space:]]*//p")
+                    [ -n "$next_server" ] && printf "new_next_server='%s'\n" "$next_server"
+                    # option 17 is the DHCP root-path; strip the leading "<code> <name> " columns
+                    root_path=$(printf '%s\n' "$lease" | sed -n "s/^[[:space:]]*17[[:space:]].*[[:space:]]//p")
+                    [ -n "$root_path" ] && printf "new_root_path='%s'\n" "$root_path"
+                } > "$dhcpopts_file" || :
+            fi
         fi
 
         source_hook initqueue/online "$ifname"
