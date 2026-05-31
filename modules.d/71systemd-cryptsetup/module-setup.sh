@@ -47,7 +47,7 @@ depends() {
 
 # called by dracut
 config() {
-    add_dlopen_features+=" libsystemd-shared-*.so:cryptsetup "
+    add_dlopen_features+=" libsystemd-shared-*.so:cryptsetup,libcrypto "
 }
 
 # called by dracut
