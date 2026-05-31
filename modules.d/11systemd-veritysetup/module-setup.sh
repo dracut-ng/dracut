@@ -28,7 +28,7 @@ depends() {
 
 # Config adjustments before installing anything.
 config() {
-    add_dlopen_features+=" libsystemd-shared-*.so:cryptsetup "
+    add_dlopen_features+=" libsystemd-shared-*.so:cryptsetup,libcrypto "
 }
 
 # Install kernel module(s).

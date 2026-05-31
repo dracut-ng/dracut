@@ -16,7 +16,7 @@ depends() {
 }
 
 config() {
-    add_dlopen_features+=" libsystemd-shared-*.so:archive,lz4,lzma,zstd "
+    add_dlopen_features+=" libsystemd-shared-*.so:archive,curl,libcrypto,lz4,lzma,zstd "
 }
 
 installkernel() {
