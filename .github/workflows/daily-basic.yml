@@ -82,7 +82,7 @@ jobs:
                 container:
                     - alpine:edge
                     - arch:latest
-                    - azurelinux:3.0
+                    - azurelinux:latest
                     - fedora:latest
                     - centos:latest
                     - gentoo:amd64-openrc

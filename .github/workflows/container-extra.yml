@@ -40,7 +40,7 @@ jobs:
                     - {platform: 'linux/amd64', runner: 'ubuntu-24.04', tag: 'amd'}
                     - {platform: 'linux/arm64', runner: 'ubuntu-24.04-arm', tag: 'arm'}
                 config:
-                    - {dockerfile: 'Dockerfile-azurelinux', tag: 'azurelinux:3.0', registry: 'mcr.microsoft.com'}
+                    - {dockerfile: 'Dockerfile-azurelinux', tag: 'azurelinux:latest', registry: 'mcr.microsoft.com'}
                     - {dockerfile: 'Dockerfile-fedora', tag: 'centos:latest', registry: 'quay.io/centos'}
                     - {dockerfile: 'Dockerfile-debian', tag: 'debian:sid'}
                     - {dockerfile: 'Dockerfile-gentoo', tag: 'gentoo:amd64-openrc', option: 'amd64-openrc'}
@@ -88,7 +88,7 @@ jobs:
         strategy:
             matrix:
                 config:
-                    - {tag: 'azurelinux:3.0', platforms: ['amd', 'arm']}
+                    - {tag: 'azurelinux:latest', platforms: ['amd', 'arm']}
                     - {tag: 'centos:latest', platforms: ['amd', 'arm']}
                     - {tag: 'debian:sid', platforms: ['amd', 'arm']}
                     - {tag: 'gentoo:latest', platforms: ['amd', 'arm']}

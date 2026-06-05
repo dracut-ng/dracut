@@ -1,16 +1,17 @@
-FROM mcr.microsoft.com/azurelinux/base/core:3.0
+FROM mcr.microsoft.com/azurelinux-beta/base/core:4.0
 
 # export
 ARG TARGETARCH
 
 RUN \
 if [ "${TARGETARCH}" == "amd64" ]; then \
-    tdnf -y install --setopt=install_weak_deps=False \
+    dnf -y install --setopt=install_weak_deps=False \
         systemd-boot \
         systemd-ukify \
 ; fi
 
-RUN tdnf -y install --setopt=install_weak_deps=False \
+RUN dnf -y install --setopt=install_weak_deps=False \
+    asciidoc \
     bash-completion \
     bluez \
     btrfs-progs \
@@ -36,7 +37,6 @@ RUN tdnf -y install --setopt=install_weak_deps=False \
     lvm2 \
     make \
     mdadm \
-    nbd \
     ndctl \
     nfs-utils \
     nvme-cli \
@@ -45,7 +45,6 @@ RUN tdnf -y install --setopt=install_weak_deps=False \
     qemu \
     qemu-kvm \
     rng-tools \
-    rubygem-asciidoctor \
     rsyslog \
     squashfs-tools \
     swtpm \
@@ -56,7 +55,7 @@ RUN tdnf -y install --setopt=install_weak_deps=False \
     tpm2-tools \
     xfsprogs \
     xorriso \
-    && tdnf clean all
+    && dnf -y update && dnf clean all
 
 # disable systemd-portabled - it is optional and allows to pass the CI
 # disable multipath dracut module - it interferes with the CI on azurelinux
