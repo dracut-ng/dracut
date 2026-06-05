@@ -14,7 +14,7 @@ on:  # yamllint disable-line rule:truthy
                 options:
                     - "all"
                     - "alpine:edge"
-                    - "azurelinux:3.0"
+                    - "azurelinux:latest"
                     - "centos:latest"
                     - "fedora:latest"
                     - "fedora:rawhide"

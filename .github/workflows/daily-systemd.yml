@@ -30,7 +30,7 @@ jobs:
                     - {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                 container:
                     - arch:latest
-                    - azurelinux:3.0
+                    - azurelinux:latest
                     - debian:latest
                     - debian:sid
                     - fedora:latest
@@ -51,7 +51,7 @@ jobs:
                 exclude:
                     - container: arch:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                    - container: azurelinux:3.0
+                    - container: azurelinux:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     - container: fedora:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
