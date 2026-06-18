@@ -16,7 +16,7 @@ jobs:
     iscsi:
         name: ${{ matrix.test }} on ${{ matrix.container }}
         runs-on: ubuntu-24.04
-        timeout-minutes: 40
+        timeout-minutes: 10
         concurrency:
             group: >
                 daily-iscsi-${{ github.workflow }}-${{ github.ref }}

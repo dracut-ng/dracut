@@ -16,7 +16,7 @@ jobs:
     busybox:
         name: ${{ matrix.test }} on ${{ matrix.container }} with busybox
         runs-on: ubuntu-24.04
-        timeout-minutes: 30
+        timeout-minutes: 10
         concurrency:
             group: >
                 daily-busybox-${{ github.workflow }}-${{ github.ref }}
