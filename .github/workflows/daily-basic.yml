@@ -16,7 +16,7 @@ jobs:
     basic:
         name: ${{ matrix.test }} on ${{ matrix.container }} on ${{ matrix.architecture.tag }}
         runs-on: ${{ matrix.architecture.runner }}
-        timeout-minutes: 60
+        timeout-minutes: ${{ matrix.architecture.timeout }}
         concurrency:
             group: >
                 daily-basic-${{ github.workflow }}-${{ github.ref }}
@@ -26,8 +26,8 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04', tag: 'amd'}
-                    - {runner: 'ubuntu-24.04-arm', tag: 'arm'}
+                    - {runner: 'ubuntu-24.04', tag: 'amd', timeout: 10}
+                    - {runner: 'ubuntu-24.04-arm', tag: 'arm', timeout: 40}
                 container:
                     - debian:latest
                     - debian:sid
@@ -68,7 +68,7 @@ jobs:
     extended:
         name: ${{ matrix.test }} on ${{ matrix.container }} on ${{ matrix.architecture.tag }}
         runs-on: ${{ matrix.architecture.runner }}
-        timeout-minutes: 30
+        timeout-minutes: ${{ matrix.architecture.timeout }}
         concurrency:
             group: >
                 daily-basic-extended-${{ github.workflow }}-${{ github.ref }}
@@ -78,7 +78,7 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04', tag: 'amd'}
+                    - {runner: 'ubuntu-24.04', tag: 'amd', timeout: 10}
                 container:
                     - alpine:edge
                     - arch:latest
@@ -115,7 +115,7 @@ jobs:
     arm64-openrc:
         name: ${{ matrix.test }} on ${{ matrix.container }} on ${{ matrix.architecture.tag }}
         runs-on: ${{ matrix.architecture.runner }}
-        timeout-minutes: 60
+        timeout-minutes: ${{ matrix.architecture.timeout }}
         concurrency:
             group: >
                 daily-basic-${{ github.workflow }}-${{ github.ref }}
@@ -125,7 +125,7 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04-arm', tag: 'arm'}
+                    - {runner: 'ubuntu-24.04-arm', tag: 'arm', timeout: 40}
                 container:
                     - gentoo:arm64-openrc
                 test:
