@@ -26,7 +26,7 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04', tag: 'amd', timeout: 20}
+                    - {runner: 'ubuntu-24.04', tag: 'amd', timeout: 10}
                     - {runner: 'ubuntu-24.04-arm', tag: 'arm', timeout: 60}
                 container:
                     - debian:latest

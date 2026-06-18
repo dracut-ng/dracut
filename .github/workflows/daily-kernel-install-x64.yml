@@ -16,7 +16,7 @@ jobs:
     kernel-install:
         name: ${{ matrix.test }} on ${{ matrix.container }}
         runs-on: ubuntu-24.04
-        timeout-minutes: 30
+        timeout-minutes: 10
         concurrency:
             group: >
                 daily-kernel-install-${{ github.workflow }}-${{ github.ref }}
