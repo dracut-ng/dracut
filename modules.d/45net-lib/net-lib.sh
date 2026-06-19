@@ -131,8 +131,13 @@ setup_net() {
     [ -e "/tmp/net.ifaces" ] && read -r IFACES < /tmp/net.ifaces
     [ -z "$IFACES" ] && IFACES="$netif"
     # run the scripts written by ifup
-    # shellcheck disable=SC1090
-    [ -e /tmp/net."$netif".hostname ] && . /tmp/net."$netif".hostname
+    if [ -e /tmp/net."$netif".hostname ]; then
+        if grep -qE '[$`;&|(]' /tmp/net."$netif".hostname 2>/dev/null; then
+            warn "setup_net $netif: /tmp/net.$netif.hostname contains suspicious shell metacharacters"
+        fi
+        # shellcheck disable=SC1090
+        . /tmp/net."$netif".hostname
+    fi
     # shellcheck disable=SC1090
     [ -e /tmp/net."$netif".override ] && . /tmp/net."$netif".override
     # shellcheck disable=SC1090
