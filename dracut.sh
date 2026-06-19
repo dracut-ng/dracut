@@ -283,7 +283,7 @@ Creates initial ramdisk images for preloading modules
   --no-uefi             Disables UEFI mode.
   --no-ukify            Disables ukify.
   --no-machineid        Affects the default output filename of the UEFI
-                         executable, discarding the <MACHINE_ID> part.
+                         executable, discarding the <ENTRY_TOKEN> part.
   --uefi-stub [FILE]    Use the UEFI stub [FILE] to create an UEFI executable.
   --uefi-splash-image [FILE]
                         Use [FILE] as a splash image when creating an UEFI
@@ -1224,6 +1224,14 @@ if ! [[ $outfile ]]; then
         else
             MACHINE_ID="Default"
         fi
+
+        if [[ -n ${KERNEL_INSTALL_ENTRY_TOKEN-} ]]; then
+            ENTRY_TOKEN="$KERNEL_INSTALL_ENTRY_TOKEN"
+        elif [[ -f "${dracutsysrootdir-}"/etc/kernel/entry-token ]]; then
+            read -r ENTRY_TOKEN < "${dracutsysrootdir-}"/etc/kernel/entry-token
+        else
+            ENTRY_TOKEN="$MACHINE_ID"
+        fi
     fi
 
     if [[ $uefi == "yes" ]]; then
@@ -1257,23 +1265,23 @@ if ! [[ $outfile ]]; then
             fi
         fi
         mkdir -p "${dracutsysrootdir-}$efidir/Linux"
-        outfile="${dracutsysrootdir-}$efidir/Linux/linux-$kernel${MACHINE_ID:+-${MACHINE_ID}}${BUILD_ID:+-${BUILD_ID}}.efi"
+        outfile="${dracutsysrootdir-}$efidir/Linux/linux-$kernel${ENTRY_TOKEN:+-${ENTRY_TOKEN}}${BUILD_ID:+-${BUILD_ID}}.efi"
     else
         if ! [[ $initrdname ]]; then
             initrdname="initramfs-${kernel}.img"
         fi
         if [[ -d "${dracutsysrootdir-}"/efi/loader/entries || -L "${dracutsysrootdir-}"/efi/loader/entries ]] \
-            && [[ $MACHINE_ID ]] \
-            && [[ -d "${dracutsysrootdir-}"/efi/${MACHINE_ID} || -L "${dracutsysrootdir-}"/efi/${MACHINE_ID} ]]; then
-            outfile="${dracutsysrootdir-}/efi/${MACHINE_ID}/${kernel}/initrd"
+            && [[ $ENTRY_TOKEN ]] \
+            && [[ -d "${dracutsysrootdir-}"/efi/${ENTRY_TOKEN} || -L "${dracutsysrootdir-}"/efi/${ENTRY_TOKEN} ]]; then
+            outfile="${dracutsysrootdir-}/efi/${ENTRY_TOKEN}/${kernel}/initrd"
         elif [[ -d "${dracutsysrootdir-}"/boot/loader/entries || -L "${dracutsysrootdir-}"/boot/loader/entries ]] \
-            && [[ $MACHINE_ID ]] \
-            && [[ -d "${dracutsysrootdir-}"/boot/${MACHINE_ID} || -L "${dracutsysrootdir-}"/boot/${MACHINE_ID} ]]; then
-            outfile="${dracutsysrootdir-}/boot/${MACHINE_ID}/${kernel}/initrd"
+            && [[ $ENTRY_TOKEN ]] \
+            && [[ -d "${dracutsysrootdir-}"/boot/${ENTRY_TOKEN} || -L "${dracutsysrootdir-}"/boot/${ENTRY_TOKEN} ]]; then
+            outfile="${dracutsysrootdir-}/boot/${ENTRY_TOKEN}/${kernel}/initrd"
         elif [[ -d "${dracutsysrootdir-}"/boot/efi/loader/entries || -L "${dracutsysrootdir-}"/boot/efi/loader/entries ]] \
-            && [[ $MACHINE_ID ]] \
-            && [[ -d "${dracutsysrootdir-}"/boot/efi/${MACHINE_ID} || -L "${dracutsysrootdir-}"/boot/efi/${MACHINE_ID} ]]; then
-            outfile="${dracutsysrootdir-}/boot/efi/${MACHINE_ID}/${kernel}/initrd"
+            && [[ $ENTRY_TOKEN ]] \
+            && [[ -d "${dracutsysrootdir-}"/boot/efi/${ENTRY_TOKEN} || -L "${dracutsysrootdir-}"/boot/efi/${ENTRY_TOKEN} ]]; then
+            outfile="${dracutsysrootdir-}/boot/efi/${ENTRY_TOKEN}/${kernel}/initrd"
         elif [[ -f "${dracutsysrootdir-}"/lib/modules/${kernel}/initrd ]]; then
             outfile="${dracutsysrootdir-}/lib/modules/${kernel}/initrd"
         elif [[ -e ${dracutsysrootdir-}/boot/vmlinuz-${kernel} ||
@@ -1281,13 +1289,13 @@ if ! [[ $outfile ]]; then
             -e ${dracutsysrootdir-}/boot/kernel-${kernel} ]]; then
             outfile="${dracutsysrootdir-}/boot/$initrdname"
         elif [[ -z ${dracutsysrootdir-} ]] \
-            && [[ $MACHINE_ID ]] \
+            && [[ $ENTRY_TOKEN ]] \
             && mountpoint -q /efi; then
-            outfile="/efi/${MACHINE_ID}/${kernel}/initrd"
+            outfile="/efi/${ENTRY_TOKEN}/${kernel}/initrd"
         elif [[ -z ${dracutsysrootdir-} ]] \
-            && [[ $MACHINE_ID ]] \
+            && [[ $ENTRY_TOKEN ]] \
             && mountpoint -q /boot/efi; then
-            outfile="/boot/efi/${MACHINE_ID}/${kernel}/initrd"
+            outfile="/boot/efi/${ENTRY_TOKEN}/${kernel}/initrd"
         else
             outfile="${dracutsysrootdir-}/boot/$initrdname"
         fi
