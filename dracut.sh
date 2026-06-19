@@ -3098,6 +3098,41 @@ fi
 
 dinfo "*** Creating image file '$outfile' ***"
 
+# Read list of files and echo them plus all leading directories.
+# The same directories might be printed multiple times (even with sorted input)!
+add_directories() {
+    local last_dir path dir
+    while read -r path; do
+        dir="${path%/*}"
+        parent="${dir}"
+        while [ "$parent" != "$last_dir" ] && [ "$parent" != "." ]; do
+            echo "$parent"
+            parent="${parent%/*}"
+        done
+        last_dir="$dir"
+        echo "$path"
+    done
+    if [ -n "$last_dir" ]; then
+        echo "."
+    fi
+}
+
+create_cpio_file_lists() {
+    local rootdir="$1"
+    local compressed_file_list="$2"
+    local uncompressed_file_list="$3"
+
+    (
+        cd "$rootdir" || exit 1
+        find . -type f \( -name '*.gz' -o -name '*.xz' -o -name '*.zst' \)
+    ) | add_directories | LC_ALL=C sort | uniq > "$compressed_file_list"
+    (
+        cd "$rootdir" || exit 1
+        find . \( ! -type d ! -name '*.gz' ! -name '*.xz' ! -name '*.zst' \) \
+            -o \( ! -type d ! -type f \) -o \( -type d -empty \)
+    ) | add_directories | LC_ALL=C sort | uniq > "$uncompressed_file_list"
+}
+
 if [[ $uefi == yes ]]; then
     readonly uefi_outdir="$DRACUT_TMPDIR/uefi"
     mkdir -p "$uefi_outdir"
@@ -3136,14 +3171,19 @@ fi
 [[ $EUID == 0 ]] || owner_override="\t\t\t0\t0"
 path_to_manifest() {
     local basedir="$1"
-    local relpath
+    local fullpath relpath
     while IFS= read -r path; do
-        if [[ $path == "$basedir" ]]; then
+        if [[ $path == "$basedir" ]] || [[ $path == . ]]; then
             relpath=.
+            fullpath="$basedir"
+        elif [[ $path =~ \./.* ]]; then
+            relpath="${path#./}"
+            fullpath="$basedir/$relpath"
         else
             relpath="${path#"$basedir"/}"
+            fullpath="$path"
         fi
-        printf "%s\t%s${owner_override-}\n" "$path" "${relpath}"
+        printf "%s\t%s${owner_override-}\n" "${fullpath}" "${relpath}"
     done
 }
 
@@ -3298,12 +3338,23 @@ create_cpio_with_dracut_cpio() {
         cpio_outfile="${DRACUT_TMPDIR}/initramfs.img.uncompressed"
     fi
 
+    if [ -s "$COMPRESSED_FILE_LIST" ]; then
+        if ! (
+            umask 077
+            cd "$initdir"
+            $enhanced_cpio ${cpio_owner:+--owner "$cpio_owner"} --mtime 0 --data-align \
+                "$cpio_align" "${DRACUT_TMPDIR}/initramfs.img" < "$COMPRESSED_FILE_LIST"
+        ); then
+            dfatal "dracut-cpio: creation of $outfile failed"
+            exit 1
+        fi
+    fi
+
     if ! (
         umask 077
         cd "$initdir"
-        find . -print0 | sort -z \
-            | $enhanced_cpio --null ${cpio_owner:+--owner "$cpio_owner"} \
-                --mtime 0 --data-align "$cpio_align" "$cpio_outfile" || exit 1
+        $enhanced_cpio ${cpio_owner:+--owner "$cpio_owner"} --mtime 0 --data-align \
+            "$cpio_align" "$cpio_outfile" < "$UNCOMPRESSED_FILE_LIST" || exit 1
         [[ $compress == "cat" ]] && exit 0
         $compress < "$cpio_outfile" >> "${DRACUT_TMPDIR}/initramfs.img" \
             && rm "$cpio_outfile"
@@ -3315,12 +3366,16 @@ create_cpio_with_dracut_cpio() {
 }
 
 create_cpio_with_3cpio() {
+    if [ -s "$COMPRESSED_FILE_LIST" ]; then
+        echo "#cpio" >> "$manifest"
+        path_to_manifest "$initdir" < "$COMPRESSED_FILE_LIST" >> "$manifest"
+    fi
     if [[ -z $compress_3cpio ]]; then
         echo "#cpio" >> "$manifest"
     else
         echo "#cpio: $compress_3cpio" >> "$manifest"
     fi
-    find "$initdir" | LANG=C sort | path_to_manifest "$initdir" >> "$manifest"
+    path_to_manifest "$initdir" < "$UNCOMPRESSED_FILE_LIST" >> "$manifest"
     if ! 3cpio --create ${cpio_align:+--data-align="${cpio_align}"} "${DRACUT_TMPDIR}/initramfs.img" < "$manifest"; then
         dfatal "Creation of $outfile failed"
         exit 1
@@ -3328,17 +3383,32 @@ create_cpio_with_3cpio() {
 }
 
 create_cpio_with_cpio() {
+    if [ -s "$COMPRESSED_FILE_LIST" ]; then
+        if ! (
+            umask 077
+            cd "$initdir"
+            cpio -o ${CPIO_REPRODUCIBLE:+--reproducible} ${cpio_owner:+-R "$cpio_owner"} -H newc --quiet \
+                < "$COMPRESSED_FILE_LIST" >> "${DRACUT_TMPDIR}/initramfs.img"
+        ); then
+            dfatal "Creation of $outfile failed"
+            exit 1
+        fi
+    fi
+
     if ! (
         umask 077
         cd "$initdir"
-        find . -print0 | sed -e 's,\./,,g' | sort -z \
-            | cpio -o ${CPIO_REPRODUCIBLE:+--reproducible} --null ${cpio_owner:+-R "$cpio_owner"} -H newc --quiet \
-            | $compress >> "${DRACUT_TMPDIR}/initramfs.img"
+        cpio -o ${CPIO_REPRODUCIBLE:+--reproducible} ${cpio_owner:+-R "$cpio_owner"} -H newc --quiet \
+            < "$UNCOMPRESSED_FILE_LIST" | $compress >> "${DRACUT_TMPDIR}/initramfs.img"
     ); then
         dfatal "Creation of $outfile failed"
         exit 1
     fi
 }
+
+COMPRESSED_FILE_LIST="$DRACUT_TMPDIR/compressed_files.txt"
+UNCOMPRESSED_FILE_LIST="$DRACUT_TMPDIR/uncompressed_files.txt"
+create_cpio_file_lists "$initdir" "$COMPRESSED_FILE_LIST" "$UNCOMPRESSED_FILE_LIST"
 
 if [[ -n $enhanced_cpio ]]; then
     create_cpio_with_dracut_cpio
