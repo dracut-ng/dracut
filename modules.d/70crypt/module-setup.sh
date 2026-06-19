@@ -84,6 +84,7 @@ install() {
     fi
 
     inst_hook cmdline 30 "$moddir/parse-crypt.sh"
+    inst_hook cleanup 29 "$moddir/crypt-needshutdown.sh"
     if dracut_module_included "systemd"; then
         inst_script "$moddir/crypt-generator.sh" "$systemdutildir"/system-generators/dracut-crypt-generator
     else
