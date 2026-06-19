@@ -249,6 +249,10 @@ jobs:
                     - opensuse:latest
                 test:
                     - "72"
+                exclude:
+                    # https://github.com/dracut-ng/dracut/issues/2381
+                    - container: opensuse:latest
+                      test: "72"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm'
