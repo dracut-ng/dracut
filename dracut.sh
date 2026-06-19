@@ -192,7 +192,7 @@ Creates initial ramdisk images for preloading modules
                          DO NOT use "strict" mode unless you know what you
                          are doing.
   --hostonly-cmdline    Store kernel command line arguments needed
-                         in the initramfs.
+                         in the initramfs if in host-only mode.
   --no-hostonly-cmdline Do not store kernel command line arguments needed
                          in the initramfs.
   --no-hostonly-default-device
@@ -1399,6 +1399,12 @@ esac
 # make sure these variables are never unset
 hostonly=${hostonly-}
 hostonly_mode=${hostonly_mode-}
+
+if [[ ! $hostonly ]]; then
+    hostonly_cmdline="no"
+elif [[ ! $hostonly_cmdline ]]; then
+    hostonly_cmdline="yes"
+fi
 
 if [[ $reproducible == yes ]] && [[ -z ${SOURCE_DATE_EPOCH-} ]]; then
     SOURCE_DATE_EPOCH=$(stat -c %Y "$dracutbasedir/dracut-functions.sh")

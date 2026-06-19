@@ -398,6 +398,7 @@ Default:
 
 **--hostonly-cmdline**::
     Allow dracut modules to generate and store host-specific initrd arguments.
+    This option is only taken into account when in host-only mode.
     These arguments will be stored in the _etc/cmdline.d_ directory inside
     the generated initrd.
     The kernel cmdline arguments (specified by e.g. bootloader or UKI) take
