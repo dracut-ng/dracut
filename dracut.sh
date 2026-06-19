@@ -3601,9 +3601,9 @@ if [[ -d ${dracutsysrootdir-}/run/systemd/system ]]; then
 
     # use fsfreeze only if we're not writing to /
     if [[ "$(stat -c %m -- "$outfile")" != "/" ]] && freeze_ok_for_fstype "$outfile"; then
-        FSFROZEN="$(dirname "$outfile")"
+        FSFROZEN="${outfile%/*}"
         if ! (fsfreeze -f "${FSFROZEN}" 2> /dev/null && fsfreeze -u "${FSFROZEN}" 2> /dev/null); then
-            dwarn "Could not fsfreeze $(dirname "$outfile")"
+            dwarn "Could not fsfreeze ${FSFROZEN}"
         fi
         unset FSFROZEN
     fi

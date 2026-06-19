@@ -654,7 +654,7 @@ get_blockdev_drv_through_sys() {
             _mod=$(basename "$_mod")
             _block_mods="$_block_mods $_mod"
         fi
-        _path=$(dirname "$_path")
+        _path="${_path%/*}"
         if [[ $_path == '/sys/devices' ]] || [[ $_path == '/' ]]; then
             break
         fi
