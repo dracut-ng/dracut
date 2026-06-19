@@ -16,7 +16,7 @@ jobs:
     hostonlystrict:
         name: ${{ matrix.test }} on ${{ matrix.container }} with hostonly-mode strict
         runs-on: ${{ matrix.architecture.runner }}
-        timeout-minutes: 30
+        timeout-minutes: ${{ matrix.architecture.timeout }}
         concurrency:
             group: >
                 daily-hostonlystrict-${{ github.workflow }}-${{ github.ref }}
@@ -26,8 +26,8 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04', tag: 'amd'}
-                    - {runner: 'ubuntu-24.04-arm', tag: 'arm'}
+                    - {runner: 'ubuntu-24.04', tag: 'amd', timeout: 10}
+                    - {runner: 'ubuntu-24.04-arm', tag: 'arm', timeout: 40}
                 container:
                     - debian:latest
                 test:

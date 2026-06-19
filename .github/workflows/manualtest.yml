@@ -58,7 +58,7 @@ jobs:
     test:
         needs: matrix
         runs-on: ubuntu-24.04
-        timeout-minutes: 40
+        timeout-minutes: 10
         concurrency:
             group: >
                 manual-${{ github.workflow }}-${{ github.ref }}
