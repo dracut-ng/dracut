@@ -84,6 +84,7 @@ jobs:
                     - arch:latest
                     - azurelinux:3.0
                     - fedora:latest
+                    - fedora:rawhide
                     - centos:latest
                     - gentoo:amd64-openrc
                 test:
