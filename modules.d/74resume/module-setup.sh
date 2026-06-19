@@ -46,25 +46,42 @@ depends() {
 }
 
 # called by dracut
-cmdline() {
+_get_resume_dev() {
     local _resume
 
     for dev in "${!host_fs_types[@]}"; do
         [[ ${host_fs_types[$dev]} =~ ^(swap|swsuspend|swsupend)$ ]] || continue
         _resume=$(shorten_persistent_dev "$(get_persistent_dev "$dev")")
-        [[ -n ${_resume} ]] && printf " resume=%s" "${_resume}"
+        [[ -n ${_resume} ]] && echo "${_resume}"
     done
+}
+
+# called by dracut
+cmdline() {
+    local _resume
+    _resume=$(_get_resume_dev)
+    [[ -n ${_resume} ]] && printf " resume=%s" "${_resume}"
 }
 
 # called by dracut
 install() {
     local _bin
     local _resumeconf
+    local _dev
 
     if [[ $hostonly_cmdline == "yes" ]]; then
         _resumeconf=$(cmdline)
         [[ $_resumeconf ]] && printf "%s\n" "$_resumeconf" >> "${initdir}/etc/cmdline.d/20-resume.conf"
     fi
+
+    # If we have a resume device on cmdline, we want its drivers in initrd regardless whether it's currently mounted
+    # check current cmdline as well as fstab one
+    _dev=$(_get_resume_dev)
+    [[ $_dev ]] && push_user_devs "$_dev"
+
+    _dev=$(grep -oP "resume=\K([^ ]*)" /proc/cmdline)
+    _dev=$(shorten_persistent_dev "$(get_persistent_dev "$_dev")")
+    [[ $_dev ]] && push_user_devs "$_dev"
 
     # if systemd is included and has the hibernate-resume tool, use it and nothing else
     if dracut_module_included "systemd"; then
