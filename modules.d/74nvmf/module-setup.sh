@@ -76,7 +76,8 @@ installkernel() {
     if [[ $hostonly ]]; then
         for i in /sys/class/net/nbft*; do
             [ -d "$i" ] || continue
-            _driver=$(basename "$(readlink -f "$i/device/driver/module")")
+            _driver=$(readlink -f "$i/device/driver/module")
+            _driver="${_driver##*/}"
             [ -z "$_driver" ] || instmods "$_driver"
         done
     fi
