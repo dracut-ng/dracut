@@ -29,7 +29,7 @@ jobs:
                     - {runner: 'ubuntu-24.04', tag: 'amd'}
                     - {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                 container:
-                    - debian:latest
+                    - ubuntu:rolling
                 test:
                     - "10"
                     - "11"
