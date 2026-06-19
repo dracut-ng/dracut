@@ -91,11 +91,7 @@ cmdline() {
     gen_nvmf_cmdline() {
         local _dev=$1
         local trtype
-        local traddr
-        local host_traddr
-        local trsvcid
-        local _address
-        local -a _address_parts
+        local discover
 
         [[ -L "/sys/dev/block/$_dev" ]] || return 0
         cd -P "/sys/dev/block/$_dev" || return 0
@@ -111,20 +107,23 @@ cmdline() {
         done
 
         [ -z "$trtype" ] && return 0
-        nvme list-subsys "${PWD##*/}" | while read -r _ _ trtype _address _; do
-            [[ -z $trtype || $trtype != "${trtype#NQN}" ]] && continue
-            unset traddr
-            unset host_traddr
-            unset trsvcid
-            mapfile -t -d ',' _address_parts < <(printf "%s" "$_address")
-            for i in "${_address_parts[@]}"; do
-                [[ $i =~ ^traddr= ]] && traddr="${i#traddr=}"
-                [[ $i =~ ^host_traddr= ]] && host_traddr="${i#host_traddr=}"
-                [[ $i =~ ^trsvcid= ]] && trsvcid="${i#trsvcid=}"
-            done
-            [[ -z $traddr && -z $host_traddr && -z $trsvcid ]] && continue
-            echo -n " rd.nvmf.discover=$trtype,$traddr,$host_traddr,$trsvcid"
-        done
+        discover=$(nvme list-subsys "${PWD##*/}" -o json | jq -j '
+        if type == "array" then .[] else . end |
+        .Subsystems[]? |
+        .Paths[]? |
+        select (.Transport == "'"$trtype"'") |
+        (if .AddressDetails then
+          {traddr: .AddressDetails.traddr, host_traddr: .AddressDetails.host_traddr, trsvcid: .AddressDetails.trsvcid}
+        else
+          (.Address | split(",") | map(split("=") | {(.[0]): .[1]}) | add) as $fields |
+          {traddr: $fields.traddr, host_traddr: $fields.host_traddr, trsvcid: $fields.trsvcid}
+        end) as $vals |
+        if $vals.traddr == null and $vals.trsvcid == null and $vals.host_traddr == null
+        then ""
+        else " rd.nvmf.discover=\(.Transport),\($vals.traddr // ""),\($vals.host_traddr // ""),\($vals.trsvcid // "")"
+        end
+        ')
+        echo -n "$discover"
     }
 
     if [ -f /etc/nvme/hostnqn ]; then
