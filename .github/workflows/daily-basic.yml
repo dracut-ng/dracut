@@ -49,6 +49,7 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
+                    - "83"
                 exclude:
                     # https://github.com/dracut-ng/dracut/issues/1988
                     - container: debian:sid
@@ -99,10 +100,14 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
+                    - "83"
                 exclude:
                     # btrfs kernel module is not available on CentOS Stream 10
                     - container: centos:latest
                       test: "11"
+                    # busybox is not installed in the azurelinux image
+                    - container: azurelinux:3.0
+                      test: "83"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'
@@ -140,6 +145,7 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
+                    - "83"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'

@@ -15,12 +15,18 @@ depends() {
     return 0
 }
 
-# we prefer the non-busybox implementation of switch_root
-# due to the dependency, this dracut module needs to be ordered before the busybox dracut module
-# as this dracut module would install the non-busybox implementation of switch_root, if available
+# The busybox dracut module runs before this module and lays down its applet
+# symlinks. inst_multiple calls for those names then no-op because the
+# destinations already exist. That is intentional and saves the bloated host
+# binaries from being copied
+#
+# Exception: switch_root is preferred from the host (util-linux) over the
+# busybox applet, so the inst_multiple switch_root call below first removes any
+# busybox applet symlink the busybox dracut module may have left in place
 
-# this dracut module needs to be ordered after the systemd-sysusers dracut module, so make sure
-# that the root password set in for the emergency console in host-only mode
+# This dracut module needs to be ordered after the systemd-sysusers dracut
+# module so the root password is set for the emergency console in host-only
+# mode
 
 # called by dracut
 install() {
@@ -101,6 +107,15 @@ install() {
     inst_simple "$moddir/insmodpost.sh" /sbin/insmodpost.sh
 
     if ! dracut_module_included "systemd"; then
+        # Prefer the host's util-linux switch_root over the busybox
+        # applet. When the busybox dracut module is included it runs first and
+        # may have symlinked switch_root to its applet. Drop that symlink so
+        # the host binary is installed instead
+        if dracut_module_included "busybox"; then
+            local _sr
+            _sr=$(find_binary switch_root)
+            [[ -n $_sr && -L ${initdir}${_sr} ]] && rm -f "${initdir}${_sr}"
+        fi
         inst_multiple switch_root || dfatal "Failed to install switch_root"
         inst_script "$moddir/init.sh" "/init"
         inst_hook cmdline 01 "$moddir/parse-kernel.sh"
