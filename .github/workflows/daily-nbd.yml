@@ -31,6 +31,7 @@ jobs:
                 container:
                     - arch:latest
                     - debian:latest
+                    - debian:sid
                     - fedora:latest
                     - opensuse:latest
                     - ubuntu:devel
