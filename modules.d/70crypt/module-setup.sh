@@ -130,6 +130,14 @@ install() {
                 shift
             done
 
+            [[ $_luksoptions != *tries=* ]] && {
+                if [[ -z $_luksoptions || $_luksoptions == "-" ]]; then
+                    _luksoptions="tries=0"
+                else
+                    _luksoptions="$_luksoptions,tries=0"
+                fi
+            }
+
             # include the entry regardless
             if [ "${forceentry}" = "yes" ]; then
                 echo "$_mapper $_dev $_luksfile $_luksoptions"

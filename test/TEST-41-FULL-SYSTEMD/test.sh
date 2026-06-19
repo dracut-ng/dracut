@@ -49,6 +49,9 @@ test_run() {
     # luks
     client_run "encrypted root with rd.luks.uuid" "rw root=LABEL=dracut_crypt rd.luks.uuid=$ID_FS_UUID rd.luks.key=/etc/key"
     client_run "encrypted root with rd.luks.name" "rw root=/dev/mapper/crypt rd.luks.name=$ID_FS_UUID=crypt rd.luks.key=/etc/key"
+
+    # Verify that systemd-cryptsetup retries indefinitely with tries=0
+    client_run "encrypted root with wrong then correct password" "rw root=LABEL=dracut_crypt rd.luks.uuid=$ID_FS_UUID rd.test.crypt.retry"
     return 0
 }
 
@@ -108,6 +111,27 @@ test_setup() {
 
     grep -F -a -m 1 ID_FS_UUID "$TESTDIR"/marker.img > "$TESTDIR"/luks.uuid
     echo -n verySecurePassword > /tmp/key
+
+    # Install the test password agent as a systemd service via overlay
+    # cp -d (used by dracut's --include) preserves the symlink
+    local _svc_dir="$TESTDIR/overlay/usr/lib/systemd/system"
+    mkdir -p "${_svc_dir}/sysinit.target.wants" \
+        "$TESTDIR/overlay/usr/lib/dracut"
+    install -m 0755 ./crypt-askpassword.sh \
+        "$TESTDIR/overlay/usr/lib/dracut/crypt-askpassword.sh"
+    cat > "${_svc_dir}/dracut-test-crypt-askpassword.service" << 'EOF'
+[Unit]
+Description=Test Password Agent for LUKS Retry Test
+DefaultDependencies=no
+ConditionKernelCommandLine=rd.test.crypt.retry
+After=systemd-udevd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/dracut/crypt-askpassword.sh
+EOF
+    ln -sf ../dracut-test-crypt-askpassword.service \
+        "${_svc_dir}/sysinit.target.wants/dracut-test-crypt-askpassword.service"
 
     # force add all available dracut modules that are dependent on systemd
     test_dracut --keep \

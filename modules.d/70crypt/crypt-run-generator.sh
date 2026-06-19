@@ -22,7 +22,10 @@ if [ -n "${DRACUT_SYSTEMD-}" ] || strstr "$(cryptsetup --help)" "allow-discards"
     fi
 fi
 
-echo "$luks $dev - timeout=0,$allowdiscards" >> /etc/crypttab
+_tries=$(get_luks_option tries)
+_tries=${_tries:-0}
+
+echo "$luks $dev - timeout=0,tries=$_tries,$allowdiscards" >> /etc/crypttab
 
 if command -v systemctl > /dev/null; then
     systemctl daemon-reload

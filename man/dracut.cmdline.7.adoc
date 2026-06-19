@@ -345,6 +345,18 @@ Requires the dracut 'crypt' module.
     password. This avoid blocking the boot if no password is entered. It does
     not apply to luks key. The default is '0', which means 'forever'.
 
+**rd.luks.options=**__<options>__::
+    set default options for LUKS devices, equivalent to the fourth field of
+    man:crypttab[5]. Takes a comma-separated list of options. To apply options
+    to a specific device only, prefix with its UUID followed by '=', e.g.
+    `rd.luks.options=_<uuid>_=_<options>_`. Options without a UUID prefix
+    apply to any device not covered by a UUID-specific entry and not already
+    present in _/etc/crypttab_.
++
+The `tries=__<n>__` option controls how many times the user may enter a
+wrong passphrase before the unlock attempt is abandoned. The default is
+`tries=0`, meaning unlimited retries.
+
 crypto LUKS - key on removable device support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

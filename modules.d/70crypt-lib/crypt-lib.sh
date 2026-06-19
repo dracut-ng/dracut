@@ -2,6 +2,32 @@
 
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 
+# get_luks_option key
+#
+# Extract the value of a named option from global (non-UUID-prefixed) entries
+# in rd.luks.options=. Returns empty string if not found.
+# Per-device entries of the form UUID=opts are skipped.
+get_luks_option() {
+    local _key="$1" _opts _o _val _IFS
+    for _opts in $(getargs rd.luks.options); do
+        # Skip per-device entries
+        case "${_opts%%=*}" in
+            ????????-????-????-????-????????????) continue ;;
+        esac
+        _IFS="$IFS"
+        IFS=,
+        for _o in $_opts; do
+            _val="${_o#"${_key}="}"
+            if [ "$_val" != "$_o" ]; then
+                IFS="$_IFS"
+                printf "%s" "$_val"
+                return
+            fi
+        done
+        IFS="$_IFS"
+    done
+}
+
 # check if the crypttab contains an entry for a LUKS UUID
 crypttab_contains() {
     local luks="$1"
@@ -41,6 +67,7 @@ crypttab_contains() {
 #   Recommended.
 # --tries n
 #   How many times repeat command on its failure.  Default is 3.
+#   0 means unlimited.
 # --ply-[cmd|prompt|tries]
 #   Command/prompt/tries specific for plymouth password ask only.
 # --tty-[cmd|prompt|tries]
@@ -108,7 +135,8 @@ ask_for_password() {
         # Prompt for password with plymouth, if installed and running.
         if type plymouth > /dev/null 2>&1 && plymouth --ping 2> /dev/null; then
             plymouth ask-for-password \
-                --prompt "$ply_prompt" --number-of-tries="$ply_tries" \
+                --prompt "$ply_prompt" \
+                --number-of-tries="$ply_tries" \
                 --command="$ply_cmd"
             ret=$?
         else
@@ -118,9 +146,15 @@ ask_for_password() {
             fi
 
             local i=1
-            while [ $i -le "$tty_tries" ]; do
-                [ -n "$tty_prompt" ] \
-                    && printf "%s" "$tty_prompt [$i/$tty_tries]:" >&2
+            # 0 = unlimited
+            while [ "$tty_tries" -eq 0 ] || [ $i -le "$tty_tries" ]; do
+                if [ -n "$tty_prompt" ]; then
+                    if [ "$tty_tries" -ne 0 ]; then
+                        printf '%s [%d/%d]:' "$tty_prompt" "$i" "$tty_tries" >&2
+                    else
+                        printf '%s:' "$tty_prompt" >&2
+                    fi
+                fi
                 eval "$tty_cmd" && ret=0 && break
                 ret=$?
                 i=$((i + 1))
@@ -144,17 +178,19 @@ luks_open_interactive() {
     local dev="$1" mapname="$2"
     local prompt="${3:-Password ($dev)}"
     local cryptsetupopts="${4:-}"
-    local luks_open _timeout
+    local luks_open _timeout _tries
 
     _timeout=$(getarg rd.luks.timeout)
     _timeout="${_timeout:-0}"
+    _tries=$(get_luks_option tries)
+    _tries="${_tries:-0}"
     luks_open="$(command -v cryptsetup) $cryptsetupopts luksOpen"
     ask_for_password \
-        --ply-tries 5 \
+        --ply-tries "$_tries" \
         --ply-cmd "$luks_open -T1 $dev $mapname" \
         --ply-prompt "$prompt" \
-        --tty-tries 1 \
-        --tty-cmd "$luks_open -T5 -t $_timeout $dev $mapname"
+        --tty-tries "$_tries" \
+        --tty-cmd "$luks_open -T1 -t $_timeout $dev $mapname"
 }
 
 # Try to mount specified device (by path, by UUID or by label) and check
