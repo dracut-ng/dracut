@@ -192,6 +192,9 @@ in its current state will not be included, and modules may make additional
 efforts to save more space. Minor changes in hardware or environment can make
 the image unbootable.
 
+WARNING: If chrooted to another root other than the real root device, use
+`--fstab` and provide a valid _/etc/fstab_.
+
 *hostonly_cmdline=*"__{yes|no}__"::
 If set to "yes", store the kernel command line arguments needed in the
 initramfs. If **hostonly="yes"** and this option is not configured, it's
@@ -209,9 +212,6 @@ _<policy>_ can be any directory name found in /dev/disk (e.g. "by-uuid",
 *tmpdir=*"__<temporary directory>__"::
 Specify temporary directory to use.
 +
-WARNING: If chrooted to another root other than the real root device, use
-`--fstab` and provide a valid _/etc/fstab_.
-
 *use_fstab=*"__{yes|no}__"::
 Use _/etc/fstab_ instead of _/proc/self/mountinfo_ (default=no).
 
@@ -399,6 +399,21 @@ Defaults to _initramfs-$\{kernel\}.img_.
 *dracut_rescue_image=*"__{yes|no}__"::
 Let kernel-install create a rescue image (default=no).
 This configuration option applies only to kernel-install.
+
+*nvmf_nbft_mode*="__{match|nbft|static}__"::
+For systems that use the ++nvmf++ module for booting from NVMe over Fabrics
+(NVMeoF), specify how to set command line options for NVMe subsystems that are
+listed in the NVMe Boot Firmware Table (NBFT). This option only has an effect
+if ++hostonly_cmdline++ is set to ++yes++.  If set to ++static++, generate
+cmdline entries for all NVMe subsystems detected while the initramfs was
+built. If set to ++nbft++, don't generate any entries for NVMe subsystems using
+the ++tcp++ transport (i.e. rely on NBFT parsing for detecting NVMe subsystems
+at boot time). If set to ++match++ (default), only add cmdline entries for
+++tcp++ subsystems that do not match any entry in the NBFT, comparing subsystem
+IP address (traddr) and port (trsvcid).  Use ++nbft++ or ++match++ if you want
+the system to adapt if the content of the NBFT changes between reboots. Use
+++static++ if you want connect to the same subsystems, always, no matter what
+the content of the NBFT is.  The default is ++match++.
 
 == Files
 _/etc/dracut.conf_::
