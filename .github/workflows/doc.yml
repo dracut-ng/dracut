@@ -34,6 +34,6 @@ jobs:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: doc on "${{ matrix.container }}"
               run: TARGETS=all enable_documentation=yes ./test/test-container.sh

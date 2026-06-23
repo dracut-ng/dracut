@@ -48,7 +48,7 @@ jobs:
             options: '--device=/dev/kvm'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: ./test/test-container.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
 
@@ -61,7 +61,7 @@ jobs:
             image: ubuntu:devel
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: Install dependencies
               run: apt-get update && apt-get -y install make shellcheck shfmt
             - run: make syncheck
@@ -103,7 +103,7 @@ jobs:
             options: '--device=/dev/kvm'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: ./test/test-container.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
 
@@ -139,7 +139,7 @@ jobs:
             options: '--device=/dev/kvm --privileged'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: ./test/test-container.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
 
@@ -165,7 +165,7 @@ jobs:
             options: '--device=/dev/kvm'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: ./test/test-container.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}
     network:
@@ -195,7 +195,7 @@ jobs:
             options: '--device=/dev/kvm'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: >
                 USE_NETWORK=${{ matrix.network }}
@@ -226,7 +226,7 @@ jobs:
             options: '--device=/dev/kvm'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: >
                 USE_NETWORK=${{ matrix.network }}
@@ -254,7 +254,7 @@ jobs:
             options: '--device=/dev/kvm'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: >
                 USE_NETWORK=${{ matrix.network }}
@@ -284,6 +284,6 @@ jobs:
             options: '--device=/dev/kvm --privileged'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: ./test/test-container.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}

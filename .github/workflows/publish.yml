@@ -31,7 +31,7 @@ jobs:
             url: ${{ steps.deployment.outputs.page_url }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
             - name: Configure Pages
