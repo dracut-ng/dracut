@@ -3130,7 +3130,10 @@ done
 # protect existing output file against build errors
 if [[ -e $outfile ]]; then
     outfile_final="$outfile"
-    outfile="${outfile}.tmp"
+    outfile_temp_root=$(mktemp -d)
+    # make sure all parent dirs exist
+    mkdir -p $(dirname $outfile_temp_root/$outfile)
+    outfile="$outfile_temp_root/$outfile"
 fi
 
 dinfo "*** Creating image file '$outfile' ***"
@@ -3584,6 +3587,7 @@ if [[ $outfile_final ]]; then
     if mv -f "$outfile" "$outfile_final"; then
         dinfo "*** Moving image file '$outfile' to '$outfile_final' done ***"
         outfile="$outfile_final"
+        rm -Rf $outfile_temp_root
     else
         rm -f -- "$outfile_final"
         dfatal "Move of $outfile_final failed"
