@@ -1360,6 +1360,19 @@ check_kernel_compress_support() {
     return $?
 }
 
+# Returns 0 if the process runs in a chroot. Otherwise returns 1.
+# Return 2 in case /proc is not mounted or /proc/1/root cannot be accessed.
+is_chroot() {
+    local pid1root_stat
+    pid1root_stat=$(stat -Lc "%d/%i" /proc/1/root 2> /dev/null) || return 2
+    [ "$(stat -c "%d/%i" /)" != "$pid1root_stat" ]
+}
+
+if [[ -z ${hostonly-} ]] && is_chroot; then
+    dwarning "Turning off host-only mode: chroot detected!"
+    hostonly="no"
+fi
+
 # hostonly shell variable defaults to "-h" if not specified
 if [[ ${hostonly-} == "no" ]]; then
     unset hostonly
