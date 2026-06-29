@@ -28,7 +28,7 @@ do_dhcp_parallel() {
     # event for nfsroot
     # XXX add -V vendor class and option parsing per kernel
 
-    [ -e "/tmp/dhclient.$netif.pid" ] && return 0
+    [ -e "/tmp/dhclient.${netif}.pid" ] && return 0
 
     if ! iface_has_carrier "$netif"; then
         warn "No carrier detected on interface $netif"
@@ -127,8 +127,10 @@ do_ipv6auto() {
     wait_for_ipv6_auto "$netif"
     ret=$?
 
-    [ -n "$hostname" ] && echo "echo $hostname > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
-
+    if [ -n "$hostname" ]; then
+        safe_hostname=$(printf '%s' "${hostname}")
+        printf 'echo %q > /proc/sys/kernel/hostname\n' "$safe_hostname" > /tmp/net."$netif".hostname
+    fi
     return "$ret"
 }
 
@@ -140,7 +142,10 @@ do_ipv6link() {
     echo 0 > /proc/sys/net/ipv6/conf/"${netif}"/accept_redirects
     linkup "$netif"
 
-    [ -n "$hostname" ] && echo "echo $hostname > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
+    if [ -n "$hostname" ]; then
+        safe_hostname=$(printf '%s' "${hostname}")
+        printf 'echo %q > /proc/sys/kernel/hostname\n' "$safe_hostname" > /tmp/net."$netif".hostname
+    fi
 
     return "$ret"
 }
@@ -193,8 +198,12 @@ do_static() {
         ip addr add "$ip/$mask" ${srv:+peer "$srv"} brd + dev "$netif"
     fi
 
-    [ -n "$gw" ] && echo "ip route replace default via '$gw' dev '$netif'" > "/tmp/net.$netif.gw"
-    [ -n "$hostname" ] && echo "echo '$hostname' > /proc/sys/kernel/hostname" > "/tmp/net.$netif.hostname"
+    [ -n "$gw" ] && printf "ip route replace default via %q dev %q\n" "$gw" "$netif" > "/tmp/net.${netif}.gw"
+
+    if [ -n "$hostname" ]; then
+        safe_hostname=$(printf '%s' "${hostname}")
+        printf 'echo %q > /proc/sys/kernel/hostname\n' "$safe_hostname" > /tmp/net."$netif".hostname
+    fi
 
     return 0
 }
@@ -423,7 +432,7 @@ fi
 [ -n "$2" ] && [ "$2" = "-m" ] && [ -z "$netroot" ] && manualup="$2"
 
 if [ -n "$manualup" ]; then
-    : > "/tmp/net.$netif.manualup"
+    : > "/tmp/net.${netif}.manualup"
     rm -f "/tmp/net.${netif}.did-setup"
 else
     [ -e "/tmp/net.${netif}.did-setup" ] && exit 0
@@ -464,7 +473,7 @@ for p in $(getargs ip=); do
     # Store config for later use
     for i in ip srv gw mask hostname macaddr mtu dns1 dns2; do
         eval '[ "$'$i'" ] && echo '$i'="$'$i'"'
-    done > "/tmp/net.$netif.override"
+    done > "/tmp/net.${netif}.override"
 
     for autoopt in $(str_replace "$autoconf" "," " "); do
         case $autoopt in
@@ -498,7 +507,7 @@ for p in $(getargs ip=); do
     # setup nameserver
     for s in "$dns1" "$dns2" $(getargs nameserver); do
         [ -n "$s" ] || continue
-        echo "nameserver $s" >> "/tmp/net.$netif.resolv.conf"
+        echo "nameserver $s" >> "/tmp/net.${netif}.resolv.conf"
     done
 
     if [ $ret -eq 0 ]; then
@@ -548,7 +557,7 @@ if [ -z "$NO_AUTO_DHCP" ] && [ ! -e "/tmp/net.${netif}.up" ]; then
 
     for s in $(getargs nameserver); do
         [ -n "$s" ] || continue
-        echo "nameserver $s" >> "/tmp/net.$netif.resolv.conf"
+        echo "nameserver $s" >> "/tmp/net.${netif}.resolv.conf"
     done
 
     if [ "$ret" -eq 0 ] && [ -n "$(ls "/tmp/leaseinfo.${netif}"* 2> /dev/null)" ]; then

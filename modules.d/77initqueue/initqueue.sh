@@ -64,7 +64,8 @@ fi
     # shellcheck disable=SC2016
     [ -n "$onetime" ] && echo '[ -e "$job" ] && rm -f -- "$job"'
     [ -n "$env" ] && echo "$env"
-    echo "$exe" "$@"
+    printf '%q ' "$exe" "$@"
+    printf '\n'
 } > "/tmp/$$-${job}.sh"
 
 mv -f "/tmp/$$-${job}.sh" "$hookdir/initqueue${qname}/${job}.sh"
