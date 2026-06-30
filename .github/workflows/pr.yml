@@ -13,7 +13,7 @@ jobs:
               uses: actions/checkout@v7
 
             - name: Run Commisery
-              uses: tomtom-international/commisery-action@v3
+              uses: tomtom-international/commisery-action@v8
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   # don't validate the pull request title
