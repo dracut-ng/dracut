@@ -34,7 +34,7 @@ depends() {
     return 0
 }
 
-# called by dracut
+# Config adjustments before installing anything.
 config() {
     add_dlopen_features+=" libsystemd-shared-*.so:libcrypto "
 }
@@ -46,7 +46,13 @@ install() {
         "$systemdutildir"/systemd-pcrextend \
         "$systemdsystemunitdir"/systemd-pcrphase-initrd.service \
         "$systemdsystemunitdir/systemd-pcrphase-initrd.service.d/*.conf" \
+        "$systemdsystemunitdir"/systemd-pcrnvdone.service \
+        "$systemdsystemunitdir/systemd-pcrnvdone.service.d/*.conf" \
+        "$systemdsystemunitdir"/systemd-pcrosseparator.service \
+        "$systemdsystemunitdir/systemd-pcrosseparator.service.d/*.conf" \
         "$systemdsystemunitdir"/initrd.target.wants/systemd-pcrphase-initrd.service \
+        "$systemdsystemunitdir"/sysinit.target.wants/systemd-pcrnvdone.service \
+        "$systemdsystemunitdir"/sysinit.target.wants/systemd-pcrosseparator.service \
         "/usr/lib/nvpcr/*.nvpcr"
 
     # Install the hosts local user configurations if enabled.
@@ -54,6 +60,12 @@ install() {
         inst_multiple -H -o \
             "$systemdsystemconfdir"/systemd-pcrphase-initrd.service \
             "$systemdsystemconfdir/systemd-pcrphase-initrd.service.d/*.conf" \
-            "$systemdsystemconfdir"/initrd.target.wants/systemd-pcrphase-initrd.service
+            "$systemdsystemconfdir"/systemd-pcrnvdone.service \
+            "$systemdsystemconfdir/systemd-pcrnvdone.service.d/*.conf" \
+            "$systemdsystemconfdir"/systemd-pcrosseparator.service \
+            "$systemdsystemconfdir/systemd-pcrosseparator.service.d/*.conf" \
+            "$systemdsystemconfdir"/initrd.target.wants/systemd-pcrphase-initrd.service \
+            "$systemdsystemconfdir"/sysinit.target.wants/systemd-pcrnvdone.service \
+            "$systemdsystemconfdir"/sysinit.target.wants/systemd-pcrosseparator.service
     fi
 }
