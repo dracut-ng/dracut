@@ -23,6 +23,11 @@ depends() {
 
 }
 
+# Config adjustments before installing anything.
+config() {
+    add_dlopen_features+=" libsystemd-shared-*.so:libcrypto "
+}
+
 # Install kernel module(s).
 installkernel() {
     hostonly=$(optional_hostonly) instmods '=drivers/char/tpm'
@@ -39,10 +44,21 @@ install() {
         "$tmpfilesdir"/tpm2-tss-fapi.conf \
         "$udevrulesdir"/60-tpm-udev.rules \
         "$udevrulesdir"/90-tpm.rules \
+        "$systemdutildir"/systemd-tpm2-setup \
         "$systemdutildir"/system-generators/systemd-tpm2-generator \
         "$systemdsystemunitdir/tpm2.target" \
+        "$systemdsystemunitdir"/systemd-tpm2-setup-early.service \
+        "$systemdsystemunitdir/systemd-tpm2-setup-early.service.d/*.conf" \
+        "$systemdsystemunitdir"/sysinit.target.wants/systemd-tpm2-setup-early.service \
         tpm2_pcrread tpm2_pcrextend tpm2_createprimary tpm2_createpolicy \
         tpm2_create tpm2_load tpm2_unseal tpm2
+
+    if [[ $hostonly ]]; then
+        inst_multiple -H -o \
+            "$systemdsystemconfdir"/systemd-tpm2-setup-early.service \
+            "$systemdsystemconfdir/systemd-tpm2-setup-early.service.d/*.conf" \
+            "$systemdsystemconfdir"/sysinit.target.wants/systemd-tpm2-setup-early.service
+    fi
 
     # Install library file(s)
     inst_libdir_file \
