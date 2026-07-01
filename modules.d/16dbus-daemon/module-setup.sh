@@ -52,13 +52,15 @@ install() {
 
     # Remove After/Requires=sysinit.target and After=basic.target for initramfs in the dbus service unit.
     sed -i -e \
-        '/^\(After\|DefaultDependencies\|Requires\)=/d
+        '/^\(After\|Requires\)=.*sysinit\.target/d
+        /^DefaultDependencies=/d
         /^\[Unit\]/aDefaultDependencies=no\nConflicts=shutdown.target\nBefore=shutdown.target' \
         "$initdir$systemdsystemunitdir/dbus.service"
 
     # Remove After/Requires=sysinit.target for initramfs in the dbus socket unit.
     sed -i -e \
-        '/^\(After\|DefaultDependencies\|Requires\)=/d
+        '/^\(After\|Requires\)=.*sysinit\.target/d
+        /^DefaultDependencies=/d
         /^\[Unit\]/aDefaultDependencies=no\nConflicts=shutdown.target\nBefore=shutdown.target sockets.target
         /^\[Socket\]/aRemoveOnStop=yes' \
         "$initdir$systemdsystemunitdir/dbus.socket"
