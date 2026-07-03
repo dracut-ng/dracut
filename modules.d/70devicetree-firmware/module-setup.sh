@@ -40,7 +40,7 @@ install_hostonly() {
             done
         done
     done
-    inst_multiple -o "${_fw_files[@]}"
+    ((${#_fw_files[@]} > 0)) && inst_multiple -o "${_fw_files[@]}"
 }
 
 # generic install (hostonly / generic use completely different approaches)
@@ -58,7 +58,7 @@ install_generic() {
             done
         done
     done
-    inst_multiple -o "${_fw_files[@]}"
+    ((${#_fw_files[@]} > 0)) && inst_multiple -o "${_fw_files[@]}"
 }
 
 # called by dracut
