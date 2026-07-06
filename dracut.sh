@@ -143,6 +143,10 @@ Creates initial ramdisk images for preloading modules
   --nomdadmconf         Do not include local /etc/mdadm.conf file.
   --lvmconf             Include local /etc/lvm/lvm.conf file.
   --nolvmconf           Do not include local /etc/lvm/lvm.conf file.
+  --nvmf-nbft-mode [MODE]
+                        Specify command line options for booting from NVMeoF.
+                        (if nvmf module is included).
+                        Allowed values: "match" (default), "static", or "nbft".
   --fscks [LIST]        Add a space-separated list of fsck helpers.
   --nofscks             Inhibit installation of any fsck helpers.
   --ro-mnt              Mount / and /usr read-only by default.
@@ -430,6 +434,7 @@ rearrange_params() {
             --long nomdadmconf \
             --long lvmconf \
             --long nolvmconf \
+            --long nvmf-nbft-mode: \
             --long debug \
             --long profile \
             --long sshkey: \
@@ -833,6 +838,11 @@ while :; do
                 --nomdadmconf) mdadmconf_l="no" ;;
                 --lvmconf) lvmconf_l="yes" ;;
                 --nolvmconf) lvmconf_l="no" ;;
+                --nvmf-nbft-mode)
+                    nvmf_nbft_mode_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
                 --profile) profile="yes" ;;
                 --sshkey)
                     sshkey="$2"
@@ -1194,7 +1204,7 @@ drivers_dir="${drivers_dir%"${drivers_dir##*[!/]}"}"
 [[ $kernel_image_l ]] && kernel_image=$(path_rel_to_abs "$kernel_image_l")
 [[ $sbat_l ]] && sbat="$sbat_l"
 [[ $machine_id_l ]] && machine_id="$machine_id_l"
-[[ $nvmf_nbft_mode ]] || nvmf_nbft_mode=match
+[[ $nvmf_nbft_mode_l ]] && nvmf_nbft_mode=$nvmf_nbft_mode_l
 
 TMPDIR="$(realpath -e "$tmpdir")"
 readonly TMPDIR
@@ -2067,6 +2077,9 @@ unset threecpio_help_output
 
 case $nvmf_nbft_mode in
     nbft | match | static) ;;
+    "")
+        nvmf_nbft_mode=match
+        ;;
     *)
         derror "Invalid value \"$nvmf_nbft_mode\" for nvmf_nbft_mode. Assuming \"match\"."
         nvmf_nbft_mode=match

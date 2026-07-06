@@ -260,6 +260,16 @@ example:
 **--nolvmconf**::
     Do not include local _/etc/lvm/lvm.conf_ file.
 
+**--nvmf-nbft-mode** _<mode>_::
+    Use _<mode>_ for generating _rd.nvmf.discover=_ command line parameters
+    for NVMeoF boot.
+    This parameter is only effective if the _nvmf_ dracut module is in use.
+    Possible values are "static" (add explicit connection parameters for
+    all NVMeoF devices), "nbft" (don't generate command line entries, rely
+    on autodetection via the NBFT firmware table), and "match" (only generate
+    explicit entries for connections that are not listed in the NBFT).
+    The default is "match".
+
 **--fscks** _<list of fsck tools>_::
     Add a space-separated list of fsck tools, in addition to _dracut.conf_'s
     specification; the installation is opportunistic (non-existing tools are
