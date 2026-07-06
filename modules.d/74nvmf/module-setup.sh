@@ -74,11 +74,23 @@ installkernel() {
     hostonly="" instmods 8021q
     # lookup NIC kernel modules for active NBFT interfaces
     if [[ $hostonly ]]; then
-        for i in /sys/class/net/nbft*; do
-            [ -d "$i" ] || continue
-            _driver=$(basename "$(readlink -f "$i/device/driver/module")")
-            [ -z "$_driver" ] || instmods "$_driver"
-        done
+        local mac_re
+
+        # mac_re is a list of MAC addresses joined with "|", suitable as regexp
+        mac_re=$(nvme nbft show -H -o json \
+            | jq -r '[.[].hfi[].mac_addr] | join("|")')
+        [[ $mac_re ]] || return
+
+        # Determine the network interfaces matching the MAC addresses from the
+        # NBFT, read their drivers using readlink, and install them.
+        # Note: readlink returns error if /sys/class/net/*/device doesn't exist,
+        # ignore xargs return code to avoid the pipeline failing
+        grep -lE "$mac_re" /sys/class/net/*/address \
+            | sed 's,address$,device/driver/module,' \
+            | { xargs -r readlink || true; } \
+            | sed s,.*/,,g \
+            | sort -u \
+            | instmods
     fi
 }
 
