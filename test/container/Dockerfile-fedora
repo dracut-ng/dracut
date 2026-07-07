@@ -50,6 +50,7 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     bluez \
     busybox \
     cargo \
+    chrony \
     cifs-utils \
     cryptsetup \
     crypto-policies-scripts \

@@ -33,6 +33,7 @@ jobs:
                     - debian:latest
                     - debian:sid
                     - fedora:latest
+                    - fedora:rawhide
                     - opensuse:latest
                     - ubuntu:devel
                     - ubuntu:rolling
@@ -44,6 +45,8 @@ jobs:
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     - container: fedora:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
+                    - container: fedora:rawhide
+                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     # https://github.com/dracut-ng/dracut/issues/1988
                     - container: debian:sid
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
@@ -52,6 +55,6 @@ jobs:
             options: '--device=/dev/kvm --privileged'
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: "${{ matrix.container }} TEST-${{ matrix.test }}"
               run: ./test/test-container.sh "TEST-${{ matrix.test }}" ${{ matrix.test }}

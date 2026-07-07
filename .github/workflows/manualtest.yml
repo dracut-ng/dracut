@@ -17,6 +17,7 @@ on:  # yamllint disable-line rule:truthy
                     - "azurelinux:3.0"
                     - "centos:latest"
                     - "fedora:latest"
+                    - "fedora:rawhide"
                     - "arch:latest"
                     - "debian:latest"
                     - "debian:sid"
@@ -43,7 +44,7 @@ jobs:
             tests: ${{ steps.set-matrix.outputs.tests }}
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
             - id: set-matrix
@@ -74,7 +75,7 @@ jobs:
             options: "--privileged -v /dev:/dev"
         steps:
             - name: "Checkout Repository"
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
             - name: "${{ matrix.container }} ${{ matrix.test }}"

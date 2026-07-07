@@ -64,6 +64,13 @@ get_uefi_code() {
         arm | armhf | armv7l)
             paths=("/usr/share/AAVMF/AAVMF32_CODE.fd")
             ;;
+        loong64 | loongarch64)
+            paths=(
+                "/usr/share/qemu-efi-loongarch64/QEMU_EFI.fd"
+                "/usr/share/LA64VMF/QEMU_EFI.fd"
+                "/usr/share/edk2/loongarch64/QEMU_EFI.fd"
+            )
+            ;;
     esac
     for path in "${paths[@]}"; do
         if [[ -s $path ]]; then

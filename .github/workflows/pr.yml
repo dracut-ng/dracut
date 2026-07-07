@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Check-out the repo under $GITHUB_WORKSPACE
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Run Commisery
               uses: tomtom-international/commisery-action@v3

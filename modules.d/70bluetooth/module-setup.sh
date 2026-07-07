@@ -14,6 +14,7 @@ check() {
         #  * Keyboard/pointing (0xC0)
         # and if Appearance is set to the value defined for keyboard (0x03C1)
         [ -d "/sys/class/bluetooth" ] && grep -qsiE -e 'Class=0x[0-9a-f]{3}5[4c]0' -e 'Appearance=0x03c1' /var/lib/bluetooth/*/*/info \
+            && [[ " $dracutmodules $add_dracutmodules $force_add_dracutmodules " != *\ bluetooth\ * ]] \
             && dwarn "If you need to use bluetooth, please include it explicitly."
     fi
 

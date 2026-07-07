@@ -29,6 +29,7 @@ RUN pacman --noconfirm -Syu \
     btrfs-progs \
     busybox \
     cargo \
+    chrony \
     cpio \
     dhcp \
     dmraid \
