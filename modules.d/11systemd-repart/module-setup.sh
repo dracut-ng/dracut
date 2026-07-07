@@ -13,7 +13,7 @@ check() {
 
 # Config adjustments before installing anything.
 config() {
-    add_dlopen_features+=" libsystemd-shared-*.so:fdisk "
+    add_dlopen_features+=" libsystemd-shared-*.so:fdisk,libcrypto "
 }
 
 # Install the required file(s) for the module in the initramfs.

@@ -27,6 +27,11 @@ depends() {
 
 }
 
+# called by dracut
+config() {
+    add_dlopen_features+=" libsystemd-shared-*.so:libcrypto "
+}
+
 # Install the required file(s) and directories for the module in the initramfs.
 install() {
 
