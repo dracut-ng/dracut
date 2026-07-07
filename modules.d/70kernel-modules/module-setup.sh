@@ -39,15 +39,15 @@ installkernel() {
         hostonly='' instmods \
             hid_generic unix
 
-        # xhci-pci-renesas is needed for the USB to be available during
-        # initrd on platforms with such USB controllers since Linux
-        # 6.12-rc1 (commit 25f51b76f90f).
+        # Some xHCI PCI controllers are handled by sibling glue drivers
+        # instead of plain xhci-pci. Include them so USB is available
+        # during initrd when those drivers are built as modules.
         hostonly=$(optional_hostonly) instmods \
             ehci-hcd ehci-pci ehci-platform \
             ohci-hcd ohci-pci \
             uhci-hcd \
             usbhid \
-            xhci-hcd xhci-pci xhci-pci-renesas xhci-plat-hcd \
+            xhci-hcd xhci-pci xhci-pci-prom21 xhci-pci-renesas xhci-plat-hcd \
             "=drivers/hid" \
             "=drivers/tty/serial" \
             "=drivers/input/serio" \
