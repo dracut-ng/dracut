@@ -8,8 +8,8 @@ for i in \
     initrd-switch-root.target \
     emergency.target \
     shutdown.target; do
-    if ! systemd-analyze verify "$i"; then
-        warn "systemd-analyze verify $i failed"
+    if ! systemd-analyze --man=no verify "$i"; then
+        warn "systemd-analyze --man=no verify $i failed"
         poweroff
     fi
 done
