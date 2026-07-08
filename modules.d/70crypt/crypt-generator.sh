@@ -22,13 +22,13 @@ generator_set_device_timeout() {
 
 if ! getargbool 1 rd.luks; then
     # crypto LUKS detection is disabled
-    return 0
+    exit 0
 fi
 
-[ -e /etc/crypttab ] || return 0
+[ -e /etc/crypttab ] || exit 0
 
 GENERATOR_DIR="$1"
-[ -n "$GENERATOR_DIR" ] || return 1
+[ -n "$GENERATOR_DIR" ] || exit 1
 [ -d "$GENERATOR_DIR" ] || mkdir -p "$GENERATOR_DIR"
 
 timeout=$(getarg rd.timeout)
