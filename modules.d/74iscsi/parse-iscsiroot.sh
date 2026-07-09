@@ -89,7 +89,7 @@ if [ -n "$iscsi_firmware" ]; then
     echo "${DRACUT_SYSTEMD+systemctl is-active initrd-root-device.target || }[ -f '/tmp/iscsistarted-firmware' ]" > "$hookdir"/initqueue/finished/iscsi_started.sh
     /sbin/initqueue --unique --online /sbin/iscsiroot online "iscsi:" "$NEWROOT"
     /sbin/initqueue --unique --onetime --timeout /sbin/iscsiroot timeout "iscsi:" "$NEWROOT"
-    /sbin/initqueue --unique --onetime --settled /sbin/iscsiroot online "iscsi:" "'$NEWROOT'"
+    /sbin/initqueue --unique --onetime --settled /sbin/iscsiroot online "iscsi:" "$NEWROOT"
 fi
 
 # ISCSI actually supported?
@@ -105,13 +105,13 @@ modprobe -b -q be2iscsi
 
 if [ -n "$netroot" ] && [ "$root" != "/dev/root" ] && [ "$root" != "dhcp" ]; then
     if ! getargbool 1 rd.neednet > /dev/null || ! getarg "ip="; then
-        /sbin/initqueue --unique --onetime --settled /sbin/iscsiroot dummy "'$netroot'" "'$NEWROOT'"
+        /sbin/initqueue --unique --onetime --settled /sbin/iscsiroot dummy "$netroot" "$NEWROOT"
     fi
 fi
 
 if arg=$(getarg rd.iscsi.initiator -d iscsi_initiator=) && [ -n "$arg" ] && ! [ -f /run/initiatorname.iscsi ]; then
     iscsi_initiator=$arg
-    echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
+    printf 'InitiatorName=%q\n' "$iscsi_initiator" > /run/initiatorname.iscsi
     ln -fs /run/initiatorname.iscsi /dev/.initiatorname.iscsi
     rm -f /etc/iscsi/initiatorname.iscsi
     mkdir -p /etc/iscsi
@@ -127,7 +127,7 @@ fi
 if [ -z "$iscsi_initiator" ] && [ -f /sys/firmware/ibft/initiator/initiator-name ] && ! [ -f /tmp/iscsi_set_initiator ]; then
     iscsi_initiator=$(while read -r line || [ -n "$line" ]; do echo "$line"; done < /sys/firmware/ibft/initiator/initiator-name)
     if [ -n "$iscsi_initiator" ]; then
-        echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
+        printf 'InitiatorName=%q\n' "$iscsi_initiator" > /run/initiatorname.iscsi
         rm -f /etc/iscsi/initiatorname.iscsi
         mkdir -p /etc/iscsi
         ln -fs /run/initiatorname.iscsi /etc/iscsi/initiatorname.iscsi

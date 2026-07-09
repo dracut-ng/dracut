@@ -48,22 +48,24 @@ setup_interface() {
     if [ -n "$gw" ]; then
         if [ "$mask" = "255.255.255.255" ]; then
             # point-to-point connection => set explicit route to gateway
-            echo ip route add "$gw" dev "$netif" > /tmp/net."$netif".gw
+            printf 'ip route add %q dev %q\n' "$gw" "$netif" > /tmp/net."$netif".gw
         fi
 
         echo "$gw" | {
             IFS=' ' read -r main_gw other_gw
-            echo ip route replace default via "$main_gw" dev "$netif" >> /tmp/net."$netif".gw
+            printf 'ip route replace default via %q dev %q\n' "$main_gw" "$netif" >> /tmp/net."$netif".gw
             if [ -n "$other_gw" ]; then
                 for g in $other_gw; do
-                    echo ip route add default via "$g" dev "$netif" >> /tmp/net."$netif".gw
+                    printf 'ip route add default via %q dev %q\n' "$g" "$netif" >> /tmp/net."$netif".gw
                 done
             fi
         }
     fi
 
     if getargbool 1 rd.peerdns; then
-        [ -n "${search}${domain}" ] && echo "search $search $domain" > /tmp/net."$netif".resolv.conf
+        if [ -n "${search}${domain}" ]; then
+            echo "search $search $domain" > /tmp/net."$netif".resolv.conf
+        fi
         if [ -n "$namesrv" ]; then
             for s in $namesrv; do
                 echo nameserver "$s"
@@ -72,7 +74,10 @@ setup_interface() {
     fi
     # Note: hostname can be fqdn OR short hostname, so chop off any
     # trailing domain name and explicitly add any domain if set.
-    [ -n "$hostname" ] && echo "echo ${hostname%."$domain"}${domain:+.$domain} > /proc/sys/kernel/hostname" > /tmp/net."$netif".hostname
+    if [ -n "$hostname" ]; then
+        safe_hostname=$(printf '%s' "${hostname%."$domain"}${domain:+.$domain}")
+        printf 'echo %q > /proc/sys/kernel/hostname\n' "$safe_hostname" > /tmp/net."$netif".hostname
+    fi
 }
 
 setup_interface6() {
@@ -95,7 +100,9 @@ setup_interface6() {
         ${preferred_lft:+preferred_lft ${preferred_lft}}
 
     if getargbool 1 rd.peerdns; then
-        [ -n "${search}${domain}" ] && echo "search $search $domain" > /tmp/net."$netif".resolv.conf
+        if [ -n "${search}${domain}" ]; then
+            echo "search $search $domain" > /tmp/net."$netif".resolv.conf
+        fi
         if [ -n "$namesrv" ]; then
             for s in $namesrv; do
                 echo nameserver "$s"
@@ -105,7 +112,10 @@ setup_interface6() {
 
     # Note: hostname can be fqdn OR short hostname, so chop off any
     # trailing domain name and explicitly add any domain if set.
-    [ -n "$hostname" ] && echo "echo ${hostname%."$domain"}${domain:+.$domain} > /proc/sys/kernel/hostname" > /tmp/net."$netif".hostname
+    if [ -n "$hostname" ]; then
+        safe_hostname=$(printf '%s' "${hostname%."$domain"}${domain:+.$domain}")
+        printf 'echo %q > /proc/sys/kernel/hostname\n' "$safe_hostname" > /tmp/net."$netif".hostname
+    fi
 }
 
 parse_option_121() {
