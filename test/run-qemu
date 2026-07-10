@@ -141,7 +141,7 @@ if [[ -z ${NO_KVM-} && -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
     [[ -x /usr/bin/kvm ]] && BIN=/usr/bin/kvm && ARGS=(-cpu host)
     [[ -x /usr/bin/qemu-kvm ]] && BIN=/usr/bin/qemu-kvm && ARGS=(-cpu host)
     [[ -x /usr/libexec/qemu-kvm ]] && BIN=/usr/libexec/qemu-kvm && ARGS=(-cpu host)
-    [[ -x "/usr/bin/qemu-system-${ARCH}" ]] && BIN="/usr/bin/qemu-system-${ARCH}" && ARGS=(-enable-kvm -cpu host)
+    [[ -x "/usr/bin/qemu-system-${ARCH}" ]] && BIN="/usr/bin/qemu-system-${ARCH}" && ARGS=(-accel kvm -cpu host)
 fi
 
 [[ ${BIN-} ]] || {
