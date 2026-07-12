@@ -20,6 +20,7 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     cifs-utils \
     cryptsetup \
     dhcpcd \
+    diffutils \
     dnsmasq \
     e2fsprogs \
     fuse3 \
@@ -51,6 +52,7 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     swtpm \
     systemd-container \
     systemd-devel \
+    systemd-networkd \
     systemd-resolved \
     tar \
     tcpdump \
