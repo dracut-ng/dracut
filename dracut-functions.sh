@@ -286,9 +286,56 @@ get_devpath_block() {
     return 1
 }
 
+# The disk paths fetched from udev can be outdated. We don't know why this
+# happens, but here the best way is to make sure the identifier is correct.
+verify_uuid() {
+    local input="$1" disk="$2" _tag _value _match _path _process=0
+
+    case "$input" in
+        /dev/disk/by-uuid/*)
+            _tag="UUID"
+            ;;
+        /dev/disk/by-partuuid/*)
+            # This tag is consistent across different
+            # partition labels.
+            _tag="PART_ENTRY_UUID"
+            ;;
+        /dev/disk/by-label/*)
+            _tag="LABEL"
+            # Need to escape and un-escape certain characters.
+            _process=1
+            ;;
+        /dev/disk/by-partlabel/*)
+            _tag="PART_ENTRY_NAME"
+            _process=1
+            ;;
+        *)
+            # Return itself if it is not a unique identifier.
+            printf -- "%s" "$input"
+            ;;
+    esac
+    _match="$(basename "$input")"
+    _path="$(dirname "$input")"
+    if [ "$_process" = "1" ]; then
+        _match="$(echo "$_match" | sed 's,\\x2f,/,g;s,\\x20, ,g')"
+    fi
+    # --probe: bypass blkid cache, read directly from filesystem metadata.
+    _value="$(blkid --probe --output value --match-tag "$_tag" "$disk")"
+
+    # Use the value from blkid if they don't match.
+    if [ -n "$_value" ] && [ "$_value" != "$_match" ]; then
+        if [ "$_process" = "1" ]; then
+            _value="$(echo "$_value" | sed 's,/,\\x2f,g;s, ,\\x20,g')"
+        fi
+        printf -- "%s" "$_path"/"$_value"
+    else
+        printf -- "%s" "$input"
+    fi
+}
+
 # get a persistent path from a device
 get_persistent_dev() {
-    local i _tmp _dev _pol
+    local i _tmp _dev _pol _result
 
     _dev=$(get_maj_min "$1")
     [ -z "$_dev" ] && return
@@ -312,7 +359,8 @@ get_persistent_dev() {
         [[ $i == /dev/mapper/mpath* ]] && continue
         _tmp=$(get_maj_min "$i")
         if [ "$_tmp" = "$_dev" ]; then
-            printf -- "%s" "$i"
+            _result="$(verify_uuid "$i" "$1")"
+            printf -- "%s" "$_result"
             return
         fi
     done
