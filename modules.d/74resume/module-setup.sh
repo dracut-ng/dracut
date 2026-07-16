@@ -20,20 +20,18 @@ check() {
         if grep -rqsE '(^| )resume=' /proc/cmdline /etc/kernel/cmdline /usr/lib/kernel/cmdline; then
             ddebug "Module resume: hibernation support requested on kernel command line"
             return 0
-        else
-            # resume= not set on kernel command line
-            if [[ -f /sys/power/resume ]]; then
-                if [[ "$(< /sys/power/resume)" == "0:0" ]]; then
-                    ddebug "Module resume: hibernation supported by the kernel, but not enabled"
-                    return 255
-                else
-                    ddebug "Module resume: hibernation supported by the kernel and enabled"
-                    return 0
-                fi
-            else
-                ddebug "Module resume: resume file doesn't exist, hibernation not supported by kernel"
+        # resume= not set on kernel command line
+        elif [[ -f /sys/power/resume ]]; then
+            if [[ "$(< /sys/power/resume)" == "0:0" ]]; then
+                ddebug "Module resume: hibernation supported by the kernel, but not enabled"
                 return 255
+            else
+                ddebug "Module resume: hibernation supported by the kernel and enabled"
+                return 0
             fi
+        else
+            ddebug "Module resume: resume file doesn't exist, hibernation not supported by kernel"
+            return 255
         fi
     else
         return 0
