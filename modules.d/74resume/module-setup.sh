@@ -22,7 +22,10 @@ check() {
             return 0
         # resume= not set on kernel command line
         elif [[ -f /sys/power/resume ]]; then
-            if [[ "$(< /sys/power/resume)" == "0:0" ]]; then
+            if [[ $hostonly_mode != "strict" ]]; then
+                ddebug "Module resume: hibernation supported by the kernel"
+                return 0
+            elif [[ "$(< /sys/power/resume)" == "0:0" ]]; then
                 ddebug "Module resume: hibernation supported by the kernel, but not enabled"
                 return 255
             else
