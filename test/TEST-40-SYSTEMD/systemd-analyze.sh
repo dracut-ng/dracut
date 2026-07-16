@@ -9,7 +9,7 @@ for i in \
     emergency.target \
     shutdown.target; do
     if ! systemd-analyze --man=no verify "$i"; then
-        warn "systemd-analyze --man=no verify $i failed"
+        warn "systemd-analyze.sh pre-pivot check 'systemd-analyze --man=no verify $i' failed. Failing test."
         poweroff
     fi
 done
