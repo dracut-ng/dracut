@@ -3,7 +3,7 @@
 # close everything which is not busy
 rm -f -- /etc/udev/rules.d/70-luks.rules > /dev/null 2>&1
 
-if ! getarg rd.luks.uuid > /dev/null 2>&1 && getargbool 1 rd.luks > /dev/null 2>&1; then
+close_luks() {
     while :; do
         local do_break="y"
         for i in /dev/mapper/luks-*; do
@@ -11,4 +11,8 @@ if ! getarg rd.luks.uuid > /dev/null 2>&1 && getargbool 1 rd.luks > /dev/null 2>
         done
         [ "$do_break" = "y" ] && break
     done
+}
+
+if ! getarg rd.luks.uuid > /dev/null 2>&1 && getargbool 1 rd.luks > /dev/null 2>&1; then
+    close_luks
 fi
