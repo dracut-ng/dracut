@@ -22,11 +22,15 @@ RUN case $(dpkg --print-architecture) in \
         arm64) arch_pkgs="qemu-efi-aarch64 qemu-system-arm" ;; \
     esac; \
     if [ "$DISTRIBUTION" != "debian:latest" ]; then cpio=3cpio; else cpio=cpio; fi; \
+    if [ "$DISTRIBUTION" = "debian:sid" ]; then \
+        systemd_pkgs="systemd-tpm"; \
+    fi; \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Use-Pty=0 \
     $arch_pkgs \
     $cpio \
     $coreutils \
+    $systemd_pkgs \
     asciidoctor \
     bluez \
     btrfs-progs \
