@@ -27,6 +27,12 @@ debug_on() {
     [ "$RD_DEBUG" = "yes" ] && set -x
 }
 
+# printf %q implementation for POSIX shell
+# Safe usage: printf "variable='%s'\n" "$(escape "$value")"
+escape() {
+    printf '%s' "$1" | sed -e "s/'/'\\\\''/g"
+}
+
 # returns OK if $1 contains literal string $2 (and isn't empty)
 strstr() {
     [ "${1##*"$2"*}" != "$1" ]
