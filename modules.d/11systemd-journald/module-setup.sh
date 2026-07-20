@@ -59,7 +59,6 @@ install() {
     # Install library file(s)
     if [[ ! $USE_SYSTEMD_DLOPEN_DEPS ]]; then
         inst_libdir_file \
-            {"tls/$DRACUT_ARCH/",tls/,"$DRACUT_ARCH/",}"libgcrypt.so*" \
             {"tls/$DRACUT_ARCH/",tls/,"$DRACUT_ARCH/",}"liblz4.so.*" \
             {"tls/$DRACUT_ARCH/",tls/,"$DRACUT_ARCH/",}"liblzma.so.*" \
             {"tls/$DRACUT_ARCH/",tls/,"$DRACUT_ARCH/",}"libzstd.so.*"
