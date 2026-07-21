@@ -46,7 +46,7 @@ kf_unescape() {
 kf_parse() {
     v3="$(kf_get_string "$1")" || return 1
     v3="$(kf_unescape "$v3")"
-    printf '%s='%s'\n' "$2" "$(escape "$v3")"
+    printf "%s='%s'\n" "$2" "$(escape "$v3")"
 }
 
 dhcpopts_create() {
