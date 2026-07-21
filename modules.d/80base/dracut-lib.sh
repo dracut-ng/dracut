@@ -342,12 +342,12 @@ splitsep() {
 
     while [ -n "$str" ] && [ "$#" -gt 1 ]; do
         tmp="${str%%"$sep"*}"
-        eval "$1='${tmp}'"
+        eval "$1=\${tmp}"
         str="${str#"$tmp"}"
         str="${str#"$sep"}"
         shift
     done
-    [ -n "$str" ] && [ -n "$1" ] && eval "$1='$str'"
+    [ -n "$str" ] && [ -n "$1" ] && eval "$1=\${str}"
     debug_on
     return 0
 }
@@ -952,7 +952,7 @@ export_n() {
     for var in "$@"; do
         eval "val=\$$var"
         unset "$var"
-        [ -n "$val" ] && eval "$var=\"$val\""
+        [ -n "$val" ] && eval "$var=\${val}"
     done
 }
 
