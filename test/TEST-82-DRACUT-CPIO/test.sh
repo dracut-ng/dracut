@@ -32,14 +32,13 @@ EOF
         --add-confdir "test" \
         "${dracut_cpio_params[@]}" \
         --include "$tdir/init.sh" /usr/lib/dracut/hooks/emergency/00-init.sh \
-        --install "poweroff" \
-        "$tdir/initramfs"
+        --install "poweroff"
 
     "$testdir"/run-qemu \
         -daemonize -pidfile "$tdir/vm.pid" \
         -serial "file:$tdir/console.out" \
         -append "panic=1 oops=panic softlockup_panic=1 rd.shell=1" \
-        -initrd "$tdir/initramfs"
+        -initrd "$TESTDIR"/initramfs.testing
 
     timeout=120
     while [[ -f $tdir/vm.pid ]] \
@@ -52,6 +51,7 @@ EOF
     cat "$tdir/console.out"
     grep -q "Image with ${dracut_cpio_params[*]} booted successfully" \
         "$tdir/console.out"
+    rm "$TESTDIR"/initramfs.testing
 }
 
 test_run() {
