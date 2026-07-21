@@ -12,20 +12,22 @@ for ifpath in /sys/class/net/*; do
         leases_file="/run/systemd/netif/leases/$(cat "$ifpath"/ifindex)"
         dhcpopts_file="/tmp/dhclient.${ifname}.dhcpopts"
         if [ -r "$leases_file" ]; then
-            grep -E "^(NEXT_SERVER|ROOT_PATH)=" "$leases_file" \
-                | sed -e "s/NEXT_SERVER=/new_next_server='/" \
-                    -e "s/ROOT_PATH=/new_root_path='/" \
-                    -e "s/$/'/" > "$dhcpopts_file" || :
+            {
+                new_next_server="$(sed -n 's/^NEXT_SERVER=//p' "$leases_file")"
+                [ -n "$new_next_server" ] && printf "new_next_server='%s'\n" "$(escape "$new_next_server")"
+                new_root_path="$(sed -n 's/^ROOT_PATH=//p' "$leases_file")"
+                [ -n "$new_root_path" ] && printf "new_root_path='%s'\n" "$(escape "$new_root_path")"
+            } > "$dhcpopts_file"
         else
             # Since systemd v261 the DHCP lease is no longer serialized to /run/, use the new networkctl command.
             lease=$(networkctl --no-pager --no-legend --full dhcp-lease "$ifname" 2> /dev/null) || lease=""
             if [ -n "$lease" ]; then
                 {
                     next_server=$(printf '%s\n' "$lease" | sed -n "s/^[[:space:]]*Server Address:[[:space:]]*//p")
-                    [ -n "$next_server" ] && printf "new_next_server='%s'\n" "$next_server"
+                    [ -n "$next_server" ] && printf "new_next_server='%s'\n" "$(escape "$next_server")"
                     # option 17 is the DHCP root-path; strip the leading "<code> <name> " columns
                     root_path=$(printf '%s\n' "$lease" | sed -n "s/^[[:space:]]*17[[:space:]].*[[:space:]]//p")
-                    [ -n "$root_path" ] && printf "new_root_path='%s'\n" "$root_path"
+                    [ -n "$root_path" ] && printf "new_root_path='%s'\n" "$(escape "$root_path")"
                 } > "$dhcpopts_file" || :
             fi
         fi
