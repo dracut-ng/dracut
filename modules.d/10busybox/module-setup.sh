@@ -7,9 +7,11 @@ check() {
     return 255
 }
 
-# we prefer the non-busybox implementation of switch_root
-# due to the dependency, the busybox dracut module needs to be order later than the base dracut module
-# as the base dracut module would install the non-busybox implementation of switch_root, if available
+# This module installs busybox and its applet symlinks before the base dracut
+# module. Later modules that call inst_multiple for names busybox provides will
+# see the symlinks already in $initdir and skip the install. Modules that
+# specifically need the host's real binary must explicitly remove the symlink
+# first and reinstall (`[ -L "$initdir$bin" ] && rm "$initdir$bin"; inst "$bin"`)
 
 # called by dracut
 install() {
