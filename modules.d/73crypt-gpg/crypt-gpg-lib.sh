@@ -15,6 +15,7 @@ gpg_decrypt() {
     local keypath="$2"
     local keydev="$3"
     local device="$4"
+    local maxTries="$5"
 
     local gpghome=/tmp/gnupg
     local opts="--homedir $gpghome --no-mdc-warning --skip-verify --quiet"
@@ -59,7 +60,7 @@ gpg_decrypt() {
     ask_for_password \
         --cmd "$cmd" \
         --prompt "${inputPrompt:-Password ($keypath on $keydev for $device)}" \
-        --tries 3 --tty-echo-off
+        --tries "${maxTries:-3}" --tty-echo-off
 
     # Clean up the smartcard gpg-agent
     if [ "${useSmartcard}" = "1" ]; then
