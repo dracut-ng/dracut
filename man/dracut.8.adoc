@@ -632,9 +632,11 @@ and no /etc/cmdline/*.conf will be generated into the initramfs.
 **--uefi**::
     Instead of creating an initramfs image, dracut will create an UEFI
     executable, which can be executed by an UEFI BIOS. The default output
-    filename is _<EFI>/EFI/Linux/linux-$kernel$-<MACHINE_ID>-<BUILD_ID>.efi_.
+    filename is _<EFI>/EFI/Linux/linux-$kernel$-<ENTRY_TOKEN>-<BUILD_ID>.efi_.
     <EFI> might be _/efi_, _/boot_ or _/boot/efi_ depending on where the ESP
-    partition is mounted. The <BUILD_ID> is taken from BUILD_ID in
+    partition is mounted. The <ENTRY_TOKEN> is read from
+    `$KERNEL_INSTALL_ENTRY_TOKEN`, _/etc/kernel/entry-token_, or falls back to
+    the machine ID. The <BUILD_ID> is taken from BUILD_ID in
     _/usr/lib/os-release_ or if it exists _/etc/os-release_ and is left out,
     if BUILD_ID is non-existent or empty.
 
@@ -649,7 +651,7 @@ and no /etc/cmdline/*.conf will be generated into the initramfs.
 
 **--no-machineid**::
     Affects the default output filename of **--uefi** and will discard the
-    <MACHINE_ID> part.
+    <ENTRY_TOKEN> part.
 
 **--uefi-stub** _<file>_::
     Specifies the UEFI stub loader, which will load the attached kernel,
