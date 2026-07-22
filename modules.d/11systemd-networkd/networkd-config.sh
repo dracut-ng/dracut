@@ -27,7 +27,7 @@ done
 # Add the default network if none was generated
 if [ "$generated" -eq "0" ]; then
     mkdir -m 0755 -p /run/systemd/network
-    cp -a /usr/lib/dracut/dracut-default.network /run/systemd/network/zzzz-dracut-default.network
+    cp -a /usr/lib/dracut/default.network /run/systemd/network/zzzz-dracut-default.network
 fi
 
 # Just in case networkd was already running
