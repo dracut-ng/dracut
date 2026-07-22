@@ -78,8 +78,6 @@ install() {
 
     inst_rules 63-md-raid-arrays.rules 64-md-raid-assembly.rules
 
-    inst_rules "$moddir/59-persistent-storage-md.rules"
-
     if [[ $hostonly ]] || [[ $mdadmconf == "yes" ]]; then
         if [[ -f "${dracutsysrootdir-}/etc/mdadm.conf" ]]; then
             inst -H /etc/mdadm.conf
