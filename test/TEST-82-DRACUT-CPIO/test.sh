@@ -19,6 +19,7 @@ test_dracut_cpio() {
     shift
     # --enhanced-cpio tells dracut to use dracut-cpio instead of GNU cpio
     local dracut_cpio_params=("--enhanced-cpio" "$@")
+    echo "SUBTEST: ${dracut_cpio_params[*]}"
 
     mkdir -p "$tdir"
 
@@ -55,8 +56,6 @@ EOF
 }
 
 test_run() {
-    set -x
-
     # dracut-cpio is typically used with compression and strip disabled, to
     # increase the chance of (reflink) extent sharing.
     test_dracut_cpio "simple" "--no-compress" "--nostrip"
