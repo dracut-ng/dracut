@@ -2902,7 +2902,7 @@ for ((i = 0; i < ${#include_src[@]}; i++)); do
                     if ! [[ -e $object_destdir ]]; then
                         # shellcheck disable=SC2174
                         mkdir -m 0755 -p "$object_destdir"
-                        chmod --reference="$objectname" "$object_destdir"
+                        chmod "$(stat -c '%a' "$objectname")" "$object_destdir"
                     fi
                     $DRACUT_CP -t "$object_destdir" "${dracutsysrootdir-}$objectname"/.
                 else
