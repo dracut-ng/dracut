@@ -17,7 +17,7 @@ installkernel() {
         for i in /sys/class/drm/privacy_screen-*/device/driver/module; do
             [[ -L $i ]] || continue
             modlink=$(readlink "$i")
-            modname=$(basename "$modlink")
+            modname="${modlink##*/}"
             hostonly='' instmods "$modname"
         done
     else

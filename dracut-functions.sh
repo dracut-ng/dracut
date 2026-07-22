@@ -651,7 +651,7 @@ get_blockdev_drv_through_sys() {
     while :; do
         if [[ -L "$_path"/driver/module ]]; then
             _mod=$(realpath "$_path"/driver/module)
-            _mod=$(basename "$_mod")
+            _mod="${_mod##*/}"
             _block_mods="$_block_mods $_mod"
         fi
         _path="${_path%/*}"
@@ -972,8 +972,8 @@ block_is_fcoe() {
     until [[ -d "$_dir/sys" ]]; do
         _dir="$_dir/.."
         if [[ -d "$_dir/subsystem" ]]; then
-            subsystem=$(basename "$(readlink "$_dir"/subsystem)")
-            [[ $subsystem == "fcoe" ]] && return 0
+            subsystem=$(readlink "$_dir"/subsystem)
+            [[ ${subsystem##*/} == "fcoe" ]] && return 0
         fi
     done
     return 1
