@@ -77,17 +77,6 @@ install() {
     fi
 
     inst_rules 63-md-raid-arrays.rules 64-md-raid-assembly.rules
-    # remove incremental assembly from stock rules, so they don't shadow
-    # 65-md-inc*.rules and its fine-grained controls, or cause other problems
-    # when we explicitly don't want certain components to be incrementally
-    # assembled
-    # shellcheck disable=SC2016
-    if [ -f "${initdir}${udevdir}/rules.d/64-md-raid-assembly.rules" ]; then
-        sed -i -r -e '/(RUN|IMPORT\{program\})\+?="[[:alpha:]\/]*mdadm[[:blank:]]+(--incremental|-I)[[:blank:]]+(--export )?(\$env\{DEVNAME\}|\$devnode)/d' \
-            "${initdir}${udevdir}/rules.d/64-md-raid-assembly.rules"
-    fi
-
-    inst_rules "$moddir/65-md-incremental-imsm.rules"
 
     inst_rules "$moddir/59-persistent-storage-md.rules"
 
