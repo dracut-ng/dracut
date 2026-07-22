@@ -121,7 +121,7 @@ install() {
                         "the service unit may encounter a deadlock due to a circular dependency"
                 fi
 
-                socket_unit_basename=$(basename "$socket_unit")
+                socket_unit_basename="${socket_unit##*/}"
                 inst_multiple -H -o \
                     "$systemdsystemunitdir"/sockets.target.wants/"$socket_unit_basename" \
                     "$systemdsystemconfdir"/sockets.target.wants/"$socket_unit_basename"
