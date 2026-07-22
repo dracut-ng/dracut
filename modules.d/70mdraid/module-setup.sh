@@ -83,7 +83,7 @@ install() {
     # assembled
     # shellcheck disable=SC2016
     if [ -f "${initdir}${udevdir}/rules.d/64-md-raid-assembly.rules" ]; then
-        sed -i -r -e '/(RUN|IMPORT\{program\})\+?="[[:alpha:]/]*mdadm[[:blank:]]+(--incremental|-I)[[:blank:]]+(--export )?(\$env\{DEVNAME\}|\$devnode)/d' \
+        sed -i -r -e '/(RUN|IMPORT\{program\})\+?="[[:alpha:]\/]*mdadm[[:blank:]]+(--incremental|-I)[[:blank:]]+(--export )?(\$env\{DEVNAME\}|\$devnode)/d' \
             "${initdir}${udevdir}/rules.d/64-md-raid-assembly.rules"
     fi
 
