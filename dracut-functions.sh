@@ -1202,6 +1202,12 @@ dracut_need_initqueue() {
 # attempt to install any programs specified in a udev rule
 _inst_rule_programs() {
     local _prog _bin
+    local -A _rule_bins=()
+
+    # cache installed rule programs
+    if ! declare -p _rule_programs_cache 2> /dev/null | grep -q "declare -A"; then
+        declare -gxA _rule_programs_cache=()
+    fi
 
     # shellcheck disable=SC2013
     for _prog in $(sed -nr 's/.*PROGRAM==?"([^ "]+).*/\1/p' "$1"); do
@@ -1215,7 +1221,10 @@ _inst_rule_programs() {
             }
         fi
 
-        [[ $_bin ]] && inst_binary "$_bin"
+        if [[ $_bin ]] && [[ ${_rule_bins[$_bin]:-} != 1 ]] && [[ ${_rule_programs_cache[$_bin]:-} != 1 ]]; then
+            _rule_bins[$_bin]=1
+            _rule_programs_cache[$_bin]=1
+        fi
     done
 
     # shellcheck disable=SC2013
@@ -1230,7 +1239,10 @@ _inst_rule_programs() {
             }
         fi
 
-        [[ $_bin ]] && inst_binary "$_bin"
+        if [[ $_bin ]] && [[ ${_rule_bins[$_bin]:-} != 1 ]] && [[ ${_rule_programs_cache[$_bin]:-} != 1 ]]; then
+            _rule_bins[$_bin]=1
+            _rule_programs_cache[$_bin]=1
+        fi
     done
 
     # shellcheck disable=SC2013
@@ -1245,8 +1257,13 @@ _inst_rule_programs() {
             }
         fi
 
-        [[ $_bin ]] && inst_multiple "$_bin"
+        if [[ $_bin ]] && [[ ${_rule_bins[$_bin]:-} != 1 ]] && [[ ${_rule_programs_cache[$_bin]:-} != 1 ]]; then
+            _rule_bins[$_bin]=1
+            _rule_programs_cache[$_bin]=1
+        fi
     done
+
+    ((${#_rule_bins[@]} > 0)) && inst_multiple "${!_rule_bins[@]}"
 }
 
 # attempt to create any groups and users specified in a udev rule
