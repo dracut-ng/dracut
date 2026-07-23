@@ -21,7 +21,11 @@ get_nfs_type() {
 check() {
     # If our prerequisites are not met, fail anyways.
     require_any_binary rpcbind portmap || return 1
-    require_binaries rpc.statd mount.nfs mount.nfs4 umount sed chmod chown || return 1
+    if [[ "$(get_nfs_type)" == "nfs4" ]]; then
+        require_binaries mount.nfs4 umount sed chmod chown || return 1
+    else
+        require_binaries rpc.statd mount.nfs umount sed chmod chown || return 1
+    fi
 
     [[ $hostonly ]] || [[ $mount_needs ]] && {
         [[ "$(get_nfs_type)" ]] && return 0
