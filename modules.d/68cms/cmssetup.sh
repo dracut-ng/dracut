@@ -3,7 +3,7 @@
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 command -v zdev_parse_dasd_list > /dev/null || . /lib/s390-tools/zdev-from-dasd_mod.dasd
 
-function dasd_settle() {
+dasd_settle() {
     local dasd_status
     dasd_status=$(lszdev dasd "$1" --columns ATTRPATH:status --no-headings --active)
     if [ ! -f "$dasd_status" ]; then
@@ -27,7 +27,7 @@ function dasd_settle() {
 }
 
 # read file from CMS and write it to /tmp
-function readcmsfile() { # $1=dasdport $2=filename
+readcmsfile() { # $1=dasdport $2=filename
     local dev
     local devname
     local ret=0
