@@ -208,30 +208,58 @@ client_test_end() {
     rm "$TESTDIR/client_test_name.txt"
 }
 
-# Start a HTTP server that serves the content of TESTDIR
+# Start a HTTP/HTTPS server that serves the content of TESTDIR
 start_webserver() {
-    local pid port
+    local pid port type="${1-HTTP}" cert="${2-}"
 
-    echo "Starting HTTP server..." >&2
-    python3 -u -m http.server -d "$TESTDIR" 0 > "$TESTDIR/webserver.log" 2>&1 &
-    pid=$!
-    echo "$pid" > "$TESTDIR/webserver.pid"
+    echo "Starting $type server..." >&2
 
-    while ! grep -q 'Serving HTTP on' "$TESTDIR/webserver.log"; do
-        echo "sleeping..." >&2
-        sleep 0.05
-    done
+    case "$type" in
+        "HTTP")
+            python3 -u -m http.server -d "$TESTDIR" 0 > "$TESTDIR/webserver.log" 2>&1 &
+            pid=$!
+            echo "$pid" > "$TESTDIR/webserver.pid"
 
-    port=$(sed -n 's/.*port \([0-9]\+\).*/\1/p' "$TESTDIR/webserver.log")
-    echo "HTTP server running on port $port (pid $pid)" >&2
+            while ! grep -q 'Serving HTTP on' "$TESTDIR/webserver.log"; do
+                echo "sleeping..." >&2
+                sleep 0.05
+            done
+
+            port=$(sed -n 's/.*port \([0-9]\+\).*/\1/p' "$TESTDIR/webserver.log")
+            ;;
+
+        "HTTPS")
+            if [[ -z $cert ]]; then
+                echo "Missing certificate"
+                return 1
+            fi
+
+            # Set a fixed port
+            port=4443
+
+            # openssl does not have a specific parameter to set a working directory,
+            # so we have to change to TESTDIR before starting the server
+            (cd "$TESTDIR" && exec openssl s_server -accept "$port" -cert "$cert" -WWW > "$TESTDIR/webserver.log" 2>&1) &
+            pid=$!
+            echo "$pid" > "$TESTDIR/webserver.pid"
+            ;;
+
+        *)
+            echo "$type server not implemented"
+            return 1
+            ;;
+    esac
+
+    echo "$type server running on port $port (pid $pid)" >&2
     echo "$port"
+    return 0
 }
 
-# Stop HTTP server that was started by start_webserver
+# Stop HTTP/HTTPS server that was started by start_webserver
 stop_webserver() {
     if [[ -s "$TESTDIR/webserver.pid" ]]; then
         pid=$(cat "$TESTDIR/webserver.pid")
-        echo "Stopping HTTP server (pid $pid)..." >&2
+        echo "Stopping web server (pid $pid)..." >&2
         kill "$pid"
         rm "$TESTDIR/webserver.pid"
     fi
