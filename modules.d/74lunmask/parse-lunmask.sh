@@ -23,8 +23,8 @@ EOF
     fi
 }
 
-for lunmask_arg in $(getargs rd.lunmask); do
-    (
+parse_lunmask() {
+    for lunmask_arg in $(getargs rd.lunmask); do
         local OLDIFS="$IFS"
         local IFS=","
         # shellcheck disable=SC2086
@@ -37,5 +37,7 @@ for lunmask_arg in $(getargs rd.lunmask); do
             echo "options scsi_mod scan=manual" > /run/modprobe.d/95lunmask.conf
         fi
         create_udev_rule "$1" "$2" "$3"
-    )
-done
+    done
+}
+
+parse_lunmask
