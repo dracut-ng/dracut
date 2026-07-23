@@ -89,7 +89,11 @@ install() {
 
     inst_rules "$moddir/65-md-incremental-imsm.rules"
 
-    inst_rules "$moddir/59-persistent-storage-md.rules"
+    # Install our 59-persistent-storage-md.rules for mdadm < 4.5
+    # to extend 63-md-raid-arrays.rules with OPTIONS+="db_persist"
+    if ! grep -q db_persist "${initdir}${udevdir}/rules.d/63-md-raid-arrays.rules" 2> /dev/null; then
+        inst_rules "$moddir/59-persistent-storage-md.rules"
+    fi
 
     if [[ $hostonly ]] || [[ $mdadmconf == "yes" ]]; then
         if [[ -f "${dracutsysrootdir-}/etc/mdadm.conf" ]]; then
