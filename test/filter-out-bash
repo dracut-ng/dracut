@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+while read -r script; do
+    if head -n 1 "$script" | grep -q bash; then
+        continue
+    fi
+    echo "$script"
+done

@@ -330,8 +330,16 @@ else
 	find * -name '*.sh' -print0 | xargs -0 shellcheck
 endif
 
+.PHONY: shellcheck-busybox
+shellcheck-busybox:
+ifeq ($(HAVE_SHFMT),yes)
+	shellcheck -s busybox $$(shfmt -f * | test/filter-out-bash)
+else
+	find * -name '*.sh' | test/filter-out-bash | xargs shellcheck -s busybox
+endif
+
 .PHONY: syncheck
-syncheck: bashcheck $(if $(filter yes,$(HAVE_SHELLCHECK)),shellcheck)
+syncheck: bashcheck $(if $(filter yes,$(HAVE_SHELLCHECK)),shellcheck shellcheck-busybox)
 
 check: all
 	@$(MAKE) -C test check
