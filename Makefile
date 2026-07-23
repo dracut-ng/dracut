@@ -309,7 +309,8 @@ clean:
 distclean: clean
 	$(RM) Makefile.inc
 
-syncheck:
+.PHONY: bashcheck
+bashcheck:
 	@ret=0;for i in dracut-initramfs-restore.sh modules.d/*/*.sh; do \
                 [ "$${i##*/}" = "module-setup.sh" ] && continue; \
                 read line < "$$i"; [ "$${line#*bash*}" != "$$line" ] && continue; \
@@ -320,13 +321,17 @@ syncheck:
 	@ret=0;for i in *.sh modules.d/*/*.sh modules.d/*/module-setup.sh; do \
 		[ $$V ] && echo "bash syntax check: $$i"; bash -n "$$i" ; ret=$$(($$ret+$$?)); \
 	done;exit $$ret
-ifeq ($(HAVE_SHELLCHECK),yes)
+
+.PHONY: shellcheck
+shellcheck:
 ifeq ($(HAVE_SHFMT),yes)
 	shellcheck $$(shfmt -f *)
 else
 	find * -name '*.sh' -print0 | xargs -0 shellcheck
 endif
-endif
+
+.PHONY: syncheck
+syncheck: bashcheck $(if $(filter yes,$(HAVE_SHELLCHECK)),shellcheck)
 
 check: all
 	@$(MAKE) -C test check
