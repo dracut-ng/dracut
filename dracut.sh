@@ -3480,6 +3480,15 @@ if [[ $uefi == yes ]]; then
 
     if command -v ukify &> /dev/null && [[ $ukify != 'no' ]]; then
         dinfo "*** Using ukify to create UKI ***"
+        # ukify extracts SBAT from the stub and kernel PE files on its own,
+        # so only pass user-supplied SBAT entries here to avoid duplication.
+        ukify_sbat=""
+        if [[ -n $sbat ]]; then
+            ukify_sbat=$uefi_outdir/ukify_user.sbat
+            echo "$SBAT_DEFAULT" > "$ukify_sbat"
+            echo "$sbat" | sed "/${SBAT_DEFAULT//\//\\/}/d" >> "$ukify_sbat"
+        fi
+
         if ukify build \
             --linux "$kernel_image" \
             --initrd "${DRACUT_TMPDIR}/initramfs.img" \
@@ -3488,7 +3497,7 @@ if [[ $uefi == yes ]]; then
             ${uefi_osrelease:+--os-release @"$uefi_osrelease"} \
             ${uefi_splash_image:+--splash "$uefi_splash_image"} \
             --stub "$uefi_stub" \
-            --sbat "$sbat_out" \
+            ${ukify_sbat:+--sbat @"$ukify_sbat"} \
             ${uefi_secureboot_engine:+--signing-engine "$uefi_secureboot_engine"} \
             ${uefi_secureboot_key:+--secureboot-private-key "$uefi_secureboot_key"} \
             ${uefi_secureboot_cert:+--secureboot-certificate "$uefi_secureboot_cert"} \
