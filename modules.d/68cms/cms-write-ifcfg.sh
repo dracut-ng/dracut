@@ -7,7 +7,7 @@ umask 0022
 mkdir -p /run/initramfs/state/etc/sysconfig/network-scripts
 umask "$OLD_UMASK"
 
-function cms_write_config() {
+cms_write_config() {
     . /tmp/cms.conf
     SUBCHANNELS="$(echo "$SUBCHANNELS" | sed 'y/ABCDEF/abcdef/')"
     OLDIFS=$IFS

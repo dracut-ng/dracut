@@ -279,13 +279,13 @@ determine_kernel_version() {
 }
 
 # terminal sequence to set color to a 'success' color (currently: green)
-function SETCOLOR_SUCCESS() { echo -en '\033[0;32m'; }
+SETCOLOR_SUCCESS() { echo -en '\033[0;32m'; }
 # terminal sequence to set color to a 'failure' color (currently: red)
-function SETCOLOR_FAILURE() { echo -en '\033[0;31m'; }
+SETCOLOR_FAILURE() { echo -en '\033[0;31m'; }
 # terminal sequence to set color to a 'warning' color (currently: yellow)
-function SETCOLOR_WARNING() { echo -en '\033[0;33m'; }
+SETCOLOR_WARNING() { echo -en '\033[0;33m'; }
 # terminal sequence to reset to the default color.
-function SETCOLOR_NORMAL() { echo -en '\033[0;39m'; }
+SETCOLOR_NORMAL() { echo -en '\033[0;39m'; }
 
 COLOR_SUCCESS='\033[0;32m'
 COLOR_FAILURE='\033[0;31m'
