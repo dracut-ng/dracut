@@ -202,7 +202,7 @@ static size_t dir_len(char const *file)
 {
         size_t length;
 
-        if (!file)
+        if (isempty(file))
                 return 0;
 
         /* Strip the basename and any redundant slashes before it.  */
@@ -2184,6 +2184,8 @@ static int find_kmod_module_from_sysfs_modalias(struct kmod_ctx *ctx, const char
 
         char alias[page_size()];
         ssize_t len = read(modalias_file, alias, sizeof(alias));
+        if (len <= 0)
+                return -1;
         alias[len - 1] = '\0';
 
         void *list;
