@@ -2699,12 +2699,6 @@ if [[ $kernel_only != yes ]]; then
     mkdir -p "${initdir}/etc/cmdline.d"
     mkdir -m 0755 -p "${initdir}"/var/lib/dracut/hooks
 
-    # FIXME: handle legacy item split
-    # shellcheck disable=SC2068
-    ((${#install_items[@]} > 0)) && inst_multiple ${install_items[@]}
-    # shellcheck disable=SC2068
-    ((${#install_optional_items[@]} > 0)) && inst_multiple -o ${install_optional_items[@]}
-
     for _d in $hookdirs; do
         # shellcheck disable=SC2174
         mkdir -m 0755 -p "${initdir}/var/lib/dracut/hooks/$_d"
@@ -2860,6 +2854,12 @@ if [[ $kernel_only != yes ]]; then
             } > "${initdir}"/etc/conf.d/systemd.conf
         fi
     fi
+
+    # FIXME: handle legacy item split
+    # shellcheck disable=SC2068
+    ((${#install_items[@]} > 0)) && inst_multiple ${install_items[@]}
+    # shellcheck disable=SC2068
+    ((${#install_optional_items[@]} > 0)) && inst_multiple -o ${install_optional_items[@]}
 
     if [[ ${DRACUT_RESOLVE_LAZY-} ]] && [[ $DRACUT_INSTALL ]]; then
         dinfo "*** Resolving dependencies for executables and libraries ***"
