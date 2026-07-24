@@ -202,7 +202,7 @@ static size_t dir_len(char const *file)
 {
         size_t length;
 
-        if (!file)
+        if (isempty(file))
                 return 0;
 
         /* Strip the basename and any redundant slashes before it.  */
