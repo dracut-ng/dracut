@@ -173,7 +173,7 @@ jobs:
         # all nfs based on default networking
         name: ${{ matrix.test }} on ${{ matrix.container }}
         runs-on: ubuntu-24.04
-        timeout-minutes: 10
+        timeout-minutes: 15
         concurrency:
             group: >
                 network-${{ github.workflow }}-${{ github.ref }}
