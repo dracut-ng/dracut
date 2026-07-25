@@ -37,6 +37,7 @@ RUN case $(dpkg --print-architecture) in \
     busybox \
     ca-certificates \
     cargo \
+    chrony \
     console-data \
     cryptsetup \
     curl \
@@ -96,7 +97,6 @@ RUN case $(dpkg --print-architecture) in \
     systemd-repart \
     systemd-resolved \
     systemd-sysv \
-    systemd-timesyncd \
     systemd-ukify \
     tcpdump \
     tgt \
