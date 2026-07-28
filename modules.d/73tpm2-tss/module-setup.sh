@@ -42,6 +42,7 @@ install() {
 
     inst_multiple -o \
         "$tmpfilesdir"/tpm2-tss-fapi.conf \
+        "$udevrulesdir"/60-tpm2-id.rules \
         "$udevrulesdir"/60-tpm-udev.rules \
         "$udevrulesdir"/90-tpm.rules \
         "$systemdutildir"/systemd-tpm2-setup \
