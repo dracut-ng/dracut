@@ -28,7 +28,7 @@ depends() {
 
 # Config adjustments before installing anything.
 config() {
-    add_dlopen_features+=" libsystemd-shared-*.so:gcrypt,lz4,lzma,zstd "
+    add_dlopen_features+=" libsystemd-shared-*.so:lz4,lzma,zstd "
 }
 
 # Install the required file(s) and directories for the module in the initramfs.
