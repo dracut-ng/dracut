@@ -53,8 +53,7 @@ install() {
         73-seat-late.rules \
         75-probe_mtd.rules \
         78-sound-card.rules \
-        80-drivers.rules \
-        95-udev-late.rules
+        80-drivers.rules
 
     {
         for i in cdrom tape dialout floppy; do
