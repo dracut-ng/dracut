@@ -72,7 +72,6 @@ install() {
     inst_multiple -o \
         "${udevdir}"/ata_id \
         "${udevdir}"/cdrom_id \
-        "${udevdir}"/create_floppy_devices \
         "${udevdir}"/dmi_memory_id \
         "${udevdir}"/fido_id \
         "${udevdir}"/fw_unit_symlinks.sh \
