@@ -77,12 +77,9 @@ install() {
         "${udevdir}"/fido_id \
         "${udevdir}"/fw_unit_symlinks.sh \
         "${udevdir}"/hid2hci \
-        "${udevdir}"/input_id \
         "${udevdir}"/mtd_probe \
         "${udevdir}"/mtp-probe \
-        "${udevdir}"/path_id \
         "${udevdir}"/scsi_id \
-        "${udevdir}"/usb_id \
         "${udevdir}"/v4l_id \
         "${udevdir}"/udev.conf \
         "${udevdir}"/udev.conf.d/*.conf
