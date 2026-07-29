@@ -75,7 +75,6 @@ install() {
         "${udevdir}"/dmi_memory_id \
         "${udevdir}"/fido_id \
         "${udevdir}"/mtd_probe \
-        "${udevdir}"/mtp-probe \
         "${udevdir}"/scsi_id \
         "${udevdir}"/v4l_id \
         "${udevdir}"/udev.conf \
