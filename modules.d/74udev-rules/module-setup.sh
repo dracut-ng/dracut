@@ -74,7 +74,6 @@ install() {
         "${udevdir}"/cdrom_id \
         "${udevdir}"/dmi_memory_id \
         "${udevdir}"/fido_id \
-        "${udevdir}"/fw_unit_symlinks.sh \
         "${udevdir}"/hid2hci \
         "${udevdir}"/mtd_probe \
         "${udevdir}"/mtp-probe \
