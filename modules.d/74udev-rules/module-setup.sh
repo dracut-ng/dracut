@@ -28,7 +28,6 @@ install() {
         50-udev-default.rules \
         55-scsi-sg3_id.rules \
         58-scsi-sg3_symlink.rules \
-        59-scsi-sg3_utils.rules \
         60-autosuspend.rules \
         60-block.rules \
         60-cdrom_id.rules \
