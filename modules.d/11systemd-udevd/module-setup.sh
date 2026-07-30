@@ -50,8 +50,10 @@ install() {
         "$systemdsystemunitdir/systemd-udev-settle.service.d/*.conf" \
         "$systemdsystemunitdir"/systemd-udevd-control.socket \
         "$systemdsystemunitdir"/systemd-udevd-kernel.socket \
+        "$systemdsystemunitdir"/systemd-udevd-varlink.socket \
         "$systemdsystemunitdir"/sockets.target.wants/systemd-udevd-control.socket \
         "$systemdsystemunitdir"/sockets.target.wants/systemd-udevd-kernel.socket \
+        "$systemdsystemunitdir"/sockets.target.wants/systemd-udevd-varlink.socket \
         "$systemdsystemunitdir"/sysinit.target.wants/systemd-udevd.service \
         "$systemdsystemunitdir"/sysinit.target.wants/systemd-udev-trigger.service
 
@@ -68,8 +70,11 @@ install() {
             "$systemdsystemconfdir/systemd-udevd-control.socket.d/*.conf" \
             "$systemdsystemconfdir"/systemd-udevd-kernel.socket \
             "$systemdsystemconfdir/systemd-udevd-kernel.socket.d/*.conf" \
+            "$systemdsystemconfdir"/systemd-udevd-varlink.socket \
+            "$systemdsystemconfdir/systemd-udevd-varlink.socket.d/*.conf" \
             "$systemdsystemconfdir"/sockets.target.wants/systemd-udevd-control.socket \
             "$systemdsystemconfdir"/sockets.target.wants/systemd-udevd-kernel.socket \
+            "$systemdsystemconfdir"/sockets.target.wants/systemd-udevd-varlink.socket \
             "$systemdsystemconfdir"/sysinit.target.wants/systemd-udevd.service \
             "$systemdsystemconfdir"/sysinit.target.wants/systemd-udev-trigger.service
 
