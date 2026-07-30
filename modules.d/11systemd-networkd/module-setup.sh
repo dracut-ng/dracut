@@ -57,7 +57,6 @@ install() {
         "$systemdsystemunitdir"/systemd-network-generator.service \
         "$systemdsystemunitdir"/systemd-networkd-wait-online.service \
         "$systemdsystemunitdir"/systemd-networkd-wait-online@.service \
-        "$systemdsystemunitdir"/systemd-network-generator.service \
         ip sed grep networkctl tr
 
     inst_simple "$moddir"/99-wait-online-dracut.conf \
