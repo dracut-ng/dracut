@@ -1312,7 +1312,7 @@ fw_dir=${fw_dir//:/ }
 # check for logfile and try to create one if it doesn't exist
 if [[ -n $logfile ]]; then
     if [[ ! -f $logfile ]]; then
-        if touch "$logfile"; then
+        if ! touch "$logfile"; then
             dwarn "touch $logfile failed."
         fi
     fi
