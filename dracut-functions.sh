@@ -1311,7 +1311,7 @@ inst_sysusers() {
     inst_multiple -o "$sysusers/$*" "$sysusers/acct-*-$*"
 
     if [[ ${hostonly-} ]]; then
-        inst_multiple -H -o "$sysusersconfdir/$*" "$sysusers/acct-*-$*"
+        inst_multiple -H -o "$sysusersconfdir/$*" "$sysusersconfdir/acct-*-$*"
     fi
 }
 
