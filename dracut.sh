@@ -3310,11 +3310,11 @@ if [[ $CPIO == 3cpio ]] && ! [[ -v compress_3cpio ]]; then
             compress_3cpio=
             ;;
         *)
-            derror "custom compressor $1 not supported with 3cpio"
+            derror "custom compressor '${compress}' not supported with 3cpio"
             exit 1
             ;;
     esac
-    dwarn "custom compressor '${compres}' mapped to 3cpio config '${compress_3cpio}'"
+    dwarn "custom compressor '${compress}' mapped to 3cpio config '${compress_3cpio}'"
 fi
 
 create_cpio_with_dracut_cpio() {
