@@ -34,8 +34,6 @@ install() {
         "$tmpfilesdir/systemd.conf" \
         "$tmpfilesdir/20-systemd-stub.conf" \
         "$tmpfilesdir/var.conf" \
-        "$systemdsystemunitdir"/systemd-tmpfiles-clean.service \
-        "$systemdsystemunitdir/systemd-tmpfiles-clean.service.d/*.conf" \
         "$systemdsystemunitdir"/systemd-tmpfiles-setup.service \
         "$systemdsystemunitdir/systemd-tmpfiles-setup.service.d/*.conf" \
         "$systemdsystemunitdir"/systemd-tmpfiles-setup-dev.service \
@@ -50,8 +48,6 @@ install() {
     # Install the hosts local user configurations if enabled.
     if [[ $hostonly ]]; then
         inst_multiple -H -o \
-            "$systemdsystemconfdir"/systemd-tmpfiles-clean.service \
-            "$systemdsystemconfdir/systemd-tmpfiles-clean.service.d/*.conf" \
             "$systemdsystemconfdir"/systemd-tmpfiles-setup.service \
             "$systemdsystemconfdir/systemd-tmpfiles-setup.service.d/*.conf" \
             "$systemdsystemconfdir"/systemd-tmpfiles-setup-dev.service \
