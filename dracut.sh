@@ -1602,7 +1602,7 @@ build_ld_cache() {
     for f in "${dracutsysrootdir-}"/etc/ld.so.conf "${dracutsysrootdir-}"/etc/ld.so.conf.d/*; do
         [[ -f $f ]] && inst_simple "${f}"
     done
-    if ! $DRACUT_LDCONFIG -r "$initdir" -f /etc/ld.so.conf; then
+    if ! $DRACUT_LDCONFIG -r "$dstdir" -f /etc/ld.so.conf; then
         if [[ $EUID == 0 ]]; then
             derror "ldconfig exited ungracefully"
         else
