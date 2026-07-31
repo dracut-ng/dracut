@@ -51,7 +51,6 @@ installkernel() {
 # Install the required file(s) and directories for the module in the initramfs.
 install() {
     inst_multiple -o \
-        /usr/lib/modules-load.d/*.conf \
         "$modulesload/*.conf" \
         "$systemdutildir"/systemd-modules-load \
         "$systemdsystemunitdir"/systemd-modules-load.service \
@@ -67,7 +66,6 @@ install() {
     # Install the hosts local user configurations if enabled.
     if [[ $hostonly ]]; then
         inst_multiple -H -o \
-            /etc/modules-load.d/*.conf \
             "$modulesloadconfdir/*.conf" \
             "$systemdsystemconfdir"/modprobe@.service \
             "$systemdsystemconfdir/modprobe@.service.d/*.conf" \
