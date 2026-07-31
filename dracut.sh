@@ -2218,7 +2218,6 @@ set_global_var "systemd" "systemduser" "${systemdutildir}/user"
 set_global_var "systemd" "sysusers" "/usr/lib/sysusers.d"
 [[ $hostonly ]] && set_global_var "systemd" "sysusersconfdir" "/etc/sysusers.d"
 set_global_var "systemd" "tmpfilesdir" "/lib/tmpfiles.d" "/usr/lib/tmpfiles.d"
-[[ $hostonly ]] && set_global_var "systemd" "tmpfilesconfdir" "/etc/tmpfiles.d"
 set_global_var "systemd" "modversion:systemdversion" "0"
 
 # libkmod global variables
