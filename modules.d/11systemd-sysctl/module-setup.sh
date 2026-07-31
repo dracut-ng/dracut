@@ -16,7 +16,6 @@ check() {
 install() {
 
     inst_multiple -o \
-        /usr/lib/sysctl.d/*.conf \
         "$sysctld/*.conf" \
         "$systemdsystemunitdir"/systemd-sysctl.service \
         "$systemdsystemunitdir"/sysinit.target.wants/systemd-sysctl.service \
@@ -26,7 +25,6 @@ install() {
     if [[ $hostonly ]]; then
         inst_multiple -H -o \
             /etc/sysctl.conf \
-            /etc/sysctl.d/*.conf \
             "$sysctlconfdir/*.conf" \
             "$systemdsystemconfdir"/systemd-sysctl.service \
             "$systemdsystemconfdir/systemd-sysctl.service.d/*.conf"
