@@ -9,6 +9,34 @@ check() {
     return 0
 }
 
+
+# due to the dependencies below, this dracut module needs to be ordered later than the plymouth dracut module
+
+depends() {
+    # Include "drm" / "simpledrm" to be able to set the console font properly
+    local _module _drm
+    local -a _modules=(drm simpledrm)
+
+    for _module in "${_modules[@]}"; do
+        if dracut_module_included "$_module"; then
+            _drm="$_module"
+            break
+        fi
+    done
+
+    if [[ -z $_drm ]]; then
+        for _module in "${_modules[@]}"; do
+            module_check "$_module" > /dev/null 2>&1
+            if [[ $? == 255 ]] && ! [[ " $omit_dracutmodules " == *\ $_module\ * ]]; then
+                _drm="$_module"
+                break
+            fi
+        done
+    fi
+
+    echo "$_drm"
+}
+
 # called by dracut
 install() {
     declare -A KEYMAPS
