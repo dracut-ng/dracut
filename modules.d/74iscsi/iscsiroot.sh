@@ -103,9 +103,9 @@ handle_netroot() {
 
     # override conf settings by command line options
     arg=$(getarg rd.iscsi.initiator -d iscsi_initiator=)
-    [ -n "$arg" ] && iscsi_initiator=$arg
+    [ -n "$arg" ] && iscsi_initiator=$(normalized_iscsi_name "$arg")
     arg=$(getarg rd.iscsi.target.group -d iscsi_target_group=)
-    [ -n "$arg" ] && iscsi_target_group=$arg
+    [ -n "$arg" ] && iscsi_target_group=$(normalized_iscsi_name "$arg")
     arg=$(getarg rd.iscsi.username -d iscsi_username=)
     [ -n "$arg" ] && iscsi_username=$arg
     arg=$(getarg rd.iscsi.password -d iscsi_password)
@@ -144,6 +144,7 @@ handle_netroot() {
 
     if [ -z "$iscsi_initiator" ] && [ -f /sys/firmware/ibft/initiator/initiator-name ] && ! [ -f /tmp/iscsi_set_initiator ]; then
         iscsi_initiator=$(while read -r line || [ -n "$line" ]; do echo "$line"; done < /sys/firmware/ibft/initiator/initiator-name)
+        iscsi_initiator=$(normalized_iscsi_name "$iscsi_initiator")
         echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
         rm -f /etc/iscsi/initiatorname.iscsi
         mkdir -p /etc/iscsi
@@ -160,11 +161,11 @@ handle_netroot() {
         [ -f /run/initiatorname.iscsi ] && . /run/initiatorname.iscsi
         [ -f /etc/initiatorname.iscsi ] && . /etc/initiatorname.iscsi
         [ -f /etc/iscsi/initiatorname.iscsi ] && . /etc/iscsi/initiatorname.iscsi
-        iscsi_initiator=$InitiatorName
+        iscsi_initiator=$(normalized_iscsi_name "$InitiatorName")
     fi
 
     if [ -z "$iscsi_initiator" ]; then
-        iscsi_initiator=$(iscsi-iname)
+        iscsi_initiator=$(normalized_iscsi_name "$(iscsi-iname)")
         echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
         rm -f /etc/iscsi/initiatorname.iscsi
         mkdir -p /etc/iscsi

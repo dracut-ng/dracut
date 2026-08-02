@@ -358,6 +358,13 @@ ibft_to_cmdline() {
     ) >> /etc/cmdline.d/20-ibft.conf
 }
 
+normalized_iscsi_name() {
+    # Normalize uppercase to lowercase. Instead of using the stringprep
+    # mapping table B.1 and B.2, just delete the not permitted characters.
+    # References: RFC 3720 Section 3.2.6.2 and RFC 3722
+    printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9.:-'
+}
+
 parse_iscsi_root() {
     local v
     v=${1#iscsi:}
@@ -464,6 +471,7 @@ parse_iscsi_root() {
 
     iscsi_target_name=$(printf "%s:" "$@")
     iscsi_target_name=${iscsi_target_name%:}
+    iscsi_target_name=$(normalized_iscsi_name "$iscsi_target_name")
 }
 
 ip_to_var() {
