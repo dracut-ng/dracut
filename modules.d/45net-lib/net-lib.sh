@@ -365,6 +365,21 @@ normalized_iscsi_name() {
     printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9.:-'
 }
 
+_validate_iscsi_lun() {
+    local raw_lun="$1"
+
+    case "$raw_lun" in
+        *[!0-9]*)
+            warn "Given iSCSI LUN '$raw_lun' contains non-digits. Stripping non-digit characters."
+            printf "%s" "$raw_lun" | tr -cd '[:digit:]'
+            ;;
+        *)
+            # Purely decimal digits
+            echo "$raw_lun"
+            ;;
+    esac
+}
+
 parse_iscsi_root() {
     local v
     v=${1#iscsi:}
@@ -448,7 +463,7 @@ parse_iscsi_root() {
             iscsi_netdev_name=$1
             shift
         fi
-        iscsi_lun=$1
+        iscsi_lun=$(_validate_iscsi_lun "$1")
         shift
         if [ $# -ne 0 ]; then
             warn "Invalid parameter in iscsi: parameter!"
@@ -466,7 +481,7 @@ parse_iscsi_root() {
         fi
     fi
 
-    iscsi_lun=$1
+    iscsi_lun=$(_validate_iscsi_lun "$1")
     shift
 
     iscsi_target_name=$(printf "%s:" "$@")
