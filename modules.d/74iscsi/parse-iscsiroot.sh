@@ -32,6 +32,7 @@ fi
 
 [ -n "$iscsiroot" ] && [ -n "$iscsi_firmware" ] && die "Mixing iscsiroot and iscsi_firmware is dangerous"
 
+command -v normalized_iscsi_name > /dev/null || . /lib/net-lib.sh
 command -v write_fs_tab > /dev/null || . /lib/fs-lib.sh
 
 # Root takes precedence over netroot
@@ -110,7 +111,7 @@ if [ -n "$netroot" ] && [ "$root" != "/dev/root" ] && [ "$root" != "dhcp" ]; the
 fi
 
 if arg=$(getarg rd.iscsi.initiator -d iscsi_initiator=) && [ -n "$arg" ] && ! [ -f /run/initiatorname.iscsi ]; then
-    iscsi_initiator=$arg
+    iscsi_initiator=$(normalized_iscsi_name "$arg")
     echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
     ln -fs /run/initiatorname.iscsi /dev/.initiatorname.iscsi
     rm -f /etc/iscsi/initiatorname.iscsi
@@ -126,6 +127,7 @@ fi
 # If not given on the cmdline and initiator-name available via iBFT
 if [ -z "$iscsi_initiator" ] && [ -f /sys/firmware/ibft/initiator/initiator-name ] && ! [ -f /tmp/iscsi_set_initiator ]; then
     iscsi_initiator=$(while read -r line || [ -n "$line" ]; do echo "$line"; done < /sys/firmware/ibft/initiator/initiator-name)
+    iscsi_initiator=$(normalized_iscsi_name "$iscsi_initiator")
     if [ -n "$iscsi_initiator" ]; then
         echo "InitiatorName=$iscsi_initiator" > /run/initiatorname.iscsi
         rm -f /etc/iscsi/initiatorname.iscsi
