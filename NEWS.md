@@ -1,5 +1,153 @@
 [Rendered view](https://github.com/dracut-ng/dracut/blob/main/NEWS.md)
 
+dracut-ng-112
+=============
+
+#### Notes
+
+This release includes the following security related commits:
+* **network-legacy:**  sanitize DHCP values in dhclient-script.sh ([11577739](https://github.com/dracut-ng/dracut/commit/11577739221ff38c1fd29abbba51a6c797376ed6))
+* **overlayfs-crypt:**  prevent eval injection in parse_overlay_opts() ([584e95be](https://github.com/dracut-ng/dracut/commit/584e95bea90cedd12d9190e9b09bb45e1aa26b08))
+* **dracut-lib:**  sanitize variable assignments using eval ([4d2d812b](https://github.com/dracut-ng/dracut/commit/4d2d812bed056ca2c671612d960911b075c99dd9))
+* **base:**  add escape function implementing printf %q ([207c3397](https://github.com/dracut-ng/dracut/commit/207c339728eff81127469c2f6fe106447c781009))
+* **systemd-networkd:** escape values from DHCP options ([b456aee2](https://github.com/dracut-ng/dracut/commit/b456aee2fc61c47db0d9a408634820969e7359df))
+* **iscsi:**  normalize initiator and target names ([843af3e7](https://github.com/dracut-ng/dracut/commit/843af3e751782285cd2bc7c9a3a9d33e843fb91d))
+* **net-lib:**  validate iSCSI LUN parameters ([05c02db9](https://github.com/dracut-ng/dracut/commit/05c02db994ca322371a40695a3cc223faa1c7258))
+
+This release includes the following new dracut modules:
+* **chrony:**  introducing the chrony module ([4d64d0b9](https://github.com/dracut-ng/dracut/commit/4d64d0b99dd7267764272dbc4a210ccbda2db3db))
+* **qcom-adsp:**  add module to load Qualcomm ADSP module pre-udev ([647a685d](https://github.com/dracut-ng/dracut/commit/647a685d3567dcf42fde10e1ae258967441e3223))
+
+#### Bug Fixes
+
+*   remove basename calls ([1898470b](https://github.com/dracut-ng/dracut/commit/1898470b01f6ba8b2d3660ef438eae37e362c8de))
+*   remove dirname calls ([66111f49](https://github.com/dracut-ng/dracut/commit/66111f4969f246995686b2ef67d851282629ed5d))
+*   replace true by : ([37717095](https://github.com/dracut-ng/dracut/commit/37717095083ebdf46fce7c7c399b6713cd53f232))
+* **base:**  use printf instead of echo for hook variable ([ceadcea0](https://github.com/dracut-ng/dracut/commit/ceadcea055fead6b8a218c5e854b68ff3e0ac603))
+* **bluetooth:**  skip warning when module is explicitly requested ([f334ea7c](https://github.com/dracut-ng/dracut/commit/f334ea7cf7a95c042a47942039ad54fbcdf46c39))
+* **crypt:**  do not call return to exit a systemd generator ([fbb7270e](https://github.com/dracut-ng/dracut/commit/fbb7270edcf9fbc1c60959dc35e532dfe5c382b8), closes [#2490](https://github.com/dracut-ng/dracut/issues/2490))
+* **dbus:**  restrict After/Requires removal patterns ([95a4da1b](https://github.com/dracut-ng/dracut/commit/95a4da1b2273b29dd4d558790b2f301e46616040))
+* **docs:**  declare the correct location to report vulnerabilities ([6a9d409f](https://github.com/dracut-ng/dracut/commit/6a9d409fe418439319377b90ab5717b12d52915f))
+* **dracut:**
+  *  write force_drivers cmdline file in one step ([f72f94a2](https://github.com/dracut-ng/dracut/commit/f72f94a25dcf125fc050250159ad5efe6831d088))
+  *  use dstdir in build_ld_cache() ([6b7db010](https://github.com/dracut-ng/dracut/commit/6b7db010224221af4a09772b73a40e759ad30506))
+  *  do not exit the loop in push_user_devs() without checking all items ([573b91ee](https://github.com/dracut-ng/dracut/commit/573b91ee99bb1890f89f073962cb96680379acee))
+  *  do not exit the loop in push_host_devs() without checking all items ([b57d2c2e](https://github.com/dracut-ng/dracut/commit/b57d2c2e6f5550b2047be74bf6cfe82a5a3f880a))
+  *  log warning if touch fails ([fcffd4a0](https://github.com/dracut-ng/dracut/commit/fcffd4a0e3ee840b903c4ab45d06eb1ca881cce3))
+  *  two typos in the 3cpio fallback ([852aeeb2](https://github.com/dracut-ng/dracut/commit/852aeeb21f6771a4112f0d08061ac19518dd149b))
+  *  default to hostonly_cmdline=no in chroot ([67d82872](https://github.com/dracut-ng/dracut/commit/67d82872bb0e2bec7d046cce04de939edd30f453))
+  *  properly pass user-supplied SBAT to ukify ([abef6535](https://github.com/dracut-ng/dracut/commit/abef65354833834092df092c83d0cbcbe8b85508))
+  *  remove support for tmpfilesconfdir ([fb09ec26](https://github.com/dracut-ng/dracut/commit/fb09ec26b124705028c371089e42608c4e1585de))
+  *  support chmod applet from busybox ([8a0ee588](https://github.com/dracut-ng/dracut/commit/8a0ee588c148a5cfc8b5f58ae7716eedde840562))
+* **dracut-functions:**
+  *  reset _found flag per rule in inst_rules() ([a0383c8d](https://github.com/dracut-ng/dracut/commit/a0383c8d1260745fa16c7249ac04310e0473fb47))
+  *  correct hostonly path for Gentoo sysusers ([f037de42](https://github.com/dracut-ng/dracut/commit/f037de42be8ca69ef0fe422ae50b699c131754a1))
+* **dracut-install:**
+  *  check return value in modalias read() ([379e6b35](https://github.com/dracut-ng/dracut/commit/379e6b359d8c47b86e0359d85d7c9ccbac5b8d88))
+  *  handle empty string in dir_len() ([0224b30e](https://github.com/dracut-ng/dracut/commit/0224b30e43020639095d3c98df073e297ba233a3))
+  *  remove FTS_NOSTAT in install_modules() fts traversal ([40e7af01](https://github.com/dracut-ng/dracut/commit/40e7af014b47ab91ef559610af3cb3f8dbf0fbb9))
+* **dracut-lib:**  sanitize variable assignments using eval ([4d2d812b](https://github.com/dracut-ng/dracut/commit/4d2d812bed056ca2c671612d960911b075c99dd9))
+* **dracut-systemd:**  add ordering constraints ([8aa5c93b](https://github.com/dracut-ng/dracut/commit/8aa5c93b29f1bbd214d257e169489b752ab71074))
+* **dracut.conf.5:**  move fstab/chroot warning to hostonly_mode section ([1374dc95](https://github.com/dracut-ng/dracut/commit/1374dc954ebd7ffee223932bcef23060e7941109))
+* **iscsi:**
+  *  normalize initiator and target names ([843af3e7](https://github.com/dracut-ng/dracut/commit/843af3e751782285cd2bc7c9a3a9d33e843fb91d))
+  *  handle empty URI in firmware boot mode ([3c1a3846](https://github.com/dracut-ng/dracut/commit/3c1a3846a0435cc553494d4e7a40258ce3329cb6))
+* **kernel-modules:**
+  *  include xhci-pci-prom21 for early USB ([bccf5798](https://github.com/dracut-ng/dracut/commit/bccf5798f8d6930a8edbbfce84feff4d0f325568))
+  *  add Mediatek MTU3 USB controller ([8f243cfb](https://github.com/dracut-ng/dracut/commit/8f243cfb94fb2e4043d46031fd988db83d277f6b))
+* **lunmask:**  use function in parse-lunmask.sh ([4815bf38](https://github.com/dracut-ng/dracut/commit/4815bf387b8ac455d1f8448176f8ab7463848d5a))
+* **mdraid:**
+  *  escape slash in sed regular expression ([a76d9cbe](https://github.com/dracut-ng/dracut/commit/a76d9cbe75bf378867b8800171d1ddb052b4f60a))
+  *  install 59-persistent-storage-md.rules only when needed ([78c043a9](https://github.com/dracut-ng/dracut/commit/78c043a90a837d2494c573a7cf82d083f3fda9fe))
+* **net-lib:**  validate iSCSI LUN parameters ([05c02db9](https://github.com/dracut-ng/dracut/commit/05c02db994ca322371a40695a3cc223faa1c7258))
+* **network-legacy:**  sanitize DHCP values in dhclient-script.sh ([11577739](https://github.com/dracut-ng/dracut/commit/11577739221ff38c1fd29abbba51a6c797376ed6))
+* **network-manager:**  prevent command injection while parsing DHCP options ([589bef03](https://github.com/dracut-ng/dracut/commit/589bef03b7acb26124b32011d3e39552490ebca3))
+* **nfs:**  rpc.statd binary is not required for NFSv4 ([d152163a](https://github.com/dracut-ng/dracut/commit/d152163aa4697438eca9ade3cb3fa9b2e0dd46f0))
+* **nvmf:**
+  *  parse json output from "nvme list-subsys" ([c2729e52](https://github.com/dracut-ng/dracut/commit/c2729e52b43b103deb10bd7a18a7371890d8b1cb))
+  *  make network driver determination work without nbft$X ([21db5cb4](https://github.com/dracut-ng/dracut/commit/21db5cb4cbf91fe3f0d18e0b8c4fa8c6def5137e))
+* **overlayfs-crypt:**  prevent eval injection in parse_overlay_opts() ([584e95be](https://github.com/dracut-ng/dracut/commit/584e95bea90cedd12d9190e9b09bb45e1aa26b08))
+* **systemd-*:**  add new dlopen dependencies to modules lists ([7ef765d6](https://github.com/dracut-ng/dracut/commit/7ef765d658bc52fd300d7c9a220daad4220f62f1))
+* **systemd-networkd:**
+  *  use another name for the default .network file ([0d35650a](https://github.com/dracut-ng/dracut/commit/0d35650abff78c62208a894300ca16e4bd873dbf))
+  *  escape values from DHCP options ([b456aee2](https://github.com/dracut-ng/dracut/commit/b456aee2fc61c47db0d9a408634820969e7359df))
+  *  get DHCP options values from networkctl ([7c57b1cc](https://github.com/dracut-ng/dracut/commit/7c57b1cccd4100351da5258ac6a22e07608a5e85))
+* **systemd-pcrextend:**  add missing systemd-pcr{nvdone,osseparator}.service ([e57ad524](https://github.com/dracut-ng/dracut/commit/e57ad5243415c3c6bb895156bc6fa85ff2ea277d))
+* **systemd-tmpfiles:**  do not include tmpfiles configured in /etc ([73e9b649](https://github.com/dracut-ng/dracut/commit/73e9b649f525217c779abd71723b979fc385165b), closes [#1706](https://github.com/dracut-ng/dracut/issues/1706))
+* **systemd-udevd:**  install systemd-udevd-varlink.socket ([4323cf07](https://github.com/dracut-ng/dracut/commit/4323cf072a936cad6690996b64c915462d3836cd))
+* **tpm2-tss:**
+  *  add missing 60-tpm2-id.rules ([5e133721](https://github.com/dracut-ng/dracut/commit/5e133721eeb9c17135958389b2cf029bbf9a9f7c))
+  *  add missing systemd-tpm2-setup-early.service ([98d6a569](https://github.com/dracut-ng/dracut/commit/98d6a569aaf5f750550aeaf025f6c7f494f580d5))
+* **usrmount:**  filter out subvolid option for btrfs ([26bafde3](https://github.com/dracut-ng/dracut/commit/26bafde32d12befac0703799c5190648a5a1b24b))
+* **virtfs:**  move mount hook to pre-mount ([7e02a913](https://github.com/dracut-ng/dracut/commit/7e02a9134115d1b27faa186ac2d5702f2d42f2c7))
+
+#### Performance
+
+* **devicetree-firmware:**  do not call inst_multiple if there are no fw files ([c1cb94f0](https://github.com/dracut-ng/dracut/commit/c1cb94f082b8be2ba381772e56362c0699439a94))
+* **dracut-systemd:**  drop ExecStart from oneshot shutdown service ([bb2f35cb](https://github.com/dracut-ng/dracut/commit/bb2f35cb0697ce188d9591e3d005f615cecb6534))
+* **systemd-modules-load:**  remove duplicate paths from inst_multiple ([a1b9f9ec](https://github.com/dracut-ng/dracut/commit/a1b9f9ec923313c00576c7a5d60f29ee98adea57))
+* **systemd-networkd:**  remove duplicate service from inst_multiple ([d2599468](https://github.com/dracut-ng/dracut/commit/d2599468e6dd69f2c4de5f2dba5152711e35dc7f))
+* **systemd-sysctl:**  remove duplicate paths from inst_multiple ([40eae157](https://github.com/dracut-ng/dracut/commit/40eae15725721ee1e72fcac7b2fadea09c69cc89))
+* **systemd-tmpfiles:**  do not install systemd-tmpfiles-clean.service ([ce430f1e](https://github.com/dracut-ng/dracut/commit/ce430f1e876983cce1f0cc96342c153abcf8320d))
+* **udev-rules:**
+  *  do not install the mtp-probe udev helper ([9f772844](https://github.com/dracut-ng/dracut/commit/9f772844f35483efe0a81e4123e7e089f22e8de5))
+  *  do not install the hid2hci udev helper ([bc63ac2c](https://github.com/dracut-ng/dracut/commit/bc63ac2ccfeea07d6735648344eaf5a7d4838b8a))
+  *  do not try to install fw_unit_symlinks.sh ([d0146924](https://github.com/dracut-ng/dracut/commit/d0146924467e888bad4b7f52b456fb2e938d4d5c))
+  *  do not try to install create_floppy_devices ([55bf9202](https://github.com/dracut-ng/dracut/commit/55bf9202afbcaf4e8b3f8f7852273e8529afda18))
+  *  do not try to install udev built-ins ([b82d7152](https://github.com/dracut-ng/dracut/commit/b82d7152e2b2cf17c94cd9783ea2833fea9d9967))
+  *  do not try to install 59-scsi-sg3_utils.rules ([4c226acd](https://github.com/dracut-ng/dracut/commit/4c226acd2a486a6f582d6d4e9587c5c461842494))
+  *  do not try to install 95-udev-late.rules ([5c227d40](https://github.com/dracut-ng/dracut/commit/5c227d4004f5e4e92035acac345a1a43a1e16dab))
+
+#### Features
+
+*   check shellcode to support busybox ([25bedc75](https://github.com/dracut-ng/dracut/commit/25bedc7528d9c1915c9a61e356a2c62433d03883))
+* **Makefile:**  allow running syntax checks separately ([3a489b1c](https://github.com/dracut-ng/dracut/commit/3a489b1c1d3f3cc8141428b74e617eea7ce7e9d9))
+* **base:**  add escape function implementing printf %q ([207c3397](https://github.com/dracut-ng/dracut/commit/207c339728eff81127469c2f6fe106447c781009))
+* **chrony:**  introducing the chrony module ([4d64d0b9](https://github.com/dracut-ng/dracut/commit/4d64d0b99dd7267764272dbc4a210ccbda2db3db))
+* **dracut:**
+  *  add module to load Qualcomm ADSP module pre-udev ([647a685d](https://github.com/dracut-ng/dracut/commit/647a685d3567dcf42fde10e1ae258967441e3223))
+  *  add parameter --nvmf-nbft-mode ([146927ce](https://github.com/dracut-ng/dracut/commit/146927ce81504da078b0e27b05b7b2786065ae51))
+* **network-manager:**
+  *  write info about NTP servers in dhcpopts file ([8b77df75](https://github.com/dracut-ng/dracut/commit/8b77df75931f20ab17c8054fdd354194ea3c289d))
+  *  use escape to drop requiring bash ([9c7459bd](https://github.com/dracut-ng/dracut/commit/9c7459bde0e78dd2e1e14d35c5351ef627b1b1fc))
+* **nvmf:**
+  *  set rd.nvmf.nm=1 if NetworkManager 1.54 is detected ([97858467](https://github.com/dracut-ng/dracut/commit/97858467aa7e4555cdb74bda47c8e727f0da05c0))
+  *  allow using system interface naming policy ([00df7431](https://github.com/dracut-ng/dracut/commit/00df743123776a171f4701bfdecd7dcb6ccfb793))
+  *  add dracut.conf option nvmf_nbft_mode ([bc1f1405](https://github.com/dracut-ng/dracut/commit/bc1f1405061dc77843bd5154443bfdc654de0672))
+  *  enable adapting to NBFT reconfiguration ([3ecd3048](https://github.com/dracut-ng/dracut/commit/3ecd304816b03c6f61ebbe4a1f0ca71b7226cece))
+* **resume:**
+  *  include in hostonly sloppy mode if supported by kernel ([0589c659](https://github.com/dracut-ng/dracut/commit/0589c65977287be79c22290e992df6bed3d657ec))
+  *  add debug logs to check() ([03a5ea09](https://github.com/dracut-ng/dracut/commit/03a5ea09c3d308c344ce682fa7e5c424273db11a))
+* **systemd:**  drop unnecessary dependency on libgcrypt ([0406aa64](https://github.com/dracut-ng/dracut/commit/0406aa64a788c63a0bb2fd9d60a2d3d2d96320cb))
+* **systemd-networkd:**  write info about NTP servers in dhcpopts file ([96c9d5c4](https://github.com/dracut-ng/dracut/commit/96c9d5c4fa49cf9b0c82868db2f8aae218a73739))
+
+#### Contributors
+
+- Antonio Alvarez Feijoo <antonio.feijoo@suse.com>
+- Benjamin Drung <benjamin.drung@canonical.com>
+- devkontrol <dev@kontrol.dev>
+- Martin Wilck <mwilck@suse.de>
+- Miao Wang <shankerwangmiao@gmail.com>
+- Neal Gompa <neal@gompa.dev>
+- Luca Boccassi <luca.boccassi@gmail.com>
+- dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+- Alexander Tsoy <alexander@tsoy.me>
+- Esat <saygina7@gmail.com>
+- Frantisek Sumsal <frantisek@sumsal.cz>
+- Hans de Goede <johannes.goede@oss.qualcomm.com>
+- Icenowy Zheng <uwu@icenowy.me>
+- Jihong Min <hurryman2212@gmail.com>
+- Jo Zzsi <jozzsicsataban@gmail.com>
+- Josh Poimboeuf <jpoimboe@kernel.org>
+- Miao Wang <shankerwangmiao@users.noreply.github.com>
+- Nadzeya Hutsko <nadzeya.hutsko@canonical.com>
+- Pavel Valena <pvalena@redhat.com>
+- Stuart Hayes <stuart.w.hayes@gmail.com>
+- Vivian Wang <wangruikang@iscas.ac.cn>
+- Zhang Hua <joshua.zhang@canonical.com>
+- fiftydinar <65243233+fiftydinar@users.noreply.github.com>
+- gomid4497 <rakeshw728@gmail.com>
+
 dracut-ng-111
 =============
 
