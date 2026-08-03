@@ -35,4 +35,10 @@ install() {
 
         ln_r /usr/bin/busybox "$_path"
     done
+    # Ensure /usr/bin/sh is always available.
+    # POSIX mandates /bin/sh and most scripts use #!/bin/sh (-> /usr/bin/sh
+    # on merged-usr). find_binary may locate 'sh' at a non-standard path
+    # (e.g. /usr/sbin/sh) depending on $DRACUT_PATH ordering, so create
+    # the symlink explicitly if absent.
+    [[ -e "${_dstdir}/usr/bin/sh" ]] || ln_r /usr/bin/busybox /usr/bin/sh
 }
