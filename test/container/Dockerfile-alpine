@@ -25,13 +25,7 @@ ARG OPTION
 RUN apk add --no-cache \
     alpine-base \
     build-base \
-    cargo \
-    curl \
-    dnsmasq \
-    dracut-tests \
-    efistub \
-    tcpdump \
-    ukify
+    dracut-tests
 
 RUN \
 if [ "${TARGETARCH}" == "amd64" ]; then \
