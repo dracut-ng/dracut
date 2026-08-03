@@ -912,7 +912,7 @@ ip_params_for_remote_addr() {
     [[ $remote_addr ]] || return 1
     ifname=$(iface_for_remote_addr "$remote_addr")
     [[ $ifname ]] || {
-        berror "failed to determine interface to connect to $remote_addr"
+        derror "failed to determine interface to connect to $remote_addr"
         return 1
     }
 
@@ -926,7 +926,7 @@ ip_params_for_remote_addr() {
 
     local_addr=$(local_addr_for_remote_addr "$remote_addr")
     [[ $local_addr ]] || {
-        berror "failed to determine local address to connect to $remote_addr"
+        derror "failed to determine local address to connect to $remote_addr"
         return 1
     }
     peer=$(peer_for_addr "$local_addr")
