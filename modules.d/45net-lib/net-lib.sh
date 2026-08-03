@@ -455,6 +455,7 @@ parse_iscsi_root() {
     shift
 
     if [ -n "$iscsi_target_name" ]; then
+        iscsi_target_name=$(normalized_iscsi_name "$iscsi_target_name")
         if [ $# -eq 3 ]; then
             iscsi_iface_name=$1
             shift
