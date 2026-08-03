@@ -46,7 +46,7 @@ test_setup() {
 
     # shellcheck disable=SC2144 # We're not installing multilib libfido2, so
     # glob will only match once. More matches would break the test anyway.
-    if is_systemd_version_greater_or_equal 257 && [ -e /usr/lib*/libfido2.so.1 ] \
+    if is_systemd_version_greater_or_equal 257 && compgen -G /usr/lib*/libfido2.so.1 > /dev/null \
         && ! lsinitrd "$TESTDIR"/initramfs.testing | grep -E ' usr/lib[^/]*/libfido2\.so\.1\b' > /dev/null; then
         echo "Error: libfido2.so.1 should have been included in the initramfs" >&2
         return 1
