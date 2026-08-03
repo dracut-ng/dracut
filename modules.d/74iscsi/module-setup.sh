@@ -83,7 +83,6 @@ install_iscsiroot() {
         if [ "$is_boot" -eq 1 ]; then
             # qla4xxx flashnode session; skip iBFT discovery
             read -r iscsi_initiator < /sys/class/iscsi_host/"${iscsi_host}"/initiatorname
-            command -v normalized_iscsi_name > /dev/null || . "$moddir/../45net-lib/net-lib.sh"
             echo "rd.iscsi.initiator=$(normalized_iscsi_name "${iscsi_initiator}")"
             return
         fi
@@ -126,7 +125,6 @@ install_iscsiroot() {
         esac
         # Must be two separate lines, so that "sort | uniq" commands later
         # can sort out rd.iscsi.initiator= duplicates
-        command -v normalized_iscsi_name > /dev/null || . "$moddir/../45net-lib/net-lib.sh"
         echo "rd.iscsi.initiator=$(normalized_iscsi_name "${iscsi_initiator}")"
         echo "netroot=iscsi:${iscsi_address}::${iscsi_port}:${iscsi_lun}:${iscsi_targetname}"
         echo "rd.neednet=1"

@@ -941,6 +941,15 @@ ip_params_for_remote_addr() {
         "${local_addr}" "${peer}" "${gateway}" "${netmask}" "${ifname}"
 }
 
+# normalized_iscsi_name <name>
+# Normalize an iSCSI name as required by RFC 3722
+normalized_iscsi_name() {
+    # Normalize uppercase to lowercase. Instead of using the stringprep
+    # mapping table B.1 and B.2, just delete the not permitted characters.
+    # References: RFC 3720 Section 3.2.6.2 and RFC 3722
+    printf "%s" "$1" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9.:-'
+}
+
 # block_is_nbd <maj:min>
 # Check whether $1 is an nbd device
 block_is_nbd() {
