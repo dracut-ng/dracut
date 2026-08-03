@@ -3,6 +3,8 @@
 # shellcheck disable=SC2034
 IFNETFILE="/tmp/bootnetif"
 
+command -v getarg > /dev/null || . /lib/dracut-lib.sh
+
 is_ip() {
     echo "$1" | {
         IFS=. read -r a b c d
