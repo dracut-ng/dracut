@@ -29,7 +29,6 @@ RUN case $(dpkg --print-architecture) in \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Use-Pty=0 \
     $arch_pkgs \
     $cpio \
-    $coreutils \
     $systemd_pkgs \
     asciidoctor \
     bluez \
