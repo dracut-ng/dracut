@@ -126,7 +126,7 @@ install_iscsiroot() {
         # Must be two separate lines, so that "sort | uniq" commands later
         # can sort out rd.iscsi.initiator= duplicates
         echo "rd.iscsi.initiator=$(normalized_iscsi_name "${iscsi_initiator}")"
-        echo "netroot=iscsi:${iscsi_address}::${iscsi_port}:${iscsi_lun}:${iscsi_targetname}"
+        echo "netroot=iscsi:${iscsi_address}::${iscsi_port}:${iscsi_lun}:$(normalized_iscsi_name "${iscsi_targetname}")"
         echo "rd.neednet=1"
     fi
     return 0
