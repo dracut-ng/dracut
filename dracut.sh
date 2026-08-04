@@ -3117,6 +3117,10 @@ fi
 
 # remove items
 for items in $remove_items; do
+    if [[ /$items/ == */../* ]]; then
+        derror "Refusing to remove '$items', '..' is not allowed."
+        continue
+    fi
     # shellcheck disable=SC2086
     rm -rf -- "${initdir:?}"/${items#/}
 done
