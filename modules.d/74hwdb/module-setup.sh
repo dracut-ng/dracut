@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 check() {
-    if [[ $hostonly ]]; then
+    if [[ $hostonly_mode == "strict" ]]; then
+        dwarn "hwdb: module not automatically included in strict hostonly" \
+            "mode, udev rules that use the built-in hwdb program will fail."
         return 255
     fi
 
