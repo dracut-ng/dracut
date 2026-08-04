@@ -3117,7 +3117,8 @@ fi
 
 # remove items
 for items in $remove_items; do
-    rm -rf -- "${initdir:?}/${items:?}"
+    # shellcheck disable=SC2086
+    rm -rf -- "${initdir:?}"/${items#/}
 done
 
 # protect existing output file against build errors
