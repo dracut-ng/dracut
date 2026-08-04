@@ -131,7 +131,7 @@ Creates initial ramdisk images for preloading modules
                         Specify default kernel command line parameters. Despite
                          its name, this command only sets initrd parameters.
   --strip               Strip binaries in the initramfs.
-  --aggressive-strip     Strip more than just debug symbol and sections,
+  --aggressive-strip    Strip more than just debug symbol and sections,
                          for a smaller initramfs build. The --strip option must
                          also be specified.
   --nostrip             Do not strip binaries in the initramfs.
@@ -145,8 +145,8 @@ Creates initial ramdisk images for preloading modules
   --nolvmconf           Do not include local /etc/lvm/lvm.conf file.
   --nvmf-nbft-mode [MODE]
                         Specify command line options for booting from NVMeoF.
-                        (if nvmf module is included).
-                        Allowed values: "match" (default), "static", or "nbft".
+                         (if nvmf module is included).
+                         Allowed values: "match" (default), "static", or "nbft".
   --fscks [LIST]        Add a space-separated list of fsck helpers.
   --nofscks             Inhibit installation of any fsck helpers.
   --ro-mnt              Mount / and /usr read-only by default.
@@ -231,7 +231,7 @@ Creates initial ramdisk images for preloading modules
   -I, --install [LIST]  Install the space separated list of files into the
                          initramfs.
   --remove      [LIST]  Remove a space-separated list of files and directories
-                        from the initramfs (supports globbing).
+                         from the initramfs (supports globbing).
   --install-optional [LIST]
                         Install the space separated list of files into the
                          initramfs, if they exist.
@@ -300,8 +300,8 @@ Creates initial ramdisk images for preloading modules
   --regenerate-all      Regenerate all initramfs images at the default location
                          for the kernel versions found on the system.
   -p, --parallel        Use parallel processing if possible (currently only
-                        supported --regenerate-all)
-                        images simultaneously.
+                         supported --regenerate-all)
+                         images simultaneously.
   --version             Display version.
 
 If [LIST] has multiple arguments, then you have to put these in quotes.
