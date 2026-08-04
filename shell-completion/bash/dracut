@@ -47,7 +47,7 @@ _dracut() {
             --kernel-cmdline --sshkey --persistent-policy --install-optional
             --loginstall --uefi-stub --kernel-image --squash-compressor
             --sysroot --hostonly-mode --hostonly-nics --include --logfile
-            --uefi-splash-image --sbat --add-confdir --compress-level
+            --uefi-splash-image --sbat --add-confdir --compress-level --remove
             '
     )
 
@@ -59,7 +59,7 @@ _dracut() {
                 compopt -o filenames
                 ;;
             -c | --conf | --sshkey | --add-fstab | --add-device | -I | \
-                --install | --install-optional | --uefi-splash-image)
+                --install | --install-optional | --uefi-splash-image | --remove)
                 comps=$(compgen -f -- "$cur")
                 compopt -o filenames
                 ;;
