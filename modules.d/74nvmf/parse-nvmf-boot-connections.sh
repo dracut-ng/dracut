@@ -247,6 +247,8 @@ fi
 /sbin/initqueue --onetime modprobe -b -q nvme_fabrics
 
 parse_nvmf_discover() {
+    local args="$1"
+
     traddr="none"
     trtype="none"
     hosttraddr="none"
@@ -254,7 +256,7 @@ parse_nvmf_discover() {
     OLDIFS="$IFS"
     IFS=,
     # shellcheck disable=SC2086
-    set -- $1
+    set -- $args
     IFS="$OLDIFS"
 
     case $# in
@@ -274,7 +276,7 @@ parse_nvmf_discover() {
             [ -n "$4" ] && trsvcid=$4
             ;;
         *)
-            warn "Invalid arguments for rd.nvmf.discover=$1"
+            warn "Invalid arguments for rd.nvmf.discover=$args"
             return 0
             ;;
     esac
