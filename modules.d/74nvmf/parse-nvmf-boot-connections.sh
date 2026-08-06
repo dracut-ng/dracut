@@ -199,7 +199,7 @@ nbft_parse_hfi() {
 
 nbft_parse() {
     local nbft_json n_nbft all_hfi_json n_hfi
-    local j=0 i
+    local j=-1 i
 
     nbft_json=$(nvme nbft show -H -o json) || return 0
     n_nbft=$(nbft_run_jq ". | length" "$nbft_json") || return 0
@@ -210,7 +210,7 @@ nbft_parse() {
         return 0
     fi
 
-    while [ "$j" -lt "$n_nbft" ]; do
+    while [ "$((j = j + 1))" -lt "$n_nbft" ]; do
         all_hfi_json=$(nbft_run_jq ".[$j].hfi" "$nbft_json") || continue
         n_hfi=$(nbft_run_jq ". | length" "$all_hfi_json") || continue
         i=0
@@ -219,7 +219,6 @@ nbft_parse() {
             nbft_parse_hfi "$(nbft_run_jq ".[$i]" "$all_hfi_json")"
             i=$((i + 1))
         done
-        j=$((j + 1))
     done >> /etc/cmdline.d/20-nbft.conf
 }
 
