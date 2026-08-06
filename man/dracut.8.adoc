@@ -23,7 +23,7 @@ determined by the local configuration or Linux distribution policy.
 
 dracut creates an initial image used by the kernel for preloading the block
 device modules (such as IDE, SCSI or RAID) which are needed to access the root
-filesystem, mounting the root filesystem and booting into the real system.
+filesystem, mount the root filesystem and boot into the real system.
 
 At boot time, the kernel unpacks that archive into RAM disk, mounts and uses it
 as initial root file system. All finding of the root device happens in this
