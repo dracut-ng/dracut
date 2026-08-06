@@ -37,6 +37,8 @@ install() {
 
     if [ -r /etc/sysconfig/rngd ]; then
         inst_simple "${moddir}/sysconfig" "/etc/sysconfig/rngd"
+    elif [ -r /etc/conf.d/rngd ]; then
+        inst_simple "${moddir}/conf.d" "/etc/conf.d/rngd"
     fi
 
     # make sure dependent libs are installed too
