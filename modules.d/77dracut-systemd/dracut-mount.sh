@@ -23,9 +23,14 @@ while :; do
         . "$f"
         if ismounted "$NEWROOT"; then
             usable_root "$NEWROOT" && break
-            warn "$NEWROOT has no proper rootfs layout, ignoring and removing offending mount hook"
             umount "$NEWROOT"
-            rm -f -- "$f"
+            # hooks can be in read-only locations
+            if [ -w "$f" ]; then
+                warn "$NEWROOT has no proper rootfs layout, ignoring and removing offending mount hook"
+                rm -f -- "$f"
+            else
+                warn "$NEWROOT has no proper rootfs layout, but the offending mount hook is on a read-only location and cannot be removed"
+            fi
         fi
     done
 
