@@ -448,7 +448,7 @@ parse_iscsi_root() {
     [ $# -ge 2 ] || return 0
     iscsi_protocol=$1
     shift # ignored
-    iscsi_target_port=$1
+    iscsi_target_port=$(strip_non_digits "$1" "iSCSI port")
     shift
 
     if [ -n "$iscsi_target_name" ]; then
