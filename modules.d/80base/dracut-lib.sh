@@ -411,7 +411,8 @@ check_finished() {
     for f in $(list_hooks "initqueue/finished"); do
         # shellcheck disable=SC1090
         if [ -e "$f" ] && (. "$f"); then
-            rm -f "$f"
+            # hooks can be in read-only locations
+            [ -w "$f" ] && rm -f "$f"
         else
             rc=1
         fi

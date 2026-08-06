@@ -56,10 +56,11 @@ while :; do
 
     if [ $main_loop -gt $((2 * RDRETRY / 3)) ]; then
         warn "dracut-initqueue: timeout, still waiting for following initqueue hooks:"
-        for _f in $(list_hooks "initqueue/finished"); do
+        _finished=$(list_hooks "initqueue/finished")
+        for _f in $_finished; do
             warn "$_f: \"$(cat "$_f")\""
         done
-        if [ "$(ls -A "$hookdir"/initqueue/finished)" ]; then
+        if [ -n "$_finished" ]; then
             warn "dracut-initqueue: starting timeout scripts"
             for job in $(list_hooks "initqueue/timeout"); do
                 # shellcheck disable=SC2097 disable=SC1090 disable=SC2098
