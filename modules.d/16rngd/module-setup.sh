@@ -23,7 +23,7 @@ check() {
     require_binaries rngd || return 1
     [[ -e "${systemdsystemunitdir}/rngd.service" ]] || return 1
 
-    return 0
+    return 255
 }
 
 depends() {
