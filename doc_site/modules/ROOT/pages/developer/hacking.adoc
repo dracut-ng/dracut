@@ -106,7 +106,7 @@ https://github.com/orgs/dracut-ng/packages[github `dracut-ng` containers].
 Default container is `fedora`.
 
 If the container supports arm64, and the test.sh script is run on an arm64
-enviroment, the test would also run using an arm64 container.
+environment, the test would also run using an arm64 container.
 
 Run only specific test::
 e.g. only runs the 10, 20 tests inside the default container.
