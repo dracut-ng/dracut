@@ -2,7 +2,7 @@
 
 The "Dracut Developer Guidelines" page in the main documentation has a
 section that explains how to use these tests:
-https://dracut-ng.github.io/dracut-ng/developer/hacking.html#_testsuite
+https://dracut-ng.github.io/dracut/developer/hacking.html#_testsuite
 
 The sources of that documentation are located in the
 [doc_site/](/doc_site) folder at the top-level of this repository.
