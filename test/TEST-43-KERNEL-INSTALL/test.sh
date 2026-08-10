@@ -29,6 +29,13 @@ test_run() {
         -append "root=LABEL=dracut $TEST_KERNEL_CMDLINE" \
         -initrd "$BOOT_ROOT/$TOKEN"/0-rescue/initrd
     check_qemu_log
+
+    # rescue boot with custom entry token
+    "$testdir"/run-qemu \
+        "${disk_args[@]}" \
+        -append "root=LABEL=dracut $TEST_KERNEL_CMDLINE" \
+        -initrd "$BOOT_ROOT/custom-entry-token"/0-rescue/initrd
+    check_qemu_log
 }
 
 test_setup() {
@@ -60,6 +67,15 @@ test_setup() {
     kernel-install add "$KVERSION" "$KIMAGE"
     if [[ ! -e "$BOOT_ROOT/$TOKEN/$KVERSION"/initrd ]]; then
         echo "Error: kernel-install failed to create $BOOT_ROOT/$TOKEN/$KVERSION/initrd" >&2
+        return 1
+    fi
+
+    # test with a custom entry token different from machine-id
+    CUSTOM_TOKEN="custom-entry-token"
+    mkdir -p "$BOOT_ROOT/$CUSTOM_TOKEN/$KVERSION" "$BOOT_ROOT/loader/entries" "$BOOT_ROOT/$CUSTOM_TOKEN/0-rescue"
+    kernel-install add --entry-token "literal:$CUSTOM_TOKEN" "$KVERSION" "$KIMAGE"
+    if [[ ! -e "$BOOT_ROOT/$CUSTOM_TOKEN/0-rescue/initrd" ]]; then
+        echo "Error: kernel-install failed to create rescue initrd with custom entry token at $BOOT_ROOT/$CUSTOM_TOKEN/0-rescue/initrd" >&2
         return 1
     fi
 }
