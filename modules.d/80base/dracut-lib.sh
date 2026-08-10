@@ -433,7 +433,7 @@ die() {
     } > /dev/kmsg
 
     {
-        echo "warn dracut: FATAL: \"$*\""
+        printf "warn dracut: FATAL: '%s'\n" "$(escape "$*")"
         echo "warn dracut: Refusing to continue"
     } >> $hookdir/emergency/01-die.sh
     [ -d /run/initramfs ] || mkdir -p -- /run/initramfs
