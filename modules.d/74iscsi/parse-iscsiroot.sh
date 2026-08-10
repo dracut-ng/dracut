@@ -106,7 +106,7 @@ modprobe -b -q be2iscsi
 
 if [ -n "$netroot" ] && [ "$root" != "/dev/root" ] && [ "$root" != "dhcp" ]; then
     if ! getargbool 1 rd.neednet > /dev/null || ! getarg "ip="; then
-        /sbin/initqueue --unique --onetime --settled /sbin/iscsiroot dummy "'$netroot'" "'$NEWROOT'"
+        /sbin/initqueue --unique --onetime --settled /sbin/iscsiroot dummy "'$(escape "$netroot")'" "'$NEWROOT'"
     fi
 fi
 
@@ -146,7 +146,7 @@ if [ -z "$netroot" ] || ! [ "${netroot%%:*}" = "iscsi" ]; then
     return 1
 fi
 
-/sbin/initqueue --unique --onetime --timeout /sbin/iscsiroot timeout "$netroot" "$NEWROOT"
+/sbin/initqueue --unique --onetime --timeout /sbin/iscsiroot timeout "'$(escape "$netroot")'" "$NEWROOT"
 
 for nroot in $(getargs netroot); do
     [ "${nroot%%:*}" = "iscsi" ] || continue
