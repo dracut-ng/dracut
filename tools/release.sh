@@ -36,7 +36,7 @@ if ! type -p clog &> /dev/null; then
 fi
 head --lines=2 NEWS.md > NEWS_header.md
 tail --lines=+2 NEWS.md > NEWS_body.md
-printf "dracut-ng-%s\n=============\n" "$NEW_VERSION" > NEWS_header_new.md
+printf "dracut-%s\n=============\n" "$NEW_VERSION" > NEWS_header_new.md
 
 # Append the list to the section in `NEWS.md`
 cat CONTRIBUTORS.md NEWS_body.md > NEWS_body_with_conttributors.md
