@@ -1,6 +1,6 @@
-# dracut-ng
+# dracut
 
-dracut-ng is an event driven initramfs infrastructure.
+dracut is an event driven initramfs infrastructure.
 
 [![distributions](https://repology.org/badge/tiny-repos/dracut.svg)](https://repology.org/project/dracut/versions)
 [![version(s)](https://repology.org/badge/latest-versions/dracut.svg)](https://repology.org/project/dracut/versions)
