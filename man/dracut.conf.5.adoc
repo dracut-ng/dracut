@@ -198,7 +198,7 @@ WARNING: If chrooted to another root other than the real root device, use
 *hostonly_cmdline=*"__{yes|no}__"::
 Store host-specific kernel command-line arguments in the initramfs when
 set to "yes". If left unset, it automatically enables when **hostonly="yes"**
-(unless running inside a chroot). (default=unset)
+(unless running inside a chroot or inside a container). (default=unset)
 
 *hostonly_nics+=*" [__<nic>__[ __<nic>__ ...]] "::
 Only enable listed NICs in the initramfs. The list can be empty, so other
