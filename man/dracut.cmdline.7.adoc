@@ -251,7 +251,7 @@ rd.vconsole.keymap=de-latin1-nodeadkeys
 --
 
 **rd.vconsole.keymap.ext=**__<list of keymap base file names>__::
-    list of extra keymaps to bo loaded (sep. by space); will be written as
+    list of extra keymaps to be loaded (sep. by space); will be written as
     EXT_KEYMAP to _/etc/vconsole.conf_ in the initramfs
 
 **rd.vconsole.unicode**::
