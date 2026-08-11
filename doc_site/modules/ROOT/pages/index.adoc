@@ -134,7 +134,7 @@ mounted over the top.
 If the systemd module is used in the initramfs, the ordering of the services
 started looks like xref:man/dracut.bootup.7.adoc[].
 
-== Host v Default mode
+== Host-only versus generic mode
 
 Dracut can operate in two modes
 
@@ -142,7 +142,7 @@ host-only mode:: dracut will generate a smaller customized initramfs image
 which contains only whatever is necessary to boot based on examining the
 running system.
 
-default mode:: dracut will generate a larger, but more generic, initramfs
+generic mode:: dracut will generate a larger, but more generic, initramfs
 image.  This is important for generic kernels, or if you are switching hardware
 for an installed system.
 
