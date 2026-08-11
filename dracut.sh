@@ -1400,6 +1400,16 @@ if [[ ${hostonly-} ]] && ! [[ $hostonly_cmdline ]] && ! is_chroot; then
     hostonly_cmdline="yes"
 fi
 
+if type -P systemd-detect-virt &> /dev/null && container=$(systemd-detect-virt -c) &> /dev/null; then
+    export DRACUT_NO_MKNOD=1
+    dinfo "Detected $container container."
+
+    if [[ ${hostonly-} ]] && ! [[ $hostonly_cmdline ]]; then
+        # Disable hostonly-cmdline by default in hostonly mode when container detected
+        hostonly_cmdline="no"
+    fi
+fi
+
 case $hostonly_mode in
     '')
         [[ ${hostonly-} ]] && hostonly_mode="sloppy"
@@ -2035,11 +2045,6 @@ else
         [[ -d ${_dest%/*} ]] && _dest=$(readlink -f "${_dest%/*}")/${_dest##*/}
         ln -sfn -- "$(convert_abs_rel "${_dest}" "${_source}")" "${dstdir}/${_dest}"
     }
-fi
-
-if type -P systemd-detect-virt &> /dev/null && container=$(systemd-detect-virt -c) &> /dev/null; then
-    export DRACUT_NO_MKNOD=1
-    dinfo "Detected $container container."
 fi
 
 if [[ $persistent_policy == "mapper" ]]; then
