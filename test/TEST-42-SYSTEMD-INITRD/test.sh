@@ -56,16 +56,16 @@ test_setup() {
     # vanilla kernel-independent systemd-based minimal initrd without dracut specific customizations
     # since dracut-systemd is not included in the generated initrd, only systemd options are supported during boot
     test_dracut --keep --no-kernel \
-        --omit "test systemd-sysctl systemd-modules-load" \
-        -m "systemd-initrd base" \
+        --omit "test" \
+        -m "systemd-initrd" \
         "$TESTDIR"/initramfs-systemd-initrd
 
     (
         # remove all shell scripts and the shell itself from the generated initramfs
         # to demonstrate a shell-less optimized boot
         cd "$TESTDIR"/initrd/dracut.*/initramfs
-        rm "$(realpath bin/sh)"
-        rm bin/sh
+        rm -f "$(realpath bin/sh)"
+        rm -f bin/sh
         find . -name "*.sh" -delete
 
         # verify that dracut systemd services are not included
