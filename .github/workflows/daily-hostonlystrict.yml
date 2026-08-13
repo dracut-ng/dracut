@@ -46,6 +46,10 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
+                exclude:
+                    # https://github.com/dracut-ng/dracut/issues/2061
+                    -  test: "82"
+
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'
