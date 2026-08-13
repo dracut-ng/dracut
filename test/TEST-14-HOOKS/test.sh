@@ -8,13 +8,15 @@ TEST_DESCRIPTION="dracut hooks in various locations"
 
 test_run() {
     declare -a disk_args=()
+    qemu_add_drive disk_args "$TESTDIR"/marker.img marker
     qemu_add_drive disk_args "$TESTDIR"/root.img root
 
+    test_marker_reset
     "$testdir"/run-qemu -nic none \
         "${disk_args[@]}" \
         -append "root=LABEL=dracut $TEST_KERNEL_CMDLINE" \
         -initrd "$TESTDIR"/initramfs.testing
-    check_qemu_log
+    test_marker_check
 }
 
 add_hook() {

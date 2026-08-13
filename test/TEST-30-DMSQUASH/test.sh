@@ -24,15 +24,21 @@ client_run() {
     client_test_start "$test_name"
 
     declare -a disk_args=()
+    qemu_add_drive disk_args "$TESTDIR"/marker.img marker
     qemu_add_drive disk_args "$TESTDIR"/root.img root
     qemu_add_drive disk_args "$TESTDIR"/root_erofs.img root_erofs
     qemu_add_drive disk_args "$TESTDIR"/root_iso.img root_iso
 
+    test_marker_reset
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -append "$TEST_KERNEL_CMDLINE rd.overlay root=live:/dev/disk/by-label/dracut $client_opts" \
         -initrd "$TESTDIR"/initramfs.testing
-    check_qemu_log
+
+    if ! test_marker_check; then
+        client_test_end "FAILED"
+        return 1
+    fi
 
     client_test_end
 }
