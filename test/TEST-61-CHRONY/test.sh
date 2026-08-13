@@ -37,6 +37,7 @@ client_run() {
     # - -rtc "base=...,clock=vm" allows to disconnect vm time from host time
     # - initcall_blacklist=rtc_cmos_init (x86_64) / efi_rtc_init (aarch64)
     #   instructs the kernel to avoid trying to sync the clock
+    test_marker_reset
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -rtc "base=$FAKE_TIME,clock=vm" \
@@ -47,9 +48,9 @@ client_run() {
 
     # The "nook" variable controls whether a failed test is considered good
     if [[ $nook != 1 ]]; then
-        check_qemu_log
+        test_marker_check
     else
-        check_qemu_log || :
+        test_marker_check || :
     fi
 
     client_test_end
@@ -58,6 +59,7 @@ client_run() {
 test_run() {
     declare -a disk_args=()
 
+    qemu_add_drive disk_args "$TESTDIR"/marker.img marker
     qemu_add_drive disk_args "$TESTDIR"/root.img root
 
     start_webserver "HTTPS" "$SSL_CERT"

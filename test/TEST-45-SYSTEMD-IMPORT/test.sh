@@ -27,12 +27,17 @@ client_run() {
 
     client_test_start "$test_name"
 
+    declare -a disk_args=()
+    qemu_add_drive disk_args "$TESTDIR"/marker.img marker
+
+    test_marker_reset
     "$testdir"/run-qemu \
+        "${disk_args[@]}" \
         -device "virtio-net-pci,netdev=lan0" \
         -netdev "user,id=lan0,net=10.0.2.0/24,dhcpstart=10.0.2.15" \
         -append "$append $TEST_KERNEL_CMDLINE" \
         -initrd "$TESTDIR/initramfs.testing"
-    check_qemu_log
+    test_marker_check
 
     client_test_end
 }
