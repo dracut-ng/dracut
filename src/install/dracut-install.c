@@ -1431,7 +1431,7 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
                         if (!hash_path)
                                 return -ENOMEM;
                         hashmap_put(items_failed, hash_path, hash_path);
-                        /* src does not exist */
+                        log_debug("src does not exist: '%s'; fullsrcpath: '%s'", src, fullsrcpath);
                         return 1;
                 }
         } else {
