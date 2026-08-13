@@ -61,12 +61,16 @@ test_setup() {
         "$TESTDIR"/initramfs-systemd-initrd
 
     (
-        # remove all shell scripts and the shell itself from the generated initramfs
-        # to demonstrate a shell-less optimized boot
+        # remove the shell itself from the generated initramfs to demonstrate a shell-less optimized boot
         cd "$TESTDIR"/initrd/dracut.*/initramfs
         rm -f "$(realpath bin/sh)"
         rm -f bin/sh
-        find . -name "*.sh" -delete
+
+        # verify that dracut-lib.sh is not included to confirm that shell scripts could not execute
+        if [ -e "lib/dracut-lib.sh" ]; then
+            echo "unexpectedly dracut-lib.sh is found in the generated initramfs"
+            return 1
+        fi
 
         # verify that dracut systemd services are not included
         cd usr/lib/systemd/system/
