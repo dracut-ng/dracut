@@ -39,10 +39,6 @@ jobs:
                 test:
                     - "50"
                     - "60"
-                    - "72"
-                exclude:
-                    - container: gentoo:latest
-                      test: "72"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'
