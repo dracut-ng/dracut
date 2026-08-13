@@ -19,15 +19,17 @@ test_check() {
 #DEBUGFAIL="rd.shell=1 rd.break=pre-mount"
 test_run() {
     declare -a disk_args=()
+    qemu_add_drive disk_args "$TESTDIR"/marker.img marker
     qemu_add_drive disk_args "$TESTDIR"/root.img root
     qemu_add_drive disk_args "$TESTDIR"/mnt.img mnt
 
     # This test should fail if rd.driver.export is not passed at kernel command-line
+    test_marker_reset
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -append "root=LABEL=dracut $TEST_KERNEL_CMDLINE rd.driver.export" \
         -initrd "$TESTDIR"/initramfs.testing
-    check_qemu_log
+    test_marker_check
 }
 
 test_setup() {
