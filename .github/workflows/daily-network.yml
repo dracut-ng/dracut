@@ -62,6 +62,9 @@ jobs:
                       test: "61"
                     - container: ubuntu:rolling
                       test: "61"
+                    # https://github.com/dracut-ng/dracut/issues/2522
+                    - container: fedora:rawhide
+                      test: "60"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'
