@@ -1114,11 +1114,11 @@ inst() {
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"
         return $_ret
     fi
 }
@@ -1138,11 +1138,11 @@ inst_binary() {
 inst_script() {
     local _ret _resolve_deps
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
         return "$_ret"
     fi
 }
@@ -1161,7 +1161,7 @@ inst_simple() {
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     if [[ $1 == /* ]]; then
-        if [[ ! -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]]; then
+        if [[ ! -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]] && [[ ! -e ${dracutbasedir-}/${1#"${dracutbasedir-}"} ]]; then
             dwarn "no source: '$1'!"
             return 1
         fi
@@ -1169,11 +1169,11 @@ inst_simple() {
         dwarn "no source: '$1'!"
         return 1
     fi
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"
         return $_ret
     fi
 }
