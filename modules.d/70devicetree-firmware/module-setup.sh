@@ -46,10 +46,10 @@ install_hostonly() {
 # generic install (hostonly / generic use completely different approaches)
 install_generic() {
     local _fw_files=()
-    # ATM only qcom WoA laptops need this
-    for _soc in qcom/sc8280xp qcom/x1e80100; do
-        # shellcheck disable=SC2154 # fw_dir is set by dracut.sh
-        for _fwdir in $fw_dir; do
+    # shellcheck disable=SC2154 # fw_dir is set by dracut.sh
+    for _fwdir in $fw_dir; do
+        # add laptop model specific firmwares for qcom WoA laptops
+        for _soc in qcom/sc8280xp qcom/x1e80100; do
             # add '*' after mbn, elf for .gz, etc. compression
             for _fw in "$_fwdir/$_soc"/*/*/*.mbn* "$_fwdir/$_soc"/*/*/*.elf*; do
                 [ -f "$_fw" ] || continue
