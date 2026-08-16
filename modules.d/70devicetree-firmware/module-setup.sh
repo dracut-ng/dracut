@@ -57,6 +57,12 @@ install_generic() {
                 _fw_files+=("$_fw")
             done
         done
+        # add soc specific firmwares needed to boot some qcom boards
+        for _fw in "$_fwdir/qcom"/*/qupv3fw.elf*; do
+            [ -f "$_fw" ] || continue
+            _fw=${_fw#"${dracutsysrootdir-}"}
+            _fw_files+=("$_fw")
+        done
     done
     ((${#_fw_files[@]} > 0)) && inst_multiple -o "${_fw_files[@]}"
 }
