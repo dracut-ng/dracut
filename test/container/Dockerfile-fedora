@@ -27,6 +27,9 @@ ARG DISTRIBUTION
 # prefer running tests with xfs
 ENV TEST_FSTYPE=xfs
 
+RUN \
+dnf upgrade --refresh
+
 # btrfs kernel module is not available on CentOS
 RUN \
 if [[ "${DISTRIBUTION}" =~ "centos:" ]]; then \
