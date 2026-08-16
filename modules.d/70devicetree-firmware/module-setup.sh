@@ -49,7 +49,7 @@ install_generic() {
     # shellcheck disable=SC2154 # fw_dir is set by dracut.sh
     for _fwdir in $fw_dir; do
         # add laptop model specific firmwares for qcom WoA laptops
-        for _soc in qcom/sc8280xp qcom/x1e80100; do
+        for _soc in qcom/sc8280xp qcom/x1e80100 qcom/glymur; do
             # add '*' after mbn, elf for .gz, etc. compression
             for _fw in "$_fwdir/$_soc"/*/*/*.mbn* "$_fwdir/$_soc"/*/*/*.elf*; do
                 [ -f "$_fw" ] || continue
