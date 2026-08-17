@@ -1126,11 +1126,11 @@ inst() {
 inst_binary() {
     local _ret _resolve_deps
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${DRACUT_RUNTIMEDIR:+-B "$DRACUT_RUNTIMEDIR"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${DRACUT_RUNTIMEDIR:+-B "$DRACUT_RUNTIMEDIR"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
         return "$_ret"
     fi
 }
