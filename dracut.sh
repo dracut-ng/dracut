@@ -997,7 +997,11 @@ export DRACUT_LOG_LEVEL=warning
     debug=yes
 }
 
-[[ ${dracutbasedir-} ]] || dracutbasedir="${dracutsysrootdir-}"/usr/lib/dracut
+[[ ${dracutbasedir-} ]] || dracutbasedir="$(realpath "${BASH_SOURCE[0]%/*}/../lib/dracut")"
+if [[ ! -d $dracutbasedir ]]; then
+    printf "dracut[F]: base directory '%s' does not exist.\n" "$dracutbasedir" >&2
+    exit 1
+fi
 
 export DRACUT_ARCH=${DRACUT_ARCH:-$(uname -m)}
 
