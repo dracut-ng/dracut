@@ -985,6 +985,13 @@ export DRACUT_LOG_LEVEL=warning
 }
 
 [[ ${dracutbasedir-} ]] || dracutbasedir="${dracutsysrootdir-}"/usr/lib/dracut
+if ! [[ ${dracutruntimedir:-} ]]; then
+    if ! [[ ${dracutsysrootdir-} ]]; then
+        dracutruntimedir="${dracutbasedir}"
+    else
+        dracutruntimedir="${dracutsysrootdir-}"/usr/lib/dracut
+    fi
+fi
 
 export DRACUT_ARCH=${DRACUT_ARCH:-$(uname -m)}
 
@@ -2560,7 +2567,7 @@ for dev in "${!host_fs_types[@]}"; do
     fi
 done
 
-export initdir dracutbasedir \
+export initdir dracutbasedir dracutruntimedir \
     dracutmodules force_add_dracutmodules add_dracutmodules omit_dracutmodules \
     mods_to_load \
     fw_dir drivers_dir debug no_kernel kernel_only \
