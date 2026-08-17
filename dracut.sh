@@ -988,7 +988,7 @@ export DRACUT_LOG_LEVEL=warning
     debug=yes
 }
 
-[[ ${dracutbasedir-} ]] || dracutbasedir="${dracutsysrootdir-}"/usr/lib/dracut
+[[ ${dracutbasedir-} ]] || dracutbasedir="$(realpath -e "${BASH_SOURCE[0]%/*}/../lib/dracut")"
 if ! [[ ${DRACUT_RUNTIMEDIR:-} ]]; then
     if ! [[ ${dracutsysrootdir-} ]]; then
         DRACUT_RUNTIMEDIR="${dracutbasedir}"
