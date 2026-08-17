@@ -8,6 +8,12 @@ test_check() {
     require_binaries_for_test busybox
 }
 
+test_setup() {
+    busybox --list-full > "${TESTDIR}/busybox.links"
+    # add an extra link to see if the list is used
+    echo "usr/bin/silly-serval" >> "${TESTDIR}/busybox.links"
+}
+
 check_applets_from_busybox() {
     local _applet _listing ret=0
     local initrd="$1"
@@ -42,7 +48,7 @@ test_run() {
 
     # Check applets the base module would otherwise install from the host.
     # Each must resolve to busybox in the resulting initrd.
-    check_applets_from_busybox "$initrd" cp ip ls mv mkdir sleep tr || ret=1
+    check_applets_from_busybox "$initrd" ash cp ip ls mv mkdir sleep tr || ret=1
 
     # switch_root must NOT be a busybox symlink as the base module reinstalls
     # the host util-linux version on top of any symlink the busybox module left
@@ -50,6 +56,15 @@ test_run() {
         echo "FAIL: switch_root is a busybox symlink, host version was not preserved" >&2
         ret=1
     fi
+
+    # repeat the same test, but override the list of applets
+    rm "$initrd"
+    DRACUT_MODULE_BUSYBOX_LINKS="$(cat "${TESTDIR}/busybox.links")" \
+        test_dracut \
+        --no-hostonly --no-kernel --drivers "" \
+        --modules "base busybox" \
+        "$initrd"
+    check_applets_from_busybox "$initrd" ash cp ip ls mv mkdir silly-serval sleep tr || ret=1
 
     return "$ret"
 }
