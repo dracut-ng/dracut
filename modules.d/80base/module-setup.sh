@@ -61,7 +61,7 @@ install() {
     ln -s dracut-util "${initdir}/usr/bin/dracut-getargs"
 
     # fallback when shell-interpreter is not included
-    [ ! -e "${initdir}/bin/sh" ] && inst_simple "${initdir}/bin/sh" "/bin/sh"
+    [ ! -e "${initdir}/bin/sh" ] && inst "/bin/sh"
 
     # add common users in /etc/passwd, it will be used by nfs/ssh currently
     # use password for hostonly images to facilitate secure sulogin in emergency console
