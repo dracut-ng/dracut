@@ -765,6 +765,16 @@ _SYSTEMCTL_::
 _NM_VERSION_::
     overrides the NetworkManager version. Used for **--sysroot**.
 
+_DRACUT_MODULE_BUSYBOX_LINKS_::
+    overrides the list of Busybox applets to link in the initramfs, must
+    contain the path of a file containing the list to use. Used for
+    **--sysroot** if the sysroot is cross-compiled and running `busybox --list`
+    is not possible. The list may contain plain names or full paths.
++
+    Using the **busybox.links** file produced by the Busybox build is
+    recommended, using the output of `busybox --list` (e.g. running using Qemu
+    userspace emulation) is also possible.
+
 _DRACUT_INSTALL_PATH_::
     overrides **PATH** environment for **dracut-install** to look for
     binaries relative to **--sysroot**. In a cross-compiled environment
