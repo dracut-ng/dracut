@@ -791,6 +791,20 @@ _DRACUT_INSTALL_LOG_LEVEL_::
 Default:
     _DRACUT_LOG_LEVEL_
 
+_DRACUT_MODULE_BUSYBOX_LINKS_::
+    overrides the list of busybox applets to link in the initramfs. Used for
+    **--sysroot** if the sysroot is cross-compiled and running `busybox
+    --list-full` is not possible. The list must contain full paths of the links
+    to create (leading slash optional).
++
+If you compile busybox, using the **busybox.links** file produced by the
+busybox build is recommended, e.g.:
++
+`export DRACUT_MODULE_BUSYBOX_LINKS="$(cat busybox.links)"`
++
+Using the output of `busybox --list-full` (e.g. running using Qemu userspace
+emulation) is also possible.
+
 FILES
 -----
 _/var/log/dracut.log_::
