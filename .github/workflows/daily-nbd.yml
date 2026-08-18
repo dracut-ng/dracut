@@ -39,8 +39,10 @@ jobs:
                 test:
                     - "72"
                 exclude:
+                    # arch container does not support arm
                     - container: arch:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
+                    # https://github.com/dracut-ng/dracut/issues/2612
                     - container: fedora:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
         container:

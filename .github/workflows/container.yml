@@ -47,6 +47,7 @@ jobs:
                     - {dockerfile: 'Dockerfile-debian', tag: 'ubuntu:rolling'}
                     - {dockerfile: 'Dockerfile-void', tag: 'void:latest'}
                 exclude:
+                    # arch container does not support arm
                     - config: {tag: 'arch:latest'}
                       architecture: {platform: 'linux/arm64'}
         runs-on: ${{ matrix.architecture.runner }}
