@@ -1556,13 +1556,11 @@ fi
 DRACUT_LDCONFIG=${DRACUT_LDCONFIG:-ldconfig}
 DRACUT_TESTBIN=${DRACUT_TESTBIN:-/bin/sh}
 
-if ! [[ "${DRACUT_INSTALL-}" ]]; then
-    DRACUT_INSTALL=$(find_binary dracut-install || :)
-fi
-
-if ! [[ $DRACUT_INSTALL ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then
+if ! [[ ${DRACUT_INSTALL-} ]] && [[ ${dracutbindir-} ]]; then
+    DRACUT_INSTALL="${dracutbindir}/dracut-install"
+elif ! [[ ${DRACUT_INSTALL-} ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then
     DRACUT_INSTALL="${BASH_SOURCE[0]%/*}/dracut-install"
-elif ! [[ $DRACUT_INSTALL ]] && [[ -x "${BASH_SOURCE[0]%/*}/src/install/dracut-install" ]]; then
+elif ! [[ ${DRACUT_INSTALL-} ]] && [[ -x "${BASH_SOURCE[0]%/*}/src/install/dracut-install" ]]; then
     DRACUT_INSTALL="${BASH_SOURCE[0]%/*}/src/install/dracut-install"
 fi
 
@@ -1573,7 +1571,7 @@ fi
 # or
 # DRACUT_INSTALL="dracut-install --debug"
 # in that case check if the first parameter (e.g. valgrind) is executable.
-if ! command -v "${DRACUT_INSTALL%% *}" > /dev/null 2>&1; then
+if ! command -v "${DRACUT_INSTALL-%% *}" > /dev/null 2>&1; then
     dfatal "${DRACUT_INSTALL:-dracut-install} not found!"
     exit 10
 fi

@@ -985,6 +985,7 @@ export DRACUT_LOG_LEVEL=warning
 }
 
 [[ ${dracutbasedir-} ]] || dracutbasedir="$(realpath -e "${BASH_SOURCE[0]%/*}/../lib/dracut")"
+[[ ${dracutbindir-} ]] || dracutbindir="${dracutbasedir}"
 if ! [[ ${dracutruntimedir:-} ]]; then
     if ! [[ ${dracutsysrootdir-} ]]; then
         dracutruntimedir="${dracutbasedir}"
@@ -2078,7 +2079,7 @@ if command -v 3cpio > /dev/null; then
 fi
 
 if [[ $enhanced_cpio == "yes" ]]; then
-    enhanced_cpio="$dracutbasedir/dracut-cpio"
+    enhanced_cpio="$dracutbindir/dracut-cpio"
     if [[ $threecpio_help_output == *--data-align* ]]; then
         # align based on statfs optimal transfer size
         cpio_align=$(stat -f -c "%s" -- "$initdir")
@@ -2567,7 +2568,7 @@ for dev in "${!host_fs_types[@]}"; do
     fi
 done
 
-export initdir dracutbasedir dracutruntimedir \
+export initdir dracutbasedir dracutbindir dracutruntimedir \
     dracutmodules force_add_dracutmodules add_dracutmodules omit_dracutmodules \
     mods_to_load \
     fw_dir drivers_dir debug no_kernel kernel_only \
