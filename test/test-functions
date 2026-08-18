@@ -433,6 +433,13 @@ print_test_result() {
     fi
 }
 
+# cleanup commands shared between all tests, run after test_cleanup
+test_common_cleanup() {
+    rm -fr /run/initramfs/dracut.conf.d
+    rm -fr -- "$TESTDIR"
+    rm -f -- .testdir${TEST_RUN_ID:+-$TEST_RUN_ID}
+}
+
 while (($# > 0)); do
     case $1 in
         --run)
@@ -450,8 +457,7 @@ while (($# > 0)); do
         --clean)
             echo "TEST CLEANUP: $TEST_DESCRIPTION"
             test_cleanup
-            rm -fr -- "$TESTDIR"
-            rm -f -- .testdir${TEST_RUN_ID:+-$TEST_RUN_ID}
+            test_common_cleanup
             exit $?
             ;;
         --all)
@@ -472,16 +478,14 @@ while (($# > 0)); do
                     test_setup
                     test_run
                     test_cleanup
-                    rm -fr -- "$TESTDIR"
-                    rm -f -- .testdir${TEST_RUN_ID:+-$TEST_RUN_ID}
+                    test_common_cleanup
                 ) 2>&1 | "$tee_command" "test${TEST_RUN_ID:+-$TEST_RUN_ID}.log"
             else
                 (
                     test_setup
                     test_run
                     test_cleanup
-                    rm -fr -- "$TESTDIR"
-                    rm -f -- .testdir${TEST_RUN_ID:+-$TEST_RUN_ID}
+                    test_common_cleanup
                 ) > test${TEST_RUN_ID:+-$TEST_RUN_ID}.log 2>&1
             fi
             set +o pipefail
