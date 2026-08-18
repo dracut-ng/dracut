@@ -62,9 +62,6 @@ jobs:
                     # intentionally skipped
                     - container: centos:latest
                       test: "41"
-                    # https://github.com/dracut-ng/dracut/issues/1988
-                    - container: debian:sid
-                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     # TEST-45-SYSTEMD-IMPORT requires systemd >= v258
                     - container: centos:latest
                       test: "45"
