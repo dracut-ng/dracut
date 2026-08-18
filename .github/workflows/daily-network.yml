@@ -48,9 +48,6 @@ jobs:
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     - container: fedora:rawhide
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                    # https://github.com/dracut-ng/dracut/issues/1988
-                    - container: debian:sid
-                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     # In Debian/Ubuntu both chrony and systemd-timesyncd provide
                     # the virtual package time-daemon, so systemd-timesyncd
                     # would have to be removed, breaking test 41.
