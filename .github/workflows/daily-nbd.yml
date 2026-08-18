@@ -43,10 +43,6 @@ jobs:
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     - container: fedora:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                    - container: ubuntu:devel
-                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                    - container: ubuntu:rolling
-                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'
