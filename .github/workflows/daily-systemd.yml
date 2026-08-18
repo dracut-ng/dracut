@@ -59,43 +59,23 @@ jobs:
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     - container: centos:latest
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                    # https://github.com/dracut-ng/dracut/issues/1677
-                    - container: arch:latest
-                      test: "41"
                     # intentionally skipped
                     - container: centos:latest
                       test: "41"
-                    # /boot/vmlinuz-... is missing .efi suffix: https://launchpad.net/bugs/2133402
-                    # Ubuntu 25.10 is affected, will work with Ubuntu 26.04
-                    - container: ubuntu:rolling
-                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                      test: "43"
                     # https://github.com/dracut-ng/dracut/issues/1988
                     - container: debian:sid
                       architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
                     # TEST-45-SYSTEMD-IMPORT requires systemd >= v258
-                    - container: azurelinux:3.0
-                      test: "45"
-                    # TEST-45-SYSTEMD-IMPORT requires systemd >= v258
                     - container: centos:latest
                       test: "45"
                     # TEST-45-SYSTEMD-IMPORT requires systemd >= v258
                     - container: debian:latest
                       test: "45"
-                    # TEST-45-SYSTEMD-IMPORT requires systemd >= v258
-                    - container: ubuntu:rolling
-                      test: "45"
-                    # TEST-46-SYSTEMD-SYSEXT requires systemd >= v258
-                    - container: azurelinux:3.0
-                      test: "46"
                     # TEST-46-SYSTEMD-SYSEXT requires systemd >= v258
                     - container: centos:latest
                       test: "46"
                     # TEST-46-SYSTEMD-SYSEXT requires systemd >= v258
                     - container: debian:latest
-                      test: "46"
-                    # TEST-46-SYSTEMD-SYSEXT requires systemd >= v258
-                    - container: ubuntu:rolling
                       test: "46"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
