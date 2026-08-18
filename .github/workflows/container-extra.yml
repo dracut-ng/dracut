@@ -48,6 +48,7 @@ jobs:
                     - {dockerfile: 'Dockerfile-gentoo', tag: 'gentoo:arm64-openrc', option: 'arm64-openrc'}
                     - {dockerfile: 'Dockerfile-gentoo', tag: 'gentoo:latest', option: 'systemd'}
                 exclude:
+                    # arch container does not support arm
                     - config: {tag: 'arch:latest'}
                       architecture: {platform: 'linux/arm64'}
                     - config: {tag: 'gentoo:amd64-openrc'}
