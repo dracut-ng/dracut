@@ -49,14 +49,6 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
-                exclude:
-                    # https://github.com/dracut-ng/dracut/issues/1988
-                    - container: debian:sid
-                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                    # times out
-                    - container: ubuntu:devel
-                      architecture: {runner: 'ubuntu-24.04-arm', tag: 'arm'}
-                      test: "26"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'
