@@ -36,7 +36,7 @@ if [ -n "$zipl_arg" ]; then
             ;;
         /dev/*)
             zipl_env="KERNEL"
-            zipl_val=${zipl_arg}
+            zipl_val=${zipl_arg#/dev/}
             ;;
     esac
     if [ "$zipl_env" ]; then
