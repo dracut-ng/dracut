@@ -36,7 +36,7 @@ cmdline() {
         eval "$(dmsetup splitname --nameprefixes --noheadings --rows "$dev" 2> /dev/null)"
         # shellcheck disable=SC2015
         [[ ${DM_VG_NAME} ]] && [[ ${DM_LV_NAME} ]] || continue
-        if ! [[ ${_activated[DM_VG_NAME / DM_LV_NAME]} ]]; then
+        if ! [[ ${_activated["${DM_VG_NAME}/${DM_LV_NAME}"]} ]]; then
             printf " rd.lvm.lv=%s " "${DM_VG_NAME}/${DM_LV_NAME} "
             _activated["${DM_VG_NAME}/${DM_LV_NAME}"]=1
         fi
