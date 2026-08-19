@@ -43,23 +43,32 @@ jobs:
                 config:
                     - dockerfile: Dockerfile-alpine
                       tag: alpine:edge
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-alpine
                       tag: alpine:busybox-edge
+                      platforms: ['amd', 'arm']
                       option: busybox
                     - dockerfile: Dockerfile-arch
                       tag: arch:latest
+                      platforms: ['amd']
                     - dockerfile: Dockerfile-debian
                       tag: debian:latest
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-fedora
                       tag: fedora:latest
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-opensuse
                       tag: opensuse:latest
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-debian
                       tag: ubuntu:devel
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-debian
                       tag: ubuntu:rolling
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-void
                       tag: void:latest
+                      platforms: ['amd', 'arm']
                 exclude:
                     # arch container does not support arm
                     - config: {tag: 'arch:latest'}
@@ -88,36 +97,8 @@ jobs:
                   build-args: |
                       DISTRIBUTION=${{ matrix.config.tag }}
                       OPTION=${{ matrix.config.option }}
-    manifest:
-        needs: container
-        if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        name: ${{ matrix.config.tag }}
-        concurrency:
-            group: manifest-${{ github.workflow }}-${{ github.ref }}-${{ matrix.config.tag }}
-            cancel-in-progress: true
-        runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                config:
-                    - {tag: 'alpine:edge', platforms: ['amd', 'arm']}
-                    - {tag: 'alpine:busybox-edge', platforms: ['amd', 'arm']}
-                    - {tag: 'arch:latest', platforms: ['amd']}
-                    - {tag: 'debian:latest', platforms: ['amd', 'arm']}
-                    - {tag: 'fedora:latest', platforms: ['amd', 'arm']}
-                    - {tag: 'opensuse:latest', platforms: ['amd', 'arm']}
-                    - {tag: 'ubuntu:devel', platforms: ['amd', 'arm']}
-                    - {tag: 'ubuntu:rolling', platforms: ['amd', 'arm']}
-                    - {tag: 'void:latest', platforms: ['amd', 'arm']}
-        steps:
-            - name: Login to GitHub Container Registry
-              uses: docker/login-action@v4
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.repository_owner }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
-            - name: Set up env
-              run: echo "repository_owner=${GITHUB_REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
             - name: Create and Push Multi-Arch Manifest
+              if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
               run: |
                   tag="ghcr.io/${{env.repository_owner}}/${{ matrix.config.tag }}"
                   images="$(printf "${tag}-%s " ${{ join(matrix.config.platforms, ' ') }})"
