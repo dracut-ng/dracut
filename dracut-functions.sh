@@ -1150,9 +1150,14 @@ inst_script() {
 inst_simple() {
     local dstdir="${dstdir:-"$initdir"}"
     local _ret _hostonly_install
-    if [[ $1 == "-H" ]] && [[ $hostonly ]]; then
-        _hostonly_install="-H"
-        shift
+    if [[ $1 == "-H" ]]; then
+        if [[ $hostonly ]]; then
+            _hostonly_install="-H"
+            shift
+        else
+            ddebug "skipping install of '$2', not in hostonly mode"
+            return 0
+        fi
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     if [[ $1 == /* ]]; then
