@@ -37,16 +37,33 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {platform: 'linux/amd64', runner: 'ubuntu-24.04', tag: 'amd'}
-                    - {platform: 'linux/arm64', runner: 'ubuntu-24.04-arm', tag: 'arm'}
+                    - platform: linux/amd64
+                      runner: ubuntu-24.04
+                      tag: amd
+                    - platform: linux/arm64
+                      runner: ubuntu-24.04-arm
+                      tag: arm
                 config:
-                    - {dockerfile: 'Dockerfile-azurelinux', tag: 'azurelinux:latest', registry: 'mcr.microsoft.com'}
-                    - {dockerfile: 'Dockerfile-fedora', tag: 'centos:latest', registry: 'quay.io/centos'}
-                    - {dockerfile: 'Dockerfile-debian', tag: 'debian:sid'}
-                    - {dockerfile: 'Dockerfile-fedora', tag: 'fedora:rawhide', registry: 'registry.fedoraproject.org'}
-                    - {dockerfile: 'Dockerfile-gentoo', tag: 'gentoo:amd64-openrc', option: 'amd64-openrc'}
-                    - {dockerfile: 'Dockerfile-gentoo', tag: 'gentoo:arm64-openrc', option: 'arm64-openrc'}
-                    - {dockerfile: 'Dockerfile-gentoo', tag: 'gentoo:latest', option: 'systemd'}
+                    - dockerfile: Dockerfile-azurelinux
+                      tag: azurelinux:latest
+                      registry: mcr.microsoft.com
+                    - dockerfile: Dockerfile-fedora
+                      tag: centos:latest
+                      registry: quay.io/centos
+                    - dockerfile: Dockerfile-debian
+                      tag: debian:sid
+                    - dockerfile: Dockerfile-fedora
+                      tag: fedora:rawhide
+                      registry: registry.fedoraproject.org
+                    - dockerfile: Dockerfile-gentoo
+                      tag: gentoo:amd64-openrc
+                      option: amd64-openrc
+                    - dockerfile: Dockerfile-gentoo
+                      tag: gentoo:arm64-openrc
+                      option: arm64-openrc
+                    - dockerfile: Dockerfile-gentoo
+                      tag: gentoo:latest
+                      option: systemd
                 exclude:
                     # arch container does not support arm
                     - config: {tag: 'arch:latest'}

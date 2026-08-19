@@ -26,8 +26,12 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04', tag: 'amd', timeout: 10}
-                    - {runner: 'ubuntu-24.04-arm', tag: 'arm', timeout: 40}
+                    - runner: ubuntu-24.04
+                      tag: amd
+                      timeout: 10
+                    - runner: ubuntu-24.04-arm
+                      tag: arm
+                      timeout: 40
                 container:
                     - debian:latest
                     - debian:sid
@@ -70,7 +74,9 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04', tag: 'amd', timeout: 10}
+                    - runner: ubuntu-24.04
+                      tag: amd
+                      timeout: 10
                 container:
                     - alpine:edge
                     - arch:latest
@@ -117,7 +123,9 @@ jobs:
             fail-fast: false
             matrix:
                 architecture:
-                    - {runner: 'ubuntu-24.04-arm', tag: 'arm', timeout: 40}
+                    - runner: ubuntu-24.04-arm
+                      tag: arm
+                      timeout: 40
                 container:
                     - gentoo:arm64-openrc
                 test:
