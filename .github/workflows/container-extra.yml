@@ -47,23 +47,30 @@ jobs:
                     - dockerfile: Dockerfile-azurelinux
                       tag: azurelinux:latest
                       registry: mcr.microsoft.com
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-fedora
                       tag: centos:latest
                       registry: quay.io/centos
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-debian
                       tag: debian:sid
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-fedora
                       tag: fedora:rawhide
                       registry: registry.fedoraproject.org
+                      platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-gentoo
                       tag: gentoo:amd64-openrc
                       option: amd64-openrc
+                      platforms: ['amd']
                     - dockerfile: Dockerfile-gentoo
                       tag: gentoo:arm64-openrc
                       option: arm64-openrc
+                      platforms: ['arm']
                     - dockerfile: Dockerfile-gentoo
                       tag: gentoo:latest
                       option: systemd
+                      platforms: ['amd', 'arm']
                 exclude:
                     # arch container does not support arm
                     - config: {tag: 'arch:latest'}
@@ -96,34 +103,8 @@ jobs:
                       DISTRIBUTION=${{ matrix.config.tag }}
                       REGISTRY=${{ matrix.config.registry }}
                       OPTION=${{ matrix.config.option }}
-    manifest:
-        needs: container-extra
-        if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        name: ${{ matrix.config.tag }}
-        concurrency:
-            group: manifest-${{ github.workflow }}-${{ github.ref }}-${{ matrix.config.tag }}
-            cancel-in-progress: true
-        runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                config:
-                    - {tag: 'azurelinux:latest', platforms: ['amd', 'arm']}
-                    - {tag: 'centos:latest', platforms: ['amd', 'arm']}
-                    - {tag: 'debian:sid', platforms: ['amd', 'arm']}
-                    - {tag: 'fedora:rawhide', platforms: ['amd', 'arm']}
-                    - {tag: 'gentoo:latest', platforms: ['amd', 'arm']}
-                    - {tag: 'gentoo:amd64-openrc', platforms: ['amd']}
-                    - {tag: 'gentoo:arm64-openrc', platforms: ['arm']}
-        steps:
-            - name: Login to GitHub Container Registry
-              uses: docker/login-action@v4
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.repository_owner }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
-            - name: Set up env
-              run: echo "repository_owner=${GITHUB_REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
             - name: Create and Push Multi-Arch Manifest
+              if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
               run: |
                   tag="ghcr.io/${{env.repository_owner}}/${{ matrix.config.tag }}"
                   images="$(printf "${tag}-%s " ${{ join(matrix.config.platforms, ' ') }})"
