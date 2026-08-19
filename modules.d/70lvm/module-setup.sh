@@ -34,7 +34,8 @@ cmdline() {
         [[ ${uuid#LVM-} == "$uuid" ]] && continue
         dev=$(< "/sys/block/${dev#/dev/}/dm/name")
         eval "$(dmsetup splitname --nameprefixes --noheadings --rows "$dev" 2> /dev/null)"
-        [[ ${DM_VG_NAME} ]] && [[ ${DM_LV_NAME} ]] || return 1
+        # shellcheck disable=SC2015
+        [[ ${DM_VG_NAME} ]] && [[ ${DM_LV_NAME} ]] || continue
         if ! [[ ${_activated[DM_VG_NAME / DM_LV_NAME]} ]]; then
             printf " rd.lvm.lv=%s " "${DM_VG_NAME}/${DM_LV_NAME} "
             _activated["${DM_VG_NAME}/${DM_LV_NAME}"]=1
