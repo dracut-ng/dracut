@@ -115,7 +115,7 @@ install() {
         if [[ -f "${dracutsysrootdir-}/etc/lvm/lvmlocal.conf" ]]; then
             inst_simple -H /etc/lvm/lvmlocal.conf
         fi
-        eval "$(lvm dumpconfig global/system_id_source &> /dev/null)"
+        eval "$(lvm dumpconfig global/system_id_source 2> /dev/null)"
         if [ "$system_id_source" == "file" ]; then
             eval "$(lvm dumpconfig global/system_id_file)"
             if [ -f "$system_id_file" ]; then
