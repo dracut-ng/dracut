@@ -1156,9 +1156,13 @@ inst_simple() {
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     if [[ $1 == /* ]]; then
-        [[ -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]] || return 1 # no source
-    else
-        [[ -e $1 ]] || return 1 # no source
+        if [[ ! -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]]; then
+            dwarn "no source: '$1'!"
+            return 1
+        fi
+    elif [[ ! -e $1 ]]; then
+        dwarn "no source: '$1'!"
+        return 1
     fi
     if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"; then
         return 0
