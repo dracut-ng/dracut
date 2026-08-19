@@ -2647,7 +2647,7 @@ create_directories() {
     for d in "$@"; do
         d=${d#/}
         [[ -e "${initdir}${prefix}/$d" ]] && continue
-        if [ -L "/$d" ]; then
+        if [ -L "${dracutsysrootdir-}/$d" ]; then
             inst_symlink "/$d" "${prefix}/$d"
         else
             # shellcheck disable=SC2174
