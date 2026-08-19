@@ -435,9 +435,12 @@ print_test_result() {
 
 # cleanup commands shared between all tests, run after test_cleanup
 test_common_cleanup() {
-    rm -fr /run/initramfs/dracut.conf.d
     rm -fr -- "$TESTDIR"
     rm -f -- .testdir${TEST_RUN_ID:+-$TEST_RUN_ID}
+    # clean /run only if running in test container, not on "make clean"
+    if command -v systemd-detect-virt > /dev/null && systemd-detect-virt -c &> /dev/null; then
+        rm -fr /run/initramfs/dracut.conf.d
+    fi
 }
 
 while (($# > 0)); do
