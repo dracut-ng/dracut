@@ -279,6 +279,7 @@ jobs:
             matrix:
                 container:
                     - debian:latest
+                    - fedora:latest
                     - opensuse:latest
                     - ubuntu:rolling
                     - void:latest
