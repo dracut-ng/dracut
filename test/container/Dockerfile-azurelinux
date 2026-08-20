@@ -63,7 +63,5 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     && dnf -y update && dnf clean all
 
 # disable systemd-portabled - it is optional and allows to pass the CI
-# disable multipath dracut module - it interferes with the CI on azurelinux
 RUN \
     rm -rf /usr/bin/portablectl /usr/lib/systemd/systemd-portabled ;\
-    echo 'omit_dracutmodules+=" multipath "' > /usr/lib/dracut/dracut.conf.d/02-dist.conf
