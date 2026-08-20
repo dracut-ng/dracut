@@ -47,7 +47,7 @@ install() {
         inst_hook initqueue/timeout 10 "$moddir/btrfs_timeout.sh"
     fi
 
-    inst_multiple -o btrfsck btrfs-zero-log btrfstune
+    inst_multiple -o btrfsck btrfstune
     inst btrfs /sbin/btrfs
 
     if [[ $hostonly_cmdline == "yes" ]]; then
