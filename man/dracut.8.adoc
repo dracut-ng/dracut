@@ -792,17 +792,15 @@ Default:
     _PATH_
 
 _DRACUT_INSTALL_LOG_TARGET_::
-    overrides **DRACUT_LOG_TARGET** for **dracut-install**. It allows
-    running **dracut-install* to run with different log target that
-    **dracut** runs with.
+    overrides **DRACUT_LOG_TARGET** for **dracut-install**. It allows running
+    **dracut-install** with a different log target than **dracut**.
 +
 Default:
     _DRACUT_LOG_TARGET_
 
 _DRACUT_INSTALL_LOG_LEVEL_::
-    overrides **DRACUT_LOG_LEVEL** for **dracut-install**. It allows
-    running **dracut-install* to run with different log level that
-    **dracut** runs with.
+    overrides **DRACUT_LOG_LEVEL** for **dracut-install**. It allows running
+    **dracut-install** with a different log level than **dracut**.
 +
 Default:
     _DRACUT_LOG_LEVEL_
