@@ -308,7 +308,7 @@ list_files() {
     if [ "$sorted" -eq 1 ]; then
         cpio_list | sort -n -k5
     else
-        cpio_list | sort -k9
+        cpio_list
     fi
     ((ret += $?))
     echo "========================================================================"
