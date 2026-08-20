@@ -854,6 +854,17 @@ oom:
    that is expanded using the C compiler rather than the preprocessor. */
 #define ELF_BYTESWAP(SIZE, value) (ehdr->e_ident[EI_DATA] == ELFDATA2MSB ? be##SIZE##toh(value) : le##SIZE##toh(value))
 
+/* Safely look up a section name in a bounds-checked section header string
+   table. Returns NULL if the name offset is out of bounds or the name is
+   not NUL-terminated within the table. */
+static const char *elf_sect_name(const char *shstrtab, size_t shstrtab_len, uint32_t name_off)
+{
+        if (name_off >= shstrtab_len || !memchr(shstrtab + name_off, '\0', shstrtab_len - name_off))
+                return NULL;
+
+        return shstrtab + name_off;
+}
+
 /* Get a pointer to the ELF header map's section header string table, where B is
    64 or 32 bit. Sanity checks the ELF structure to avoid crashes. */
 #define PARSE_ELF_START(B, map) \
@@ -864,8 +875,23 @@ oom:
             ELF_BYTESWAP(16, ehdr->e_shstrndx) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
                 break; \
 \
+        /* The whole section header table must fit into the mapped file, \
+           otherwise indexing into it could read past the mapping. */ \
+        if ((size_t)ELF_BYTESWAP(16, ehdr->e_shnum) > \
+            (src_len - (size_t)ELF_BYTESWAP(B, ehdr->e_shoff)) / sizeof(Elf##B##_Shdr)) \
+                break; \
+\
         Elf##B##_Shdr *shdr = (Elf##B##_Shdr *)((char *)map + ELF_BYTESWAP(B, ehdr->e_shoff)); \
-        const char *shstrtab = (char *)map + ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(16, ehdr->e_shstrndx)].sh_offset);
+        Elf##B##_Shdr *shstrshdr = &shdr[ELF_BYTESWAP(16, ehdr->e_shstrndx)]; \
+\
+        /* The section header string table must fit into the mapped file, \
+           otherwise comparing section names could read past the mapping. */ \
+        size_t shstrtab_len = ELF_BYTESWAP(B, shstrshdr->sh_size); \
+        if (ELF_BYTESWAP(B, shstrshdr->sh_offset) > src_len || \
+            shstrtab_len > src_len - (size_t)ELF_BYTESWAP(B, shstrshdr->sh_offset)) \
+                break; \
+\
+        const char *shstrtab = (char *)map + ELF_BYTESWAP(B, shstrshdr->sh_offset);
 
 /* Expand the R(UN)PATH of the ELF header map and search it for a library
    matching soname and match64/match32. map must point to the same header as
@@ -875,7 +901,8 @@ oom:
         bool seen_runpath = false; \
 \
         for (size_t i = 0; i < ELF_BYTESWAP(16, ehdr->e_shnum); i++) { \
-                if (strcmp(&shstrtab[ELF_BYTESWAP(32, shdr[i].sh_name)], ".dynamic") != 0) \
+                const char *sect_name = elf_sect_name(shstrtab, shstrtab_len, ELF_BYTESWAP(32, shdr[i].sh_name)); \
+                if (!sect_name || strcmp(sect_name, ".dynamic") != 0) \
                         continue; \
 \
                 Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
@@ -884,6 +911,9 @@ oom:
                                 seen_runpath = true; /* RUNPATH has precedence over RPATH. */ \
                         else if (seen_runpath || ELF_BYTESWAP(B, d->d_tag) != DT_RPATH) \
                                 continue; \
+\
+                        if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
+                                break; \
 \
                         char *runpath = (char *)map + ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val); \
                         _cleanup_free_ char *expanded = expand_runpath(runpath, src, match64); \
@@ -1025,7 +1055,8 @@ skip:
         for (size_t i = 0; !soname && i < ELF_BYTESWAP(16, ehdr->e_shnum); i++) { \
                 if ((char*)&shdr[i] < (char*)map || (char*)&shdr[i] + sizeof(Elf##B##_Shdr) > (char*)map + src_len) \
                         break; \
-                if (strcmp(&shstrtab[ELF_BYTESWAP(32, shdr[i].sh_name)], ".dynamic") != 0) \
+                const char *sect_name = elf_sect_name(shstrtab, shstrtab_len, ELF_BYTESWAP(32, shdr[i].sh_name)); \
+                if (!sect_name || strcmp(sect_name, ".dynamic") != 0) \
                         continue; \
 \
                 Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
@@ -1038,6 +1069,9 @@ skip:
                         if (ELF_BYTESWAP(B, d->d_tag) != DT_SONAME) \
                                 continue; \
 \
+                        if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
+                                break; \
+\
                         soname = (char *)map + ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val); \
                         if ((char *)soname < (char *)map || (char *)soname > (char *)map + src_len) { \
                                 soname = NULL; \
@@ -1049,7 +1083,8 @@ skip:
         for (size_t i = 0; i < ELF_BYTESWAP(16, ehdr->e_shnum); i++) { \
                 if ((char*)shdr + i * sizeof(Elf##B##_Shdr) > (char*)map + src_len) \
                         break; \
-                if (strcmp(&shstrtab[ELF_BYTESWAP(32, shdr[i].sh_name)], ".note.dlopen") != 0) \
+                const char *sect_name = elf_sect_name(shstrtab, shstrtab_len, ELF_BYTESWAP(32, shdr[i].sh_name)); \
+                if (!sect_name || strcmp(sect_name, ".note.dlopen") != 0) \
                         continue; \
 \
                 const char *note_offset = (char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset); \
@@ -1112,7 +1147,8 @@ skip:
         for (size_t i = 0; i < ELF_BYTESWAP(16, ehdr->e_shnum); i++) { \
                 if ((char*)&shdr[i] < (char*)map || (char*)&shdr[i] + sizeof(Elf##B##_Shdr) > (char*)map + src_len) \
                         break; \
-                if (strcmp(&shstrtab[ELF_BYTESWAP(32, shdr[i].sh_name)], ".dynamic") != 0) \
+                const char *sect_name = elf_sect_name(shstrtab, shstrtab_len, ELF_BYTESWAP(32, shdr[i].sh_name)); \
+                if (!sect_name || strcmp(sect_name, ".dynamic") != 0) \
                         continue; \
 \
                 Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
@@ -1124,6 +1160,9 @@ skip:
                                 break; \
                         if (ELF_BYTESWAP(B, d->d_tag) != DT_NEEDED) \
                                 continue; \
+\
+                        if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
+                                break; \
 \
                         const char *soname = (char *)map + ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val); \
                         if ((char *)soname < (char *)map || (char *)soname > (char *)map + src_len) \
