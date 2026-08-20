@@ -36,19 +36,12 @@ installkernel() {
 
 # called by dracut
 install() {
-    if ! inst_rules 64-btrfs.rules; then
-        inst_rules "$moddir/80-btrfs.rules"
-        case "$(btrfs --help)" in
-            *device\ ready*)
-                inst_script "$moddir/btrfs_device_ready.sh" /sbin/btrfs_finished
-                ;;
-            *)
-                inst_script "$moddir/btrfs_finished.sh" /sbin/btrfs_finished
-                ;;
-        esac
-    else
-        inst_rules 64-btrfs-dm.rules
-    fi
+    # 64-btrfs.rules is shipped by udev/eudev, and it must always be installed
+    # by the udev-rules module even if the btrfs module is not installed, to
+    # mark btrfs devices ready or not.
+    # See 567c4557537fe7f477f0f54237df00ebc79e56be
+
+    inst_rules 64-btrfs-dm.rules
 
     if ! dracut_module_included "systemd"; then
         inst_hook initqueue/timeout 10 "$moddir/btrfs_timeout.sh"
