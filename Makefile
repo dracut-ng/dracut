@@ -20,7 +20,7 @@ pkglibdir ?= ${libdir}/dracut
 sysconfdir ?= ${prefix}/etc
 bindir ?= ${prefix}/bin
 mandir ?= ${prefix}/share/man
-CFLAGS ?= -O2 -g -Wall -std=gnu99 -D_FILE_OFFSET_BITS=64 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2
+CFLAGS ?= -O2 -g -Wall -std=gnu11 -D_FILE_OFFSET_BITS=64 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2
 bashcompletiondir ?= ${datadir}/bash-completion/completions
 pkgconfigdatadir ?= $(datadir)/pkgconfig
 ARCH ?= $(shell uname -m)
