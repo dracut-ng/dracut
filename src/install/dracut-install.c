@@ -865,6 +865,17 @@ static const char *elf_sect_name(const char *shstrtab, size_t shstrtab_len, uint
         return shstrtab + name_off;
 }
 
+/* Return a pointer to the NUL-terminated string at the given offset within
+   the mapped file, or NULL if the offset is out of bounds or the string
+   would not be NUL-terminated within the map. */
+static const char *elf_map_string(const char *map, size_t src_len, size_t offset)
+{
+        if (offset >= src_len || !memchr(map + offset, '\0', src_len - offset))
+                return NULL;
+
+        return map + offset;
+}
+
 /* Get a pointer to the ELF header map's section header string table, where B is
    64 or 32 bit. Sanity checks the ELF structure to avoid crashes. */
 #define PARSE_ELF_START(B, map) \
@@ -906,7 +917,12 @@ static const char *elf_sect_name(const char *shstrtab, size_t shstrtab_len, uint
                         continue; \
 \
                 Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
+                if ((char *)dyn < (char *)map || (char *)dyn > (char *)map + src_len) \
+                        break; \
+\
                 for (Elf##B##_Dyn *d = dyn; ELF_BYTESWAP(32, d->d_tag) != DT_NULL; d++) { \
+                        if ((char *)d < (char *)map || (char *)d + sizeof(Elf##B##_Dyn) > (char *)map + src_len) \
+                                break; \
                         if (ELF_BYTESWAP(B, d->d_tag) == DT_RUNPATH) \
                                 seen_runpath = true; /* RUNPATH has precedence over RPATH. */ \
                         else if (seen_runpath || ELF_BYTESWAP(B, d->d_tag) != DT_RPATH) \
@@ -915,7 +931,10 @@ static const char *elf_sect_name(const char *shstrtab, size_t shstrtab_len, uint
                         if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
                                 break; \
 \
-                        char *runpath = (char *)map + ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val); \
+                        const char *runpath = elf_map_string((const char *)map, src_len, ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val)); \
+                        if (!runpath) \
+                                break; \
+\
                         _cleanup_free_ char *expanded = expand_runpath(runpath, src, match64); \
                         if (!expanded) \
                                 continue; \
@@ -1072,11 +1091,9 @@ skip:
                         if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
                                 break; \
 \
-                        soname = (char *)map + ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val); \
-                        if ((char *)soname < (char *)map || (char *)soname > (char *)map + src_len) { \
-                                soname = NULL; \
+                        soname = elf_map_string((const char *)map, src_len, ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val)); \
+                        if (!soname) \
                                 break; \
-                        } \
                 } \
         } \
 \
@@ -1129,8 +1146,8 @@ skip:
                         if (ELF_BYTESWAP(32, phdr->p_type) != PT_INTERP) \
                                 continue; \
 \
-                        const char *interpreter = (const char *)map + ELF_BYTESWAP(B, phdr->p_offset); \
-                        if (interpreter < (char *)map || interpreter > (char *)map + src_len) \
+                        const char *interpreter = elf_map_string((const char *)map, src_len, ELF_BYTESWAP(B, phdr->p_offset)); \
+                        if (!interpreter) \
                                 break; \
                         if (hashmap_get(pdeps, interpreter)) \
                                 continue; \
@@ -1164,8 +1181,8 @@ skip:
                         if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
                                 break; \
 \
-                        const char *soname = (char *)map + ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val); \
-                        if ((char *)soname < (char *)map || (char *)soname > (char *)map + src_len) \
+                        const char *soname = elf_map_string((const char *)map, src_len, ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val)); \
+                        if (!soname) \
                                 break; \
                         if (hashmap_get(pdeps, soname)) \
                                 continue; \
