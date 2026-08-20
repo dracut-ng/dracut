@@ -20,6 +20,7 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     chrony \
     cifs-utils \
     cryptsetup \
+    device-mapper-multipath \
     dhcpcd \
     diffutils \
     dnsmasq \
@@ -61,7 +62,3 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     xfsprogs \
     xorriso \
     && dnf -y update && dnf clean all
-
-# disable systemd-portabled - it is optional and allows to pass the CI
-RUN \
-    rm -rf /usr/bin/portablectl /usr/lib/systemd/systemd-portabled ;\
