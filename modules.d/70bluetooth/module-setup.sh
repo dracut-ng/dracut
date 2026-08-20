@@ -23,8 +23,7 @@ check() {
 
 # Module dependency requirements.
 depends() {
-    # This module has external dependencies on the systemd and dbus modules.
-    echo systemd dbus
+    echo dbus systemd-udevd
     # Return 0 to include the dependent modules in the initramfs.
     return 0
 }
@@ -80,7 +79,7 @@ install() {
             "${var_lib_files[@]#"${dracutsysrootdir-}"}"
     fi
 
-    inst_rules 69-btattach-bcm.rules 60-persistent-input.rules
+    inst_rules 69-btattach-bcm.rules
 
     sed -i -e \
         '/^\[Unit\]/aDefaultDependencies=no\nConflicts=shutdown.target\nBefore=shutdown.target\nAfter=dbus.service' \
