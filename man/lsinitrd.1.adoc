@@ -49,6 +49,17 @@ OPTIONS
 **-v, --verbose**::
     unpack verbosely
 
+ENVIRONMENT
+-----------
+
+_DRACUT_BINDIR_::
+    overrides the directory containing Dracut executables,
+    e.g. **skipcpio**. If running **lsinitrd** installed in a cross-compiled
+    sysroot, use this option to provide host Dracut binaries.
++
+Default:
+    _$prefix/lib/dracut_
+
 AVAILABILITY
 ------------
 The lsinitrd command is part of the dracut package and is available from

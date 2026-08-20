@@ -38,6 +38,7 @@ usage() {
 }
 
 [[ ${dracutbasedir-} ]] || dracutbasedir="$(realpath -e "${BASH_SOURCE[0]%/*}/../lib/dracut")"
+[[ ${DRACUT_BINDIR-} ]] && dracutbindir="${DRACUT_BINDIR}"
 [[ ${dracutbindir-} ]] || dracutbindir="${dracutbasedir}"
 
 sorted=0
