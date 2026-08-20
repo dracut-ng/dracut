@@ -777,7 +777,7 @@ Default:
 
 _DRACUT_INSTALL_LOG_TARGET_::
     overrides **DRACUT_LOG_TARGET** for **dracut-install**. It allows
-    running **dracut-install* to run with different log target that
+    running **dracut-install** to run with different log target that
     **dracut** runs with.
 +
 Default:
