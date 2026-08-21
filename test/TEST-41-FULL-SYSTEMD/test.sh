@@ -5,12 +5,7 @@ set -eu
 TEST_DESCRIPTION="Full systemd serialization/deserialization test with /usr mount"
 
 test_check() {
-    if ! type -p mkfs.btrfs &> /dev/null; then
-        echo "Test needs mkfs.btrfs.. Skipping"
-        return 1
-    fi
-
-    command -v systemctl &> /dev/null
+    require_binaries_for_test mkfs.btrfs systemctl
 }
 
 # Uncomment this to debug failures

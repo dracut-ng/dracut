@@ -4,15 +4,7 @@ set -eu
 TEST_DESCRIPTION="no (xfs) driver on root filesystem"
 
 test_check() {
-    if ! type -p mkfs.xfs &> /dev/null; then
-        echo "Test needs mkfs.xfs.. Skipping"
-        return 1
-    fi
-
-    if ! command -v systemctl > /dev/null; then
-        echo "This test needs systemd to run."
-        return 1
-    fi
+    require_binaries_for_test mkfs.xfs systemctl
 }
 
 # Uncomment this to debug failures

@@ -7,12 +7,8 @@ set -eu
 TEST_DESCRIPTION="root filesystem on NFS with $USE_NETWORK"
 
 test_check() {
-    if ! type -p curl &> /dev/null; then
-        echo "Test needs curl for url-lib... Skipping"
-        return 1
-    fi
-
-    command -v exportfs &> /dev/null
+    # curl needed for url-lib
+    require_binaries_for_test curl exportfs
 }
 
 # Uncomment this to debug failures

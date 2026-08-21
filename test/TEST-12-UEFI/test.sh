@@ -8,10 +8,7 @@ TEST_DESCRIPTION="UEFI boot (ukify, kernel-install)"
 #DEBUGFAIL="rd.debug rd.shell"
 
 test_check() {
-    if ! type -p mksquashfs &> /dev/null; then
-        echo "Test needs mksquashfs... Skipping"
-        return 1
-    fi
+    require_binaries_for_test mksquashfs
 
     local arch=${DRACUT_ARCH:-$(uname -m)}
     if [[ ! ${arch} =~ ^(x86_64|i.86|aarch64|riscv64)$ ]]; then

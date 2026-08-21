@@ -8,10 +8,7 @@ TEST_DESCRIPTION="root filesystem on a btrfs filesystem with /usr subvolume"
 #DEBUGFAIL="rd.shell rd.break"
 
 test_check() {
-    if ! type -p mkfs.btrfs &> /dev/null; then
-        echo "Test needs mkfs.btrfs.. Skipping"
-        return 1
-    fi
+    require_binaries_for_test mkfs.btrfs
 }
 
 client_run() {

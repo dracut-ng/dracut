@@ -7,10 +7,7 @@ TEST_DESCRIPTION="kernel-install with root filesystem on ext4 filesystem"
 #DEBUGFAIL="rd.debug rd.shell"
 
 test_check() {
-    if ! command -v kernel-install > /dev/null; then
-        echo "This test needs kernel-install to run."
-        return 1
-    fi
+    require_binaries_for_test kernel-install
 }
 
 test_run() {

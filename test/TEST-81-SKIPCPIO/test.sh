@@ -12,7 +12,7 @@ test_check() {
         return 1
     fi
 
-    (command -v find && command -v diff) &> /dev/null
+    require_binaries_for_test diff find
 }
 
 cpio_create() {

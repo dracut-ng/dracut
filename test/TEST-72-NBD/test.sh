@@ -13,12 +13,7 @@ TEST_DESCRIPTION="root filesystem on NBD with $USE_NETWORK"
 #SERIAL="tcp:127.0.0.1:9999"
 
 test_check() {
-    if ! type -p nbd-server &> /dev/null; then
-        echo "Test needs nbd-server... Skipping"
-        return 1
-    fi
-
-    return 0
+    require_binaries_for_test nbd-server
 }
 
 run_server() {
