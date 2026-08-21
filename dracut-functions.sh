@@ -1311,16 +1311,14 @@ inst_rules() {
                 inst_simple "$_found"
             done
         fi
-        for r in '' "${dracutsysrootdir-}$dracutbasedir/rules.d/"; do
-            # skip rules without an absolute path
-            [[ "${r}$_rule" != /* ]] && continue
-            [[ -f ${r}$_rule ]] || continue
-            _found="${r}$_rule"
+        # install rules with absolute path, usually from $moddir
+        if [[ $_rule == /* ]] && [[ -f $_rule ]]; then
+            _found="$_rule"
             _inst_rule_programs "$_found"
             _inst_rule_group_owner "$_found"
             _inst_rule_initqueue "$_found"
             inst_simple "$_found" "$_target/${_found##*/}"
-        done
+        fi
         [[ $_found ]] || ddebug "Skipping udev rule: $_rule"
     done
 }
