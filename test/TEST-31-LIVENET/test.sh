@@ -8,15 +8,8 @@ TEST_DESCRIPTION="live root provided over network"
 #DEBUGFAIL="rd.shell rd.debug rd.live.debug loglevel=7"
 
 test_check() {
-    if ! type -p mksquashfs &> /dev/null; then
-        echo "Test needs mksquashfs... Skipping"
-        return 1
-    fi
-
-    if ! type -p python3 &> /dev/null; then
-        echo "Test needs python3 as HTTP server... Skipping"
-        return 1
-    fi
+    # python3 needed for HTTP server
+    require_binaries_for_test mksquashfs python3
 }
 
 client_run() {

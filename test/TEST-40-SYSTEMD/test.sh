@@ -4,7 +4,7 @@ set -eu
 TEST_DESCRIPTION="root filesystem on a ext4 filesystem with systemd but without initqueue"
 
 test_check() {
-    command -v systemctl &> /dev/null
+    require_binaries_for_test systemctl
 }
 
 # Uncomment this to debug failures
