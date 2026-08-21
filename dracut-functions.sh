@@ -1302,6 +1302,7 @@ inst_rules() {
     for _rule in "$@"; do
         unset _found
         if [ "${_rule#/}" = "$_rule" ]; then
+            # _rule contains a relative path
             for r in ${hostonly:+"${dracutsysrootdir-}"/etc/udev/rules.d} "${dracutsysrootdir-}${udevdir}/rules.d"; do
                 [[ -e $r/$_rule ]] || continue
                 _found="$r/$_rule"
@@ -1310,17 +1311,14 @@ inst_rules() {
                 _inst_rule_initqueue "$_found"
                 inst_simple "$_found"
             done
-        fi
-        for r in '' "${dracutsysrootdir-}$dracutbasedir/rules.d/"; do
-            # skip rules without an absolute path
-            [[ "${r}$_rule" != /* ]] && continue
-            [[ -f ${r}$_rule ]] || continue
-            _found="${r}$_rule"
+        elif [[ -f $_rule ]]; then
+            # install rules with absolute path, usually from $moddir
+            _found="$_rule"
             _inst_rule_programs "$_found"
             _inst_rule_group_owner "$_found"
             _inst_rule_initqueue "$_found"
             inst_simple "$_found" "$_target/${_found##*/}"
-        done
+        fi
         [[ $_found ]] || ddebug "Skipping udev rule: $_rule"
     done
 }
