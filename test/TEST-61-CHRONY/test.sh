@@ -14,16 +14,7 @@ FAKE_TIME="2100-01-01T00:00:00"
 SSL_CERT="webserver.pem"
 
 test_check() {
-    local binary
-
-    for binary in chronyd openssl; do
-        if ! type -p "$binary" &> /dev/null; then
-            echo "Test needs $binary... Skipping"
-            return 1
-        fi
-    done
-
-    command -v systemctl &> /dev/null
+    require_binaries_for_test chronyd openssl systemctl
 }
 
 client_run() {

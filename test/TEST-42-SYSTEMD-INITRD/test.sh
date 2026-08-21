@@ -5,7 +5,7 @@ set -eu
 TEST_DESCRIPTION="root filesystem on a ext4 filesystem with systemd but without dracut-systemd and shell"
 
 test_check() {
-    command -v systemctl &> /dev/null
+    require_binaries_for_test systemctl
 }
 
 # Uncomment this to debug failures

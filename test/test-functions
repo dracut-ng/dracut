@@ -208,6 +208,15 @@ client_test_end() {
     rm "$TESTDIR/client_test_name.txt"
 }
 
+require_binaries_for_test() {
+    for binary in "$@"; do
+        if ! type -p "$binary" &> /dev/null; then
+            echo "Test needs $binary... Skipping"
+            return 1
+        fi
+    done
+}
+
 # Start a HTTP/HTTPS server that serves the content of TESTDIR
 start_webserver() {
     local pid port type="${1-HTTP}" cert="${2-}"

@@ -8,14 +8,7 @@ TEST_DESCRIPTION="root filesystem on a ext4 filesystem with systemd and extensio
 #DEBUGFAIL="systemd.show_status=1 systemd.log_level=debug"
 
 test_check() {
-    local binary
-
-    for binary in systemd-repart openssl; do
-        if ! type -p "$binary" &> /dev/null; then
-            echo "Test needs $binary... Skipping"
-            return 1
-        fi
-    done
+    require_binaries_for_test systemd-repart openssl
 }
 
 test_run() {

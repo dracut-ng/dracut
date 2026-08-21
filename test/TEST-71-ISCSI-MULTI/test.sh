@@ -125,10 +125,7 @@ test_run() {
 }
 
 test_check() {
-    if ! command -v tgtd &> /dev/null || ! command -v tgtadm &> /dev/null; then
-        echo "Need tgtd and tgtadm from scsi-target-utils"
-        return 1
-    fi
+    require_binaries_for_test tgtadm tgtd
 }
 
 make_client_rootfs() {

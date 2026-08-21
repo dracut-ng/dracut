@@ -10,10 +10,7 @@ TEST_DESCRIPTION="live root on a squash filesystem"
 #DEBUGFAIL="rd.shell rd.debug rd.live.debug loglevel=7"
 
 test_check() {
-    if ! type -p mksquashfs &> /dev/null; then
-        echo "Test needs mksquashfs... Skipping"
-        return 1
-    fi
+    require_binaries_for_test mksquashfs
 }
 
 client_run() {

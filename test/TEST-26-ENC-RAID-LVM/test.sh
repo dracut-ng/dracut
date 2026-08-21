@@ -9,15 +9,8 @@ TEST_DESCRIPTION="root filesystem on LVM on encrypted partitions of a RAID"
 #DEBUGFAIL="rd.shell loglevel=70 systemd.log_target=kmsg systemd.log_target=debug"
 
 test_check() {
-    if ! type -p cryptsetup &> /dev/null; then
-        echo "Test needs cryptsetup for crypt module... Skipping"
-        return 1
-    fi
-
-    if ! type -p mdadm &> /dev/null; then
-        echo "Test needs mdadm for mdraid module ... Skipping"
-        return 1
-    fi
+    # cryptsetup needed for crypt module and mdadm for mdraid module
+    require_binaries_for_test cryptsetup mdadm
 }
 
 test_run() {

@@ -11,14 +11,7 @@ TEST_DESCRIPTION="download and import disk images at boot with systemd-import"
 IMPORT_VERIFY="checksum"
 
 test_check() {
-    local binary
-
-    for binary in /usr/lib/systemd/systemd-importd systemd-dissect tar zstd; do
-        if ! type -p "$binary" &> /dev/null; then
-            echo "Test needs $binary... Skipping"
-            return 1
-        fi
-    done
+    require_binaries_for_test /usr/lib/systemd/systemd-importd systemd-dissect tar zstd
 }
 
 client_run() {
