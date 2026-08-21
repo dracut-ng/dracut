@@ -193,7 +193,7 @@ do_static() {
         ip addr add "$ip/$mask" ${srv:+peer "$srv"} brd + dev "$netif"
     fi
 
-    [ -n "$gw" ] && echo "ip route replace default via '$gw' dev '$netif'" > "/tmp/net.$netif.gw"
+    [ -n "$gw" ] && echo "ip route replace default via '$(escape "$gw")' dev '$(escape "$netif")'" > "/tmp/net.$netif.gw"
     [ -n "$hostname" ] && echo "echo '$(escape "$hostname")' > /proc/sys/kernel/hostname" > "/tmp/net.$netif.hostname"
 
     return 0
