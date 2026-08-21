@@ -220,7 +220,24 @@ start_webserver() {
             pid=$!
             echo "$pid" > "$TESTDIR/webserver.pid"
 
+            # Wait for the server to announce itself, but never spin
+            # forever: if python3 is missing or dies, or the banner never
+            # appears (e.g. port conflict), fail loudly instead of hanging
+            # the whole test job.
+            # Generous wait budget: 60 s total; python3 -m http.server can
+            # be slow to print its banner on emulated architectures.
+            retries=1200 # 1200 * 0.05 s = 60 s
             while ! grep -q 'Serving HTTP on' "$TESTDIR/webserver.log"; do
+                if ! kill -0 "$pid" 2> /dev/null; then
+                    echo "Error: webserver (pid $pid) died while starting, see $TESTDIR/webserver.log" >&2
+                    return 1
+                fi
+                retries=$((retries - 1))
+                if [ "$retries" -le 0 ]; then
+                    echo "Error: webserver did not announce within 60 s, see $TESTDIR/webserver.log" >&2
+                    kill "$pid" 2> /dev/null
+                    return 1
+                fi
                 echo "sleeping..." >&2
                 sleep 0.05
             done
