@@ -607,8 +607,8 @@ PARMS_TO_STORE=""
 eval set -- "$TEMP"
 
 if [[ -n ${DRACUT_EXTRA_ARGS-} ]]; then
-    if xargs true <<< "$DRACUT_EXTRA_ARGS" 2> /dev/null; then
-        mapfile -d '' _extra_args < <(xargs printf '%s\0' <<< "$DRACUT_EXTRA_ARGS")
+    if xargs -r true <<< "$DRACUT_EXTRA_ARGS" 2> /dev/null; then
+        mapfile -d '' _extra_args < <(xargs -r printf '%s\0' <<< "$DRACUT_EXTRA_ARGS")
         set -- "${_extra_args[@]}" "$@"
         unset _extra_args
     else
