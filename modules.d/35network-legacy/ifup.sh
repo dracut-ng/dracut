@@ -28,7 +28,14 @@ do_dhcp_parallel() {
     # event for nfsroot
     # XXX add -V vendor class and option parsing per kernel
 
-    [ -e "/tmp/dhclient.$netif.pid" ] && return 0
+    local _IPv
+    local _tmp_prefix
+
+    _IPv=${1:-4}
+    _tmp_prefix="/tmp/dhclient.${netif}.IPv${_IPv}"
+    shift
+
+    [ -e "${_tmp_prefix}.pid" ] && return 0
 
     if ! iface_has_carrier "$netif"; then
         warn "No carrier detected on interface $netif"
@@ -36,7 +43,7 @@ do_dhcp_parallel() {
     fi
 
     bootintf=$(readlink "$IFNETFILE")
-    if [ -n "$bootintf" ] && [ -e "/tmp/dhclient.${bootintf}.lease" ]; then
+    if [ -n "$bootintf" ] && [ -e "${_tmp_prefix}.lease" ]; then
         info "DHCP already succeeded for $bootintf, exiting for $netif"
         return 1
     fi
@@ -47,7 +54,7 @@ do_dhcp_parallel() {
         echo 'dhcp=dhclient' >> /run/NetworkManager/conf.d/10-dracut-dhclient.conf
     fi
 
-    /sbin/dhcp-multi.sh "$netif" "$DO_VLAN" "$@" &
+    /sbin/dhcp-multi.sh "$netif" "$DO_VLAN" "$_IPv" "$@" &
     return 0
 }
 
@@ -60,12 +67,18 @@ do_dhcp() {
     local _COUNT
     local _timeout
     local _DHCPRETRY
+    local _IPv
+    local _tmp_prefix
 
     _COUNT=0
     _timeout=$(getarg rd.net.timeout.dhcp=)
     _DHCPRETRY=$(getargnum 1 1 1000000000 rd.net.dhcp.retry=)
 
-    [ -e "/tmp/dhclient.${netif}.pid" ] && return 0
+    _IPv=${1:-4}
+    _tmp_prefix="/tmp/dhclient.${netif}.IPv${_IPv}"
+    shift
+
+    [ -e "${_tmp_prefix}.pid" ] && return 0
 
     if ! iface_has_carrier "$netif"; then
         warn "No carrier detected on interface $netif"
@@ -86,23 +99,22 @@ do_dhcp() {
     fi
 
     while [ "$_COUNT" -lt "$_DHCPRETRY" ]; do
-        info "Starting dhcp for interface $netif"
-        dhclient "$@" \
+        info "Starting IPv$_IPv dhcp for interface $netif"
+        dhclient -"${_IPv}" "$@" \
             ${_timeout:+--timeout "$_timeout"} \
             -q \
             -1 \
             -cf /etc/dhclient.conf \
-            -pf "/tmp/dhclient.${netif}.pid" \
-            -lf "/tmp/dhclient.${netif}.lease" \
+            -pf "${_tmp_prefix}.pid" \
+            -lf "${_tmp_prefix}.lease" \
             "$netif" \
             && return 0
         _COUNT=$((_COUNT + 1))
         [ "$_COUNT" -lt "$_DHCPRETRY" ] && sleep 1
     done
-    warn "dhcp for interface $netif failed"
-    # nuke those files since we failed; we might retry dhcp again if it's e.g.
-    # `ip=dhcp,dhcp6` and we check for the PID file at the top
-    rm -f /tmp/dhclient."$netif".pid /tmp/dhclient."$netif".lease
+    warn "IPv$_IPv dhcp for interface $netif failed"
+    # nuke those files since we failed
+    rm -f "${_tmp_prefix}.pid" "${_tmp_prefix}.lease"
     return 1
 }
 
@@ -117,6 +129,9 @@ load_ipv6() {
     done
 }
 
+# do_ipv6auto [<timeout>]
+# <timeout> is passed to wait_for_ipv6_auto to shorten the SLAAC wait when it
+# is only opportunistic (e.g. as part of ip=any).
 do_ipv6auto() {
     local ret
     load_ipv6
@@ -124,7 +139,7 @@ do_ipv6auto() {
     echo 1 > /proc/sys/net/ipv6/conf/"${netif}"/accept_ra
     echo 1 > /proc/sys/net/ipv6/conf/"${netif}"/accept_redirects
     linkup "$netif"
-    wait_for_ipv6_auto "$netif"
+    wait_for_ipv6_auto "$netif" "$1"
     ret=$?
 
     [ -n "$hostname" ] && echo "echo $hostname > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
@@ -466,24 +481,47 @@ for p in $(getargs ip=); do
         eval '[ "$'$i'" ] && echo '$i'="$'$i'"'
     done > "/tmp/net.$netif.override"
 
+    ret=1
     for autoopt in $(str_replace "$autoconf" "," " "); do
         case $autoopt in
-            dhcp | on | any)
-                do_dhcp -4
+            any)
+                # Run all three methods in parallel, requiring just one to
+                # succeed, so a missing server for one family does not add its
+                # timeout on top of the others. SLAAC is only opportunistic
+                # here, so give it a short timeout rather than the full
+                # rd.net.timeout.ipv6auto: on links without SLAAC, it must not
+                # stall once DHCP has succeeded.
+                do_dhcp 4 &
+                _pid4=$!
+                load_ipv6
+                do_ipv6auto 10 &
+                _pid6auto=$!
+                do_dhcp 6 &
+                _pid6dhcp=$!
+                wait "$_pid4"
+                r4=$?
+                wait "$_pid6auto"
+                r6auto=$?
+                wait "$_pid6dhcp"
+                r6dhcp=$?
+                [ $r4 -eq 0 ] || [ $r6auto -eq 0 ] || [ $r6dhcp -eq 0 ]
+                ;;
+            dhcp | on)
+                do_dhcp 4
                 ;;
             single-dhcp)
-                do_dhcp_parallel -4
+                do_dhcp_parallel 4
                 exit 0
                 ;;
             dhcp6)
                 load_ipv6
-                do_dhcp -6
+                do_dhcp 6
                 ;;
             auto6)
                 do_ipv6auto
                 ;;
             either6)
-                do_ipv6auto || do_dhcp -6
+                do_ipv6auto || do_dhcp 6
                 ;;
             link6)
                 do_ipv6link
@@ -492,8 +530,9 @@ for p in $(getargs ip=); do
                 do_static
                 ;;
         esac
+        ret=$?
+        [ $ret -eq 0 ] && break
     done
-    ret=$?
 
     # setup nameserver
     for s in "$dns1" "$dns2" $(getargs nameserver); do
@@ -528,7 +567,7 @@ if [ -z "$NO_AUTO_DHCP" ] && [ ! -e "/tmp/net.${netif}.up" ]; then
     if [ -e /tmp/net.bootdev ]; then
         read -r BOOTDEV < /tmp/net.bootdev
         if [ "$netif" = "$BOOTDEV" ] || [ "$BOOTDEV" = "$(cat "/sys/class/net/${netif}/address")" ]; then
-            do_dhcp
+            do_dhcp 4
             ret=$?
         fi
     else
@@ -537,11 +576,11 @@ if [ -z "$NO_AUTO_DHCP" ] && [ ! -e "/tmp/net.${netif}.up" ]; then
 
         if getargs 'ip=dhcp6' > /dev/null || [ -z "$ip" ] && [ "$netroot" = "dhcp6" ]; then
             load_ipv6
-            do_dhcp -6
+            do_dhcp 6
             ret=$?
         fi
         if getargs 'ip=dhcp' > /dev/null || [ -z "$ip" ] && [ "$netroot" != "dhcp6" ]; then
-            do_dhcp -4
+            do_dhcp 4
             ret=$?
         fi
     fi
