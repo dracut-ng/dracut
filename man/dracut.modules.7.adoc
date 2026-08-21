@@ -333,7 +333,10 @@ installs an executable/script <src> in the dracut hook <hookdir> with priority
 ==== inst_rules <udevrule> [ <udevrule> ...]
 
 installs one or more udev rules. Non-existent udev rules are reported, but do
-not let dracut fail.
+not let dracut fail. Relative filenames are searched in the usual udev rule
+directories (/etc/udev/rules.d, /usr/lib/udev/rules.d; within **--sysroot** if
+enabled). Use e.g. **inst_rules $moddir/99-my-device.rules** to install rule
+files included in your module.
 
 ==== inst_sysusers <sysuserconf>
 

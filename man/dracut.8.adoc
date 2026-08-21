@@ -712,6 +712,33 @@ _DRACUT_TESTBIN_::
 Default:
     _/bin/sh_
 
+_DRACUT_BINDIR_::
+    overrides the directory containing Dracut executables used while building
+    the initramfs, e.g. **dracut-install**. Used with **--sysroot**. If running
+    **dracut** installed in a cross-compiled sysroot, use this option to
+    provide host Dracut binaries.
++
+Default:
+    _$prefix/lib/dracut_
++
+[NOTE]
+===============================
+If **DRACUT_INSTALL** is set, it takes precedence over **DRACUT_BINDIR**. If
+you set both variables, ensure **DRACUT_INSTALL** contains the correct and full
+path for **dracut-install**.
+===============================
+
+_DRACUT_RUNTIMEDIR_::
+    overrides the directory containing compiled Dracut tools to be installed
+    into the initramfs, e.g. **dracut-util**. Used with **--sysroot**. If using
+    **dracut** installed on the host (outside the sysroot) to build an
+    initramfs for a cross-compiled sysroot, use this option to set the location
+    of cross-compiled Dracut runtime tools.
++
+Default:
+    _$dracutsysrootdir/usr/lib/dracut_ with **--sysroot**,
+    _$prefix/lib/dracut_ otherwise
+
 _DRACUT_INSTALL_::
     overrides path and options for executing _dracut-install_ internally.
     Optional. Can be used to debug _dracut-install_ while running the
@@ -765,6 +792,16 @@ _SYSTEMCTL_::
 _NM_VERSION_::
     overrides the NetworkManager version. Used for **--sysroot**.
 
+_DRACUT_MODULE_BUSYBOX_LINKS_::
+    overrides the list of Busybox applets to link in the initramfs, must
+    contain the path of a file containing the list to use. Used for
+    **--sysroot** if the sysroot is cross-compiled and running `busybox --list`
+    is not possible. The list may contain plain names or full paths.
++
+    Using the **busybox.links** file produced by the Busybox build is
+    recommended, using the output of `busybox --list` (e.g. running using Qemu
+    userspace emulation) is also possible.
+
 _DRACUT_INSTALL_PATH_::
     overrides **PATH** environment for **dracut-install** to look for
     binaries relative to **--sysroot**. In a cross-compiled environment
@@ -777,7 +814,7 @@ Default:
 
 _DRACUT_INSTALL_LOG_TARGET_::
     overrides **DRACUT_LOG_TARGET** for **dracut-install**. It allows
-    running **dracut-install* to run with different log target that
+    running **dracut-install** to run with different log target that
     **dracut** runs with.
 +
 Default:

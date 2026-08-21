@@ -13,7 +13,7 @@ check() {
 
 # called by dracut
 install() {
-    local _i _path _busybox
+    local _i _path _busybox _busybox_applets
     local _dstdir="${dstdir:-"$initdir"}"
     local _progs=()
     _busybox=$(find_binary busybox)
@@ -21,7 +21,16 @@ install() {
 
     # do not depend on CONFIG_FEATURE_INSTALLER
     # install busybox symlinks manually
-    for _i in $($_busybox --list); do
+    if [[ $DRACUT_MODULE_BUSYBOX_LINKS ]]; then
+        _busybox_applets="$(cat "$DRACUT_MODULE_BUSYBOX_LINKS")"
+    else
+        _busybox_applets="$($_busybox --list)"
+    fi
+    if ! [[ ${_busybox_applets} ]]; then
+        derror "Could not get list of busybox applets!"
+        dinfo "If cross-building, try setting DRACUT_MODULE_BUSYBOX_LINKS."
+    fi
+    for _i in ${_busybox_applets}; do
         [[ ${_i} == busybox ]] && continue
         _progs+=("${_i}")
     done

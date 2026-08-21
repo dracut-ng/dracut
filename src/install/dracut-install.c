@@ -81,6 +81,8 @@ static bool no_xattr = false;
 static char *destrootdir = NULL;
 static char *sysrootdir = NULL;
 static size_t sysrootdirlen = 0;
+static char *dracutbasedir = NULL;
+static size_t dracutbasedirlen = 0;
 static char *kerneldir = NULL;
 static size_t kerneldirlen = 0;
 static char **firmwaredirs = NULL;
@@ -1401,7 +1403,10 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
                         fullsrcpath = strdup(orig_src);
                 } else {
                         src = orig_src;
-                        _asprintf(&fullsrcpath, "%s%s", sysrootdir, src);
+                        if (dracutbasedirlen && strncmp(orig_src, dracutbasedir, dracutbasedirlen) == 0)
+                                fullsrcpath = strdup(orig_src);
+                        else
+                                _asprintf(&fullsrcpath, "%s%s", sysrootdir, src);
                 }
                 if (strncmp(orig_dst, sysrootdir, sysrootdirlen) == 0)
                         dst = orig_dst + sysrootdirlen;
@@ -1588,8 +1593,8 @@ static void usage(int status)
 {
         /*                                                                                */
         printf("Usage: %s -D DESTROOTDIR [-r SYSROOTDIR] [OPTION]... -a SOURCE...\n"
-               "or: %s -D DESTROOTDIR [-r SYSROOTDIR] [OPTION]... SOURCE DEST\n"
-               "or: %s -D DESTROOTDIR [-r SYSROOTDIR] [OPTION]... -m KERNELMODULE [KERNELMODULE …]\n"
+               "or: %s -D DESTROOTDIR [-r SYSROOTDIR [-B DRACUTBASEDIR]] [OPTION]... SOURCE DEST\n"
+               "or: %s -D DESTROOTDIR [-r SYSROOTDIR [-B DRACUTBASEDIR]] [OPTION]... -m KERNELMODULE [KERNELMODULE …]\n"
                "\n"
                "Install SOURCE (from rootfs or SYSROOTDIR) to DEST in DESTROOTDIR with all needed dependencies.\n"
                "\n"
@@ -1600,6 +1605,9 @@ static void usage(int status)
                "\n"
                "  -D --destrootdir  Install all files to DESTROOTDIR as the root\n"
                "  -r --sysrootdir   Install all files from SYSROOTDIR\n"
+               "  -B --dracutbasedir        Allow installing files from the Dracut installation\n"
+               "                            at DRACUTBASEDIR in addition to SYSROOTDIR (mostly\n"
+               "                            useful for cross-builds)\n"
                "  -a --all          Install all SOURCE arguments to DESTROOTDIR\n"
                "  -o --optional     If SOURCE does not exist, do not fail\n"
                "  -d --dir          SOURCE is a directory\n"
@@ -1678,10 +1686,11 @@ static int parse_argv(int argc, char *argv[])
                 {"firmwaredirs", required_argument, NULL, ARG_FIRMWAREDIRS},
                 {"json-supported", no_argument, NULL, ARG_JSON_SUPPORTED},
                 {"dry-run", no_argument, NULL, 'n'},
+                {"dracutbasedir", required_argument, NULL, 'B'},
                 {NULL, 0, NULL, 0}
         };
 
-        while ((c = getopt_long(argc, argv, "madfhlL:oD:Hr:Rp:P:s:S:N:vn", options, NULL)) != -1) {
+        while ((c = getopt_long(argc, argv, "madfhlL:oD:Hr:Rp:P:s:S:N:vnB:", options, NULL)) != -1) {
                 switch (c) {
                 case ARG_VERSION:
                         puts(PROGRAM_VERSION_STRING);
@@ -1791,6 +1800,13 @@ static int parse_argv(int argc, char *argv[])
 #endif
                 case 'n':
                         arg_dry_run = true;
+                        break;
+                case 'B':
+                        dracutbasedir = optarg;
+                        dracutbasedirlen = strlen(dracutbasedir);
+                        /* ignore trailing '/' */
+                        if (dracutbasedir[dracutbasedirlen-1] == '/')
+                                dracutbasedirlen--;
                         break;
                 default:
                         usage(EXIT_FAILURE);

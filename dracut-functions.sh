@@ -94,7 +94,7 @@ find_binary() {
             printf "%s\n" "${_path}"
             return 0
         fi
-    done <<< "${PATH}:"
+    done <<< "${DRACUT_INSTALL_PATH:-${PATH}}:"
 
     [[ -n ${dracutsysrootdir-} ]] && return 1
     type -P "${1##*/}"
@@ -1114,11 +1114,11 @@ inst() {
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"
         return $_ret
     fi
 }
@@ -1126,11 +1126,11 @@ inst() {
 inst_binary() {
     local _ret _resolve_deps
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutruntimedir:+-B "$dracutruntimedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutruntimedir:+-B "$dracutruntimedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
         return "$_ret"
     fi
 }
@@ -1138,11 +1138,11 @@ inst_binary() {
 inst_script() {
     local _ret _resolve_deps
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
         return "$_ret"
     fi
 }
@@ -1161,7 +1161,7 @@ inst_simple() {
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     if [[ $1 == /* ]]; then
-        if [[ ! -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]]; then
+        if [[ ! -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]] && [[ ! -e ${dracutbasedir-}/${1#"${dracutbasedir-}"} ]]; then
             dwarn "no source: '$1'!"
             return 1
         fi
@@ -1169,11 +1169,11 @@ inst_simple() {
         dwarn "no source: '$1'!"
         return 1
     fi
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"
         return $_ret
     fi
 }
@@ -1311,16 +1311,14 @@ inst_rules() {
                 inst_simple "$_found"
             done
         fi
-        for r in '' "${dracutsysrootdir-}$dracutbasedir/rules.d/"; do
-            # skip rules without an absolute path
-            [[ "${r}$_rule" != /* ]] && continue
-            [[ -f ${r}$_rule ]] || continue
-            _found="${r}$_rule"
+        # install rules with absolute path, usually from $moddir
+        if [[ $_rule == /* ]] && [[ -f $_rule ]]; then
+            _found="$_rule"
             _inst_rule_programs "$_found"
             _inst_rule_group_owner "$_found"
             _inst_rule_initqueue "$_found"
             inst_simple "$_found" "$_target/${_found##*/}"
-        done
+        fi
         [[ $_found ]] || ddebug "Skipping udev rule: $_rule"
     done
 }
@@ -1556,13 +1554,11 @@ fi
 DRACUT_LDCONFIG=${DRACUT_LDCONFIG:-ldconfig}
 DRACUT_TESTBIN=${DRACUT_TESTBIN:-/bin/sh}
 
-if ! [[ "${DRACUT_INSTALL-}" ]]; then
-    DRACUT_INSTALL=$(find_binary dracut-install || :)
-fi
-
-if ! [[ $DRACUT_INSTALL ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then
+if ! [[ ${DRACUT_INSTALL-} ]] && [[ ${dracutbindir-} ]]; then
+    DRACUT_INSTALL="${dracutbindir}/dracut-install"
+elif ! [[ ${DRACUT_INSTALL-} ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then
     DRACUT_INSTALL="${BASH_SOURCE[0]%/*}/dracut-install"
-elif ! [[ $DRACUT_INSTALL ]] && [[ -x "${BASH_SOURCE[0]%/*}/src/install/dracut-install" ]]; then
+elif ! [[ ${DRACUT_INSTALL-} ]] && [[ -x "${BASH_SOURCE[0]%/*}/src/install/dracut-install" ]]; then
     DRACUT_INSTALL="${BASH_SOURCE[0]%/*}/src/install/dracut-install"
 fi
 
@@ -1573,7 +1569,7 @@ fi
 # or
 # DRACUT_INSTALL="dracut-install --debug"
 # in that case check if the first parameter (e.g. valgrind) is executable.
-if ! command -v "${DRACUT_INSTALL%% *}" > /dev/null 2>&1; then
+if ! command -v "${DRACUT_INSTALL-%% *}" > /dev/null 2>&1; then
     dfatal "${DRACUT_INSTALL:-dracut-install} not found!"
     exit 10
 fi

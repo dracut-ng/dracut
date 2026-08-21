@@ -37,7 +37,9 @@ usage() {
     } >&2
 }
 
-[[ $dracutbasedir ]] || dracutbasedir=/usr/lib/dracut
+[[ ${dracutbasedir-} ]] || dracutbasedir="$(realpath -e "${BASH_SOURCE[0]%/*}/../lib/dracut")"
+[[ ${DRACUT_BINDIR-} ]] && dracutbindir="${DRACUT_BINDIR}"
+[[ ${dracutbindir-} ]] || dracutbindir="${dracutbasedir}"
 
 sorted=0
 modules=0
@@ -456,10 +458,10 @@ case $bin in
                 echo "Early CPIO image"
                 list_files
             fi
-            if [[ -f "$dracutbasedir/src/skipcpio/skipcpio" ]]; then
-                skip="$dracutbasedir/src/skipcpio/skipcpio"
+            if [[ -f "$dracutbindir/src/skipcpio/skipcpio" ]]; then
+                skip="$dracutbindir/src/skipcpio/skipcpio"
             else
-                skip="$dracutbasedir/skipcpio"
+                skip="$dracutbindir/skipcpio"
             fi
             if ! [[ -x $skip ]]; then
                 echo
