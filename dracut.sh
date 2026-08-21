@@ -607,10 +607,13 @@ PARMS_TO_STORE=""
 eval set -- "$TEMP"
 
 if [[ -n ${DRACUT_EXTRA_ARGS-} ]]; then
-    mapfile -d '' _extra_args < <(xargs printf '%s\0' <<< "$DRACUT_EXTRA_ARGS" 2> /dev/null \
-        || printf "%s\n" "dracut[W]: Ignoring malformed DRACUT_EXTRA_ARGS: $DRACUT_EXTRA_ARGS" >&2)
-    set -- "${_extra_args[@]}" "$@"
-    unset _extra_args
+    if xargs -r true <<< "$DRACUT_EXTRA_ARGS" 2> /dev/null; then
+        mapfile -d '' _extra_args < <(xargs -r printf '%s\0' <<< "$DRACUT_EXTRA_ARGS")
+        set -- "${_extra_args[@]}" "$@"
+        unset _extra_args
+    else
+        printf "%s\n" "dracut[W]: Ignoring malformed DRACUT_EXTRA_ARGS: $DRACUT_EXTRA_ARGS" >&2
+    fi
 fi
 
 while :; do
