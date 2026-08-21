@@ -1355,6 +1355,13 @@ inst_libdir_dir() {
 # -n <pattern> install matching files
 inst_libdir_file() {
     local -a _files=()
+    local _path
+
+    # cache installed libdir files
+    if ! declare -p _libdir_file_cache 2> /dev/null | grep -q "declare -A"; then
+        declare -gxA _libdir_file_cache=()
+    fi
+
     if [[ $1 == "-n" ]]; then
         local _pattern=$2
         shift 2
@@ -1362,7 +1369,11 @@ inst_libdir_file() {
             for _i in "$@"; do
                 for _f in "${dracutsysrootdir-}$_dir"/$_i; do
                     [[ ${_f#"${dracutsysrootdir-}"} =~ $_pattern ]] || continue
-                    [[ -e $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
+                    _path="${_f#"${dracutsysrootdir-}"}"
+                    if [[ -e $_f ]] && [[ ${_libdir_file_cache[$_path]:-} != 1 ]]; then
+                        _files+=("$_path")
+                        _libdir_file_cache[$_path]=1
+                    fi
                 done
             done
         done
@@ -1370,7 +1381,11 @@ inst_libdir_file() {
         for _dir in $libdirs; do
             for _i in "$@"; do
                 for _f in "${dracutsysrootdir-}$_dir"/$_i; do
-                    [[ -e $_f ]] && _files+=("${_f#"${dracutsysrootdir-}"}")
+                    _path="${_f#"${dracutsysrootdir-}"}"
+                    if [[ -e $_f ]] && [[ ${_libdir_file_cache[$_path]:-} != 1 ]]; then
+                        _files+=("$_path")
+                        _libdir_file_cache[$_path]=1
+                    fi
                 done
             done
         done

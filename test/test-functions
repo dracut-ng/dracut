@@ -93,6 +93,10 @@ build_rootfs_base() {
     # Include os-release to make systemd's initrd-switch-root.service happy
     cp /usr/lib/os-release "$rootdir/usr/lib/os-release"
 
+    # Unset cache variables, otherwise successive calls to build_rootfs_base()
+    # to generate another initrd would not install the required files
+    unset _libdir_file_cache
+
     if [[ "$(type -t inst_multiple 2> /dev/null)" != "function" ]]; then
         # shellcheck source=./dracut-functions.sh
         . "$PKGLIBDIR/dracut-functions.sh"
