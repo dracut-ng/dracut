@@ -127,7 +127,7 @@ do_ipv6auto() {
     wait_for_ipv6_auto "$netif"
     ret=$?
 
-    [ -n "$hostname" ] && echo "echo $hostname > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
+    [ -n "$hostname" ] && echo "echo '$(escape "$hostname")' > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
 
     return "$ret"
 }
@@ -140,7 +140,7 @@ do_ipv6link() {
     echo 0 > /proc/sys/net/ipv6/conf/"${netif}"/accept_redirects
     linkup "$netif"
 
-    [ -n "$hostname" ] && echo "echo $hostname > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
+    [ -n "$hostname" ] && echo "echo '$(escape "$hostname")' > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
 
     return "$ret"
 }
@@ -193,8 +193,8 @@ do_static() {
         ip addr add "$ip/$mask" ${srv:+peer "$srv"} brd + dev "$netif"
     fi
 
-    [ -n "$gw" ] && echo "ip route replace default via '$gw' dev '$netif'" > "/tmp/net.$netif.gw"
-    [ -n "$hostname" ] && echo "echo '$hostname' > /proc/sys/kernel/hostname" > "/tmp/net.$netif.hostname"
+    [ -n "$gw" ] && echo "ip route replace default via '$(escape "$gw")' dev '$(escape "$netif")'" > "/tmp/net.$netif.gw"
+    [ -n "$hostname" ] && echo "echo '$(escape "$hostname")' > /proc/sys/kernel/hostname" > "/tmp/net.$netif.hostname"
 
     return 0
 }
@@ -463,7 +463,8 @@ for p in $(getargs ip=); do
 
     # Store config for later use
     for i in ip srv gw mask hostname macaddr mtu dns1 dns2; do
-        eval '[ "$'$i'" ] && echo '$i'="$'$i'"'
+        eval "_v=\$$i"
+        [ -n "$_v" ] && echo "$i='$(escape "$_v")'"
     done > "/tmp/net.$netif.override"
 
     for autoopt in $(str_replace "$autoconf" "," " "); do
