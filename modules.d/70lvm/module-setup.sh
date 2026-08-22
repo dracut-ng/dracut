@@ -34,8 +34,9 @@ cmdline() {
         [[ ${uuid#LVM-} == "$uuid" ]] && continue
         dev=$(< "/sys/block/${dev#/dev/}/dm/name")
         eval "$(dmsetup splitname --nameprefixes --noheadings --rows "$dev" 2> /dev/null)"
-        [[ ${DM_VG_NAME} ]] && [[ ${DM_LV_NAME} ]] || return 1
-        if ! [[ ${_activated[DM_VG_NAME / DM_LV_NAME]} ]]; then
+        # shellcheck disable=SC2015
+        [[ ${DM_VG_NAME} ]] && [[ ${DM_LV_NAME} ]] || continue
+        if ! [[ ${_activated["${DM_VG_NAME}/${DM_LV_NAME}"]} ]]; then
             printf " rd.lvm.lv=%s " "${DM_VG_NAME}/${DM_LV_NAME} "
             _activated["${DM_VG_NAME}/${DM_LV_NAME}"]=1
         fi
@@ -114,7 +115,7 @@ install() {
         if [[ -f "${dracutsysrootdir-}/etc/lvm/lvmlocal.conf" ]]; then
             inst_simple -H /etc/lvm/lvmlocal.conf
         fi
-        eval "$(lvm dumpconfig global/system_id_source &> /dev/null)"
+        eval "$(lvm dumpconfig global/system_id_source 2> /dev/null)"
         if [ "$system_id_source" == "file" ]; then
             eval "$(lvm dumpconfig global/system_id_file)"
             if [ -f "$system_id_file" ]; then
