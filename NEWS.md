@@ -1,7 +1,7 @@
 [Rendered view](https://github.com/dracut-ng/dracut/blob/main/NEWS.md)
 
 dracut-112
-=============
+==========
 
 #### Notes
 
@@ -149,7 +149,7 @@ This release includes the following new dracut modules:
 - gomid4497 <rakeshw728@gmail.com>
 
 dracut-111
-=============
+==========
 
 #### Performance
 
@@ -247,7 +247,7 @@ dracut-111
 - Sidharth Sankar <sidstuffhere@gmail.com>
 
 dracut-110
-=============
+==========
 
 #### User notes
 
@@ -427,7 +427,7 @@ As an example, when packaging a release of dracut as an RPM, use an invocation l
 - Luca Boccassi <luca.boccassi@gmail.com>
 
 dracut-109
-=============
+==========
 
 #### Performance
 
@@ -607,7 +607,7 @@ dracut-109
 - turret <turret@duck.com>
 
 dracut-108
-=============
+==========
 
 #### Performance
 
@@ -742,7 +742,7 @@ dracut-108
 - zhuyaliang <15132211195@163.com>
 
 dracut-107
-=============
+==========
 
 This release marks the one-year anniversary of this project.
 
@@ -850,7 +850,7 @@ The following independent distributions have packaged releases of this project, 
 - You-Sheng Yang <vicamo.yang@canonical.com>
 
 dracut-106
-=============
+==========
 
 #### Bug Fixes
 
@@ -979,7 +979,7 @@ dracut-106
 - Patrick Schleizer <adrelanos@whonix.org>
 
 dracut-105
-=============
+==========
 
 Resolve a regression in release v104 that impacts generated initrds when both systemd and i18n dracut modules are included.
 
@@ -999,7 +999,7 @@ Resolve a regression in release v104 that impacts generated initrds when both sy
 - Benjamin Drung <benjamin.drung@canonical.com>
 
 dracut-104
-=============
+==========
 
 New dracut modules:
 * shell-interpreter: meta package for improved shell selection
@@ -1170,7 +1170,7 @@ These Linux distributions test dracut in various configurations (systemd/OpenRC/
 - Vitaly Kuznetsov <vkuznets@redhat.com>
 
 dracut-103
-=============
+==========
 
 New dracut modules introduced by this release:
  - hwdb: separate out hwdb module
@@ -1336,7 +1336,7 @@ The project builds test containers daily for the following Linux distributions:
 - Timo Rothenpieler <timo@rothenpieler.org>
 
 dracut-102
-=============
+==========
 
 This release includes fixes for compatibility with the latest Linux kernel (v6.9), Linux firmware, and systemd (v256).
 
@@ -1514,7 +1514,7 @@ These Linux distributions test dracut in various configurations (systemd/OpenRC/
 - Wenchao Hao <haowenchao@huawei.com>
 
 dracut-101
-=============
+==========
 
 #### Bug Fixes
 
@@ -1533,7 +1533,7 @@ Release 101 resolves a regression introduced by release 100 - https://github.com
 - Laszlo Gombos <laszlo.gombos@gmail.com>
 
 dracut-100
-=============
+==========
 
 Release 100 of [dracut](https://github.com/dracut-ng/dracut) serves as a drop-in replacement for the original [dracut](https://github.com/dracutdevs/dracut) repository.
 This release marks a significant milestone in our commitment to providing an alternative, community-driven solution for creating an initramfs image.
