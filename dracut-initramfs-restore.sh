@@ -85,14 +85,13 @@ fi
 
 cd /run/initramfs
 
-if extract_initrd "$IMG"; then
-    rm -f -- .need_shutdown
-else
+if ! extract_initrd "$IMG"; then
     # something failed, so we clean up
     echo "Unpacking of $IMG to /run/initramfs failed" >&2
     rm -f -- /run/initramfs/shutdown
     exit 1
 fi
+rm -f -- .need_shutdown
 
 if [[ -f squashfs-root.img ]]; then
     if ! unsquashfs -no-xattrs -f -d . squashfs-root.img > /dev/null; then
