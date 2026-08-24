@@ -14,8 +14,6 @@ setup_interface() {
     mask=$new_subnet_mask
     bcast=$new_broadcast_address
     gw=${new_routers%%,*}
-    # get rid of control chars and anything else that is unsafe in
-    # generated shell snippets (/tmp/net.$netif.hostname is sourced later)
     domain=$(printf -- "%s" "$new_domain_name" | tr -d -c 'a-zA-Z0-9.-')
     search=$(printf -- "%s" "$new_domain_search" | tr -d '[:cntrl:]')
     namesrv=$new_domain_name_servers
@@ -89,8 +87,6 @@ setup_interface() {
 }
 
 setup_interface6() {
-    # get rid of control chars and anything else that is unsafe in
-    # generated shell snippets (/tmp/net.$netif.hostname is sourced later)
     domain=$(printf -- "%s" "$new_domain_name" | tr -d -c 'a-zA-Z0-9.-')
     search=$(printf -- "%s" "$new_dhcp6_domain_search" | tr -d '[:cntrl:]')
     namesrv=$new_dhcp6_name_servers
