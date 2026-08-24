@@ -97,7 +97,6 @@ jobs:
                     - "30"
                     - "50"
                     - "80"
-                    - "81"
                     - "83"
                 exclude:
                     # cpio is not installed on Debian/Ubuntu

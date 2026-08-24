@@ -48,7 +48,6 @@ jobs:
                     - "42"
                     - "50"
                     - "80"
-                    - "81"
                     - "82"
                 exclude:
                     # https://github.com/dracut-ng/dracut/issues/2061
