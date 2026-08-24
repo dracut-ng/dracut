@@ -14,8 +14,6 @@ trap 'echo "Received SIGTERM signal, ignoring!" >&2' TERM
 KERNEL_VERSION="$(uname -r)"
 
 [[ $dracutbasedir ]] || dracutbasedir=/usr/lib/dracut
-SKIP="$dracutbasedir/skipcpio"
-[[ -x $SKIP ]] || SKIP="cat"
 
 find_initrd_for_kernel_version() {
     local kernel_version="$1"
@@ -57,13 +55,7 @@ extract_initrd() {
     if command -v 3cpio > /dev/null; then
         3cpio --extract "$initrd"
     else
-        (command -v zcat > /dev/null && $SKIP "$initrd" 2> /dev/null | zcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-            || (command -v bzcat > /dev/null && $SKIP "$initrd" 2> /dev/null | bzcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-            || (command -v xzcat > /dev/null && $SKIP "$initrd" 2> /dev/null | xzcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-            || (command -v lz4 > /dev/null && $SKIP "$initrd" 2> /dev/null | lz4 -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-            || (command -v lzop > /dev/null && $SKIP "$initrd" 2> /dev/null | lzop -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-            || (command -v zstd > /dev/null && $SKIP "$initrd" 2> /dev/null | zstd -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-            || ($SKIP "$initrd" 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1)
+        "$dracutbasedir/extractinitrd" "$initrd"
     fi
 }
 
