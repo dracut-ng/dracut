@@ -52,6 +52,17 @@ find_initrd_for_kernel_version() {
     fi
 }
 
+extract_initrd() {
+    local initrd="$1"
+    (command -v zcat > /dev/null && $SKIP "$initrd" 2> /dev/null | zcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
+        || (command -v bzcat > /dev/null && $SKIP "$initrd" 2> /dev/null | bzcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
+        || (command -v xzcat > /dev/null && $SKIP "$initrd" 2> /dev/null | xzcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
+        || (command -v lz4 > /dev/null && $SKIP "$initrd" 2> /dev/null | lz4 -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
+        || (command -v lzop > /dev/null && $SKIP "$initrd" 2> /dev/null | lzop -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
+        || (command -v zstd > /dev/null && $SKIP "$initrd" 2> /dev/null | zstd -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
+        || ($SKIP "$initrd" 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1)
+}
+
 mount -o ro /boot &> /dev/null || :
 
 IMG=$(find_initrd_for_kernel_version "$KERNEL_VERSION")
@@ -70,13 +81,7 @@ fi
 
 cd /run/initramfs
 
-if (command -v zcat > /dev/null && $SKIP "$IMG" 2> /dev/null | zcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-    || (command -v bzcat > /dev/null && $SKIP "$IMG" 2> /dev/null | bzcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-    || (command -v xzcat > /dev/null && $SKIP "$IMG" 2> /dev/null | xzcat 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-    || (command -v lz4 > /dev/null && $SKIP "$IMG" 2> /dev/null | lz4 -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-    || (command -v lzop > /dev/null && $SKIP "$IMG" 2> /dev/null | lzop -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-    || (command -v zstd > /dev/null && $SKIP "$IMG" 2> /dev/null | zstd -d -c 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1) \
-    || ($SKIP "$IMG" 2> /dev/null | cpio -id --no-absolute-filenames --quiet > /dev/null 2>&1); then
+if extract_initrd "$IMG"; then
     rm -f -- .need_shutdown
 else
     # something failed, so we clean up
