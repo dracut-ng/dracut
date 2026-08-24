@@ -53,6 +53,17 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
+                    - "83"
+                exclude:
+                    # cpio is not installed on Debian/Ubuntu
+                    - container: debian:sid
+                      test: "83"
+                    # cpio is not installed on Debian/Ubuntu
+                    - container: ubuntu:devel
+                      test: "83"
+                    # cpio is not installed on Debian/Ubuntu
+                    - container: ubuntu:rolling
+                      test: "83"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'
@@ -98,6 +109,7 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
+                    - "83"
                 exclude:
                     # btrfs kernel module is not available on CentOS Stream 10
                     - container: centos:latest
@@ -141,6 +153,7 @@ jobs:
                     - "80"
                     - "81"
                     - "82"
+                    - "83"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
             options: '--device=/dev/kvm --privileged'

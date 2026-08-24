@@ -43,6 +43,10 @@ dracut-util:
     - changed-files:
           - any-glob-to-any-file: 'src/util/*'
 
+extractinitrd:
+    - changed-files:
+          - any-glob-to-any-file: 'src/extractinitrd/*'
+
 skipcpio:
     - changed-files:
           - any-glob-to-any-file: 'src/skipcpio/*'
