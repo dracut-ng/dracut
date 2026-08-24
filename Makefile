@@ -63,7 +63,7 @@ manpages = $(man1pages) $(man5pages) $(man7pages) $(man8pages)
 
 .PHONY: install clean distclean archive test all check AUTHORS CONTRIBUTORS doc
 
-all: dracut.pc dracut-install src/skipcpio/skipcpio dracut-util
+all: dracut.pc dracut-install src/extractinitrd/extractinitrd src/skipcpio/skipcpio dracut-util
 
 %.o : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(KMOD_CFLAGS) $(SYSTEMD_CFLAGS) $(if $(SYSTEMD_LIBS),-DHAVE_SYSTEMD) $< -o $@
@@ -89,6 +89,9 @@ src/install/dracut-install: $(DRACUT_INSTALL_OBJECTS)
 
 dracut-install: src/install/dracut-install
 	ln -fs $< $@
+
+EXTRACTINITRD_OBJECTS = src/extractinitrd/extractinitrd.o
+src/extractinitrd/extractinitrd: $(EXTRACTINITRD_OBJECTS)
 
 SKIPCPIO_OBJECTS = src/skipcpio/skipcpio.o
 skipcpio/skipcpio.o: src/skipcpio/skipcpio.c
@@ -256,6 +259,9 @@ endif
 	if [ -f src/install/dracut-install ]; then \
 		install -m 0755 src/install/dracut-install $(DESTDIR)$(pkglibdir)/dracut-install; \
 	fi
+	if [ -f src/extractinitrd/extractinitrd ]; then \
+		install -m 0755 src/extractinitrd/extractinitrd $(DESTDIR)$(pkglibdir)/extractinitrd; \
+	fi
 	if [ -f src/skipcpio/skipcpio ]; then \
 		install -m 0755 src/skipcpio/skipcpio $(DESTDIR)$(pkglibdir)/skipcpio; \
 	fi
@@ -298,6 +304,7 @@ clean:
 	$(RM) $(manpages:%=%.xml) dracut.xml
 	$(RM) dracut-*.tar.bz2 dracut-*.tar.xz
 	$(RM) dracut-install src/install/dracut-install $(DRACUT_INSTALL_OBJECTS)
+	$(RM) src/extractinitrd/extractinitrd $(EXTRACTINITRD_OBJECTS)
 	$(RM) src/skipcpio/skipcpio $(SKIPCPIO_OBJECTS)
 	$(RM) dracut-util src/util/util $(UTIL_OBJECTS)
 	$(RM) $(manpages)

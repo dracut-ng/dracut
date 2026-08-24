@@ -12,6 +12,7 @@
 /dracut.conf.d/*.conf
 /dracut.pc
 /src/dracut-cpio/target/
+/src/extractinitrd/extractinitrd
 /src/install/dracut-install
 /src/skipcpio/skipcpio
 /src/util/util
