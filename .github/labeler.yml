@@ -47,10 +47,6 @@ extractinitrd:
     - changed-files:
           - any-glob-to-any-file: 'src/extractinitrd/*'
 
-skipcpio:
-    - changed-files:
-          - any-glob-to-any-file: 'src/skipcpio/*'
-
 c:
     - changed-files:
           - any-glob-to-any-file: 'src/**/*.c'
