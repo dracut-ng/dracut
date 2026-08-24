@@ -96,19 +96,32 @@ while (($# > 0)); do
     shift
 done
 
-CPIO=cpio
+EXTRACTOR=
 if command -v 3cpio > /dev/null; then
     if threecpio_help_output=$(3cpio --help); then
         if [[ $threecpio_help_output == *--make-directories* ]]; then
-            CPIO=3cpio
+            EXTRACTOR=3cpio
         fi
     elif command -v cpio > /dev/null; then
         echo "Warning: Calling '3cpio --help' failed. Cannot check if 3cpio supports --make-directories. Falling back to cpio."
     else
         echo "Warning: Calling '3cpio --help' failed. Cannot check if 3cpio supports --make-directories."
-        CPIO=3cpio
+        EXTRACTOR=3cpio
     fi
     unset threecpio_help_output
+fi
+if ! [[ $EXTRACTOR ]]; then
+    if [[ -f "$dracutbasedir/src/extractinitrd/extractinitrd" ]]; then
+        EXTRACTOR="$dracutbasedir/src/extractinitrd/extractinitrd"
+    else
+        EXTRACTOR="$dracutbasedir/extractinitrd"
+    fi
+    if ! [[ -x $EXTRACTOR ]]; then
+        echo
+        echo "Error: '$EXTRACTOR' not found, cannot continue!" >&2
+        echo
+        exit 1
+    fi
 fi
 
 if ! [[ $KERNEL_VERSION ]]; then
@@ -204,28 +217,28 @@ SQUASH_EXTRACT="$TMPDIR/squash-extract"
 
 # Takes optional pattern arguments
 cpio_extract() {
-    if [ "$CPIO" = 3cpio ]; then
+    if [ "$EXTRACTOR" = 3cpio ]; then
         3cpio --extract --make-directories --parts "$parts" $verbose "$image" -- "$@"
     else
-        $CAT "$image" 2> /dev/null | cpio -id --quiet $verbose -- "$@"
+        "$EXTRACTOR" --parts "$parts" $verbose "$image" -- "$@"
     fi
 }
 
 # Takes optional pattern arguments
 cpio_extract_to_stdout() {
-    if [ "$CPIO" = 3cpio ]; then
+    if [ "$EXTRACTOR" = 3cpio ]; then
         3cpio --extract --parts "$parts" --to-stdout "$image" -- "$@"
     else
-        $CAT "$image" 2> /dev/null | cpio --extract --quiet --to-stdout -- "$@"
+        "$EXTRACTOR" --parts "$parts" --to-stdout "$image" -- "$@"
     fi
 }
 
 # Takes optional pattern arguments
 cpio_list() {
-    if [ "$CPIO" = 3cpio ]; then
+    if [ "$EXTRACTOR" = 3cpio ]; then
         3cpio --list --parts "$parts" --verbose "$image" -- "$@"
     else
-        $CAT "$image" 2> /dev/null | cpio --extract --verbose --quiet --list -- "$@"
+        "$EXTRACTOR" --list --parts "$parts" --verbose "$image" -- "$@"
     fi
 }
 
@@ -439,7 +452,6 @@ unset skip
 read -r -N 6 bin < "$image"
 case $bin in
     $'\x71\xc7'* | 070701)
-        CAT="cat --"
         parts=1
         is_early=$(cpio_extract_to_stdout early_cpio 2> /dev/null)
         # Debian mkinitramfs does not create the file 'early_cpio', so let's check if firmware files exist
@@ -456,80 +468,15 @@ case $bin in
                 echo "Early CPIO image"
                 list_files
             fi
-            if [[ -f "$dracutbasedir/src/skipcpio/skipcpio" ]]; then
-                skip="$dracutbasedir/src/skipcpio/skipcpio"
-            else
-                skip="$dracutbasedir/skipcpio"
-            fi
-            if ! [[ -x $skip ]]; then
-                echo
-                echo "'$skip' not found, cannot display remaining contents!" >&2
-                echo
-                exit 0
-            fi
+            parts=2-
+        else
+            parts=1-
         fi
-        ;;
-esac
-
-if [[ $skip ]]; then
-    bin="$($skip "$image" | { read -r -N 6 bin && echo "$bin"; })"
-else
-    read -r -N 6 bin < "$image"
-fi
-case $bin in
-    $'\x1f\x8b'*)
-        CAT="zcat --"
-        ;;
-    BZh*)
-        CAT="bzcat --"
-        ;;
-    $'\x71\xc7'* | 070701)
-        CAT="cat --"
-        ;;
-    $'\x02\x21'*)
-        CAT="lz4 -d -c"
-        ;;
-    $'\x89'LZO$'\0'*)
-        CAT="lzop -d -c"
-        ;;
-    $'\x28\xB5\x2F\xFD'*)
-        CAT="zstd -d -c"
         ;;
     *)
-        if echo "test" | xz | xzcat --single-stream > /dev/null 2>&1; then
-            CAT="xzcat --single-stream --"
-        else
-            CAT="xzcat --"
-        fi
+        parts=1-
         ;;
 esac
-
-type "${CAT%% *}" > /dev/null 2>&1 || {
-    echo "Need '${CAT%% *}' to unpack the initramfs."
-    exit 1
-}
-
-# shellcheck disable=SC2317,SC2329  # assigned to CAT and $CAT called later
-skipcpio() {
-    $skip "$@" | $ORIG_CAT
-}
-
-parts="1-"
-if [[ $skip ]]; then
-    ORIG_CAT="$CAT"
-    CAT=skipcpio
-    parts="2-"
-fi
-
-if ((${#filenames[@]} > 1)); then
-    TMPFILE="$TMPDIR/initrd.cpio"
-    $CAT "$image" 2> /dev/null > "$TMPFILE"
-    # shellcheck disable=SC2317,SC2329  # assigned to CAT and $CAT called later
-    pre_decompress() {
-        cat "$TMPFILE"
-    }
-    CAT=pre_decompress
-fi
 
 ret=0
 
