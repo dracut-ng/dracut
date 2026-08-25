@@ -131,8 +131,8 @@ test_setup() {
     if command -v mkosi-initrd &> /dev/null; then
         mkosi-initrd --kernel-version "$KVERSION" -t directory -o mkosi -O "$TESTDIR"
 
-        find "$TESTDIR"/mkosi/usr/lib/systemd/system/initrd.target.wants/ -printf "%f\n" | sort | uniq > systemd-mkosi
-        find "$TESTDIR"/initrd/dracut.*/initramfs/usr/lib/systemd/system/initrd.target.wants/ -printf "%f\n" | sort | uniq > systemd-dracut
+        find "$TESTDIR"/mkosi/usr/lib/systemd/system/initrd.target.wants/ -printf "%f\n" | sort -u > systemd-mkosi
+        find "$TESTDIR"/initrd/dracut.*/initramfs/usr/lib/systemd/system/initrd.target.wants/ -printf "%f\n" | sort -u > systemd-dracut
 
         # fail the test if mkosi installs some services that dracut does not
         mkosi_units=$(comm -23 systemd-mkosi systemd-dracut)
@@ -146,8 +146,8 @@ test_setup() {
     if command -v mkinitcpio &> /dev/null; then
         mkinitcpio -k "$KVERSION" --builddir "$TESTDIR" --save -A systemd
 
-        find "$TESTDIR"/mkinitcpio.*/root/usr/lib/systemd/system/ -printf "%f\n" | sort | uniq > systemd-mkinitcpio
-        find "$TESTDIR"/initrd/dracut.*/initramfs/usr/lib/systemd/system/ -printf "%f\n" | sort | uniq > systemd-dracut
+        find "$TESTDIR"/mkinitcpio.*/root/usr/lib/systemd/system/ -printf "%f\n" | sort -u > systemd-mkinitcpio
+        find "$TESTDIR"/initrd/dracut.*/initramfs/usr/lib/systemd/system/ -printf "%f\n" | sort -u > systemd-dracut
 
         # fail the test if mkinitcpio installs some services that dracut does not
         mkinitcpio_units=$(comm -23 systemd-mkinitcpio systemd-dracut)

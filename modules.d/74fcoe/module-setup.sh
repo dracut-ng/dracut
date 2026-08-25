@@ -92,7 +92,7 @@ cmdline() {
             echo "ifname=${ifname}:${mac}"
             echo "fcoe=${ifname}:${dcb}:${mode}"
         done
-    } | sort | uniq
+    } | sort -u
 }
 
 # called by dracut

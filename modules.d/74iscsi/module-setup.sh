@@ -123,7 +123,7 @@ install_iscsiroot() {
                 iscsi_address="[$iscsi_address]"
                 ;;
         esac
-        # Must be two separate lines, so that "sort | uniq" commands later
+        # Must be two separate lines, so that "sort -u" commands later
         # can sort out rd.iscsi.initiator= duplicates
         echo "rd.iscsi.initiator=$(normalized_iscsi_name "${iscsi_initiator}")"
         echo "netroot=iscsi:${iscsi_address}::${iscsi_port}:${iscsi_lun}:$(normalized_iscsi_name "${iscsi_targetname}")"
@@ -181,7 +181,7 @@ cmdline() {
         else
             install_softiscsi
         fi
-    } | sort | uniq
+    } | sort -u
 }
 
 # called by dracut

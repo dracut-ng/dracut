@@ -40,7 +40,7 @@ cmdline() {
     }
     [[ $hostonly ]] || [[ $mount_needs ]] && {
         for_each_host_dev_and_slaves_all get_lunmask
-    } | sort | uniq
+    } | sort -u
 }
 
 # called by dracut
