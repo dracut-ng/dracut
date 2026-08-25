@@ -26,3 +26,6 @@ RemainAfterExit=yes
 # Bash ignores SIGTERM, so we send SIGHUP instead, to ensure that bash
 # terminates cleanly.
 KillSignal=SIGHUP
+
+[Install]
+WantedBy=initrd.target
