@@ -21,19 +21,19 @@ ARG OPTION
 
 RUN \
     # Speed-up using binpkgs \
-    echo "MAKEOPTS=\"-j$(nproc) -l$(nproc)\"" >> /etc/portage/make.conf ;\
-    echo "EMERGE_DEFAULT_OPTS=\"-j$(nproc) -l$(nproc)\"" >> /etc/portage/make.conf ;\
-    echo "FEATURES=\"getbinpkg binpkg-ignore-signature parallel-fetch parallel-install pkgdir-index-trusted\"" >> /etc/portage/make.conf ;\
+    echo "MAKEOPTS=\"-j$(nproc) -l$(nproc)\"" >> /etc/portage/make.conf &&\
+    echo "EMERGE_DEFAULT_OPTS=\"-j$(nproc) -l$(nproc)\"" >> /etc/portage/make.conf &&\
+    echo "FEATURES=\"getbinpkg binpkg-ignore-signature parallel-fetch parallel-install pkgdir-index-trusted\"" >> /etc/portage/make.conf &&\
     # systemd-boot, no need to install intramfs with kernel \
-    echo "USE=\"boot kernel-install pkcs7 pkcs11 tpm -initramfs\"" >> /etc/portage/make.conf ;\
+    echo "USE=\"boot kernel-install pkcs7 pkcs11 tpm -initramfs\"" >> /etc/portage/make.conf &&\
     # Use debian's installkernel \
-    echo 'sys-kernel/installkernel -systemd' >> /etc/portage/package.use/kernel ;\
+    echo 'sys-kernel/installkernel -systemd' >> /etc/portage/package.use/kernel &&\
     # Enable fido2, ukify, qrcode and cryptsetup (includes unit generator for crypttab) \
-    echo 'sys-apps/systemd fido2 ukify qrcode cryptsetup importd curl lzma' >> /etc/portage/package.use/systemd ;\
+    echo 'sys-apps/systemd fido2 ukify qrcode cryptsetup importd curl lzma' >> /etc/portage/package.use/systemd &&\
     # Support thin volumes and build all of LVM2 including daemons and tools like lvchange \
-    echo 'sys-fs/lvm2 thin lvm' >> /etc/portage/package.use/lvm2 ;\
+    echo 'sys-fs/lvm2 thin lvm' >> /etc/portage/package.use/lvm2 &&\
     # Ensure everything is up to date before we start \
-    emerge-webrsync ;\
+    emerge-webrsync &&\
     emerge --quiet --update --deep --newuse --autounmask-continue=y --with-bdeps=y @world
 
 # Dependencies to pass basic test
@@ -78,7 +78,7 @@ emerge --quiet --deep --autounmask-continue=y --with-bdeps=n --noreplace \
     sys-kernel/gentoo-kernel-bin \
     sys-libs/libxcrypt \
     virtual/libelf \
-    virtual/pkgconfig ;\
+    virtual/pkgconfig &&\
 # Dependencies for systemd \
 if [ "$OPTION" = "systemd" ] ; then \
     emerge --quiet --deep --autounmask-continue=y --with-bdeps=n --noreplace \
@@ -86,6 +86,6 @@ if [ "$OPTION" = "systemd" ] ; then \
     sys-libs/glibc ;\
 else \
     emerge --quiet --deep --autounmask-continue=y --with-bdeps=n --noreplace net-misc/networkmanager ;\
-fi ;\
-rm -rf /var/cache/* /usr/share/doc/* /usr/share/man/* ;\
+fi &&\
+rm -rf /var/cache/* /usr/share/doc/* /usr/share/man/* &&\
 emerge --depclean --with-bdeps=n
