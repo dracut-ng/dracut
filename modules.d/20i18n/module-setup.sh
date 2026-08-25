@@ -39,7 +39,7 @@ install() {
             MAPNAME=${1%.map*}
 
             mapfile -t -d '' MAPS < <(
-                find "${dracutsysrootdir-}${kbddir}"/keymaps/ -type f,l \( -name "${MAPNAME}" -o -name "${MAPNAME}.map*" \) -print0
+                find "${dracutsysrootdir-}${kbddir}"/keymaps/ \( -type f -o -type l \) \( -name "${MAPNAME}" -o -name "${MAPNAME}.map*" \) -print0
             )
         fi
 
@@ -159,7 +159,7 @@ install() {
 
         # remove unnecessary files
         rm -f -- "${initdir}${kbddir}/consoletrans/utflist"
-        find "${initdir}${kbddir}/" -name README\* -delete
+        find "${initdir}${kbddir}/" -name README\* -exec rm -f {} +
         find "${initdir}${kbddir}/" -name '*.gz' -print -quit \
             | while read -r _line || [ -n "$_line" ]; do
                 inst_multiple gzip
