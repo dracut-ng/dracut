@@ -13,26 +13,27 @@ check() {
 
 # called by dracut
 install() {
-    local _i _path _busybox
+    local _path _busybox _busybox_path
     local _dstdir="${dstdir:-"$initdir"}"
     local _progs=()
     _busybox=$(find_binary busybox)
-    inst "$_busybox" /usr/bin/busybox
+    _busybox_path="/usr/bin/busybox"
 
     # do not depend on CONFIG_FEATURE_INSTALLER
     # install busybox symlinks manually
-    for _i in $($_busybox --list); do
-        [[ ${_i} == busybox ]] && continue
-        _progs+=("${_i}")
+    for _path in $($_busybox --list-all); do
+        if [[ ${_path##*/} == busybox ]]; then
+            _busybox_path="/${_path#/}"
+        else
+            _progs+=("/${_path#/}")
+        fi
     done
 
-    for _i in "${_progs[@]}"; do
-        _path=$(find_binary "$_i")
-        [ -z "$_path" ] && continue
-
+    inst "$_busybox" "$_busybox_path"
+    for _path in "${_progs[@]}"; do
         # do not remove existing destination files
-        [ -e "${_dstdir}/$_path" ] && continue
+        [ -e "${_dstdir}$_path" ] && continue
 
-        ln_r /usr/bin/busybox "$_path"
+        ln_r "$_busybox_path" "$_path"
     done
 }
