@@ -37,7 +37,6 @@ jobs:
                     - arch:latest
                     - debian:latest
                     - fedora:latest
-                    - gentoo:latest
                     - opensuse:latest
                     - ubuntu:devel
                     - void:latest
@@ -82,7 +81,6 @@ jobs:
                 container:
                     - arch:latest
                     - fedora:latest
-                    - gentoo:latest
                     - opensuse:latest
                     - ubuntu:devel
                     - void:latest
@@ -127,7 +125,6 @@ jobs:
                 container:
                     - arch:latest
                     - fedora:latest
-                    - gentoo:latest
                     - opensuse:latest
                     - ubuntu:devel
                 test:
