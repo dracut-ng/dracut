@@ -339,7 +339,7 @@ list_squash_content() {
         */erofs-root.img)
             (
                 cd "$SQUASH_EXTRACT" || return 1
-                find erofs-root/ -ls
+                find erofs-root/ -exec ls -ld {} +
             )
             ;;
     esac
