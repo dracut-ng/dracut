@@ -463,7 +463,8 @@ for p in $(getargs ip=); do
 
     # Store config for later use
     for i in ip srv gw mask hostname macaddr mtu dns1 dns2; do
-        eval '[ "$'$i'" ] && echo '$i'="$'$i'"'
+        eval "_v=\$$i"
+        [ -n "$_v" ] && printf "$i='%s'\n" "$(escape "$_v")"
     done > "/tmp/net.$netif.override"
 
     for autoopt in $(str_replace "$autoconf" "," " "); do
