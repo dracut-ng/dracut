@@ -33,6 +33,7 @@ cmdline() {
         uuid=$(< "/sys/block/${dev#/dev/}/dm/uuid")
         [[ ${uuid#LVM-} == "$uuid" ]] && continue
         dev=$(< "/sys/block/${dev#/dev/}/dm/name")
+        unset DM_VG_NAME DM_LV_NAME
         eval "$(dmsetup splitname --nameprefixes --noheadings --rows "$dev" 2> /dev/null)"
         # shellcheck disable=SC2015
         [[ ${DM_VG_NAME} ]] && [[ ${DM_LV_NAME} ]] || continue
@@ -137,6 +138,7 @@ install() {
         for dev in "${!host_fs_types[@]}"; do
             [[ -e /sys/block/${dev#/dev/}/dm/name ]] || continue
             dev=$(< "/sys/block/${dev#/dev/}/dm/name")
+            unset DM_VG_NAME DM_LV_NAME
             eval "$(dmsetup splitname --nameprefixes --noheadings --rows "$dev" 2> /dev/null)"
             # shellcheck disable=SC2015
             [[ ${DM_VG_NAME} ]] && [[ ${DM_LV_NAME} ]] || continue
