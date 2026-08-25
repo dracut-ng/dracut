@@ -303,6 +303,22 @@ wait_for_server_startup() {
     fi
 }
 
+# Stop the daemonized server QEMU whose pidfile is in $TESTDIR.
+# QEMU removes the pidfile itself when the daemon exits, so the file may
+# already be gone (or hold a dead pid); neither case must fail the test.
+# Only remove the pidfile when the process is already gone, otherwise QEMU
+# deletes it when it exits.
+stop_server() {
+    local server_pid
+    server_pid=$(cat "$TESTDIR"/server.pid 2> /dev/null) || server_pid=
+    [[ -n $server_pid ]] || return 0
+    if ! kill "$server_pid"; then
+        # process already gone, drop the now-stale pidfile
+        rm -f -- "$TESTDIR"/server.pid
+    fi
+    return 0
+}
+
 command -v test_check &> /dev/null || test_check() {
     :
 }
