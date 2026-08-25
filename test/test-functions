@@ -205,7 +205,7 @@ client_test_end() {
     [[ -e "$TESTDIR/client_test_name.txt" ]] || return 0
     test_name=$(cat "$TESTDIR/client_test_name.txt")
     echo "CLIENT TEST END: $test_name [$status]"
-    rm "$TESTDIR/client_test_name.txt"
+    rm -f -- "$TESTDIR/client_test_name.txt"
 }
 
 require_binaries_for_test() {
@@ -269,8 +269,8 @@ stop_webserver() {
     if [[ -s "$TESTDIR/webserver.pid" ]]; then
         pid=$(cat "$TESTDIR/webserver.pid")
         echo "Stopping web server (pid $pid)..." >&2
-        kill "$pid"
-        rm "$TESTDIR/webserver.pid"
+        kill "$pid" || true
+        rm -f -- "$TESTDIR/webserver.pid"
     fi
 }
 
@@ -428,7 +428,7 @@ print_test_result() {
     local ret=${1-1}
     if [ "$ret" -eq 0 ]; then
         client_test_end
-        rm -- test${TEST_RUN_ID:+-$TEST_RUN_ID}.log
+        rm -f -- test${TEST_RUN_ID:+-$TEST_RUN_ID}.log
         echo -e "TEST: $TEST_DESCRIPTION " "$COLOR_SUCCESS" "[OK]" "$COLOR_NORMAL"
     else
         client_test_end "FAILED"
@@ -489,15 +489,24 @@ while (($# > 0)); do
                 (
                     test_setup
                     test_run
+                    # teardown is best effort: the daemonized QEMU removes its
+                    # own pidfile on exit, racing the cleanup below; a failure
+                    # there must not turn a passing test into a failure
+                    trap - ERR
+                    set +e
                     test_cleanup
                     test_common_cleanup
+                    exit 0
                 ) 2>&1 | "$tee_command" "test${TEST_RUN_ID:+-$TEST_RUN_ID}.log"
             else
                 (
                     test_setup
                     test_run
+                    trap - ERR
+                    set +e
                     test_cleanup
                     test_common_cleanup
+                    exit 0
                 ) > test${TEST_RUN_ID:+-$TEST_RUN_ID}.log 2>&1
             fi
             set +o pipefail
