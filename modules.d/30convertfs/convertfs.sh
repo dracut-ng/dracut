@@ -109,7 +109,7 @@ for dir in bin sbin lib lib64; do
     cp -axT ${CP_HARDLINK:+"$CP_HARDLINK"} --backup --suffix=.usrmove~ "$ROOT/$dir" "$ROOT/usr/${dir}.usrmove-new"
     echo "Clean up duplicates in \`$ROOT/usr/$dir'."
     # delete all symlinks that have been backed up
-    find "$ROOT/usr/${dir}.usrmove-new" -type l -name '*.usrmove~' -delete || :
+    find "$ROOT/usr/${dir}.usrmove-new" -type l -name '*.usrmove~' -exec rm -f {} + || :
     # replace symlink with backed up binary
     # shellcheck disable=SC2156
     find "$ROOT/usr/${dir}.usrmove-new" \
