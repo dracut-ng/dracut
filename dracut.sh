@@ -2549,14 +2549,13 @@ done
 for dev in "${!host_fs_types[@]}"; do
     [[ ${host_fs_types[$dev]} == "xfs" ]] || continue
     rootopts=$(find_dev_fsopts "$dev")
-    if [[ ${host_fs_types[$dev]} == "xfs" ]]; then
-        journaldev=$(fs_get_option "$rootopts" "logdev")
-    fi
+    journaldev=$(fs_get_option "$rootopts" "logdev")
     if [[ $journaldev ]]; then
-        dev="$(readlink -f "$dev")"
-        push_host_devs "$dev"
-        _get_fs_type "$dev"
-        check_block_and_slaves_all _get_fs_type "$(get_maj_min "$dev")"
+        journaldev="$(readlink -f "$journaldev")"
+        [[ -b $journaldev ]] || continue
+        push_host_devs "$journaldev"
+        _get_fs_type "$journaldev"
+        check_block_and_slaves_all _get_fs_type "$(get_maj_min "$journaldev")"
     fi
 done
 
