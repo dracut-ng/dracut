@@ -2405,6 +2405,9 @@ done
 for f in $add_fstab; do
     [[ -e $f ]] || continue
     while read -r dev rest || [ -n "$dev" ]; do
+        [[ $dev == \#* ]] && continue
+        [[ $dev ]] || continue
+        dev=$(expand_persistent_dev "$dev")
         push_host_devs "$dev"
     done < "$f"
 done
@@ -2856,6 +2859,7 @@ if [[ $kernel_only != yes ]]; then
     done
 
     for f in $add_fstab; do
+        [[ -e $f ]] || continue
         cat "$f" >> "${initdir}/etc/fstab"
     done
 
