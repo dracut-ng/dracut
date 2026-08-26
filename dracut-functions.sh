@@ -55,7 +55,7 @@ trim() {
 # is_elf <path>
 # Returns success if the given path is an ELF. Only checks the first 4 bytes.
 is_elf() {
-    [[ $(head --bytes=4 "$1") == $'\x7fELF' ]]
+    [[ $(head -c 4 "$1") == $'\x7fELF' ]]
 }
 
 # find a binary.  If we were not passed the full path directly,
