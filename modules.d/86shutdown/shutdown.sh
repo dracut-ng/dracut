@@ -74,7 +74,7 @@ umount_a() {
         # be produced by the shell.
         (
             set +m
-            timeout --signal=KILL "$_umount_timeout" umount "$mp"
+            timeout -s KILL "$_umount_timeout" umount "$mp"
         ) 2>&7
         local ret=$?
         if [ $ret -eq 0 ]; then
