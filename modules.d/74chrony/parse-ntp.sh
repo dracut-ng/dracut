@@ -45,7 +45,7 @@ parse_ntp_source() {
 }
 
 mkdir -p -m 0750 /run/chrony
-chown chrony: /run/chrony
+chown "$(get_user _chrony chrony):" /run/chrony
 mkdir /run/chrony/dracut.sources.d
 
 for _i in $(getargs rd.ntp); do
