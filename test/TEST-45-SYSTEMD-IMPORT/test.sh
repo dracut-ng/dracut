@@ -11,7 +11,8 @@ TEST_DESCRIPTION="download and import disk images at boot with systemd-import"
 IMPORT_VERIFY="checksum"
 
 test_check() {
-    require_binaries_for_test /usr/lib/systemd/systemd-importd systemd-dissect tar zstd
+    # python3 needed for HTTP server
+    require_binaries_for_test python3 /usr/lib/systemd/systemd-importd systemd-dissect tar zstd
 }
 
 client_run() {
