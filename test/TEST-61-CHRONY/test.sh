@@ -14,7 +14,8 @@ FAKE_TIME="2100-01-01T00:00:00"
 SSL_CERT="webserver.pem"
 
 test_check() {
-    require_binaries_for_test chronyd openssl systemctl
+    # python3 needed for HTTP server
+    require_binaries_for_test chronyd openssl python3 systemctl
 }
 
 client_run() {
