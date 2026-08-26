@@ -54,7 +54,7 @@ gatherData() {
     fi
     fullDriveSysfsPath=$(readlink -f "${rootDeviceSysfsPath}/..")
     blockDevice="/dev/${fullDriveSysfsPath##*/}"
-    currentPartitionCount=$(grep --count -E "${blockDevice#/dev/}[0-9]+" /proc/partitions)
+    currentPartitionCount=$(grep -Ec "${blockDevice#/dev/}[0-9]+" /proc/partitions)
 
     freeSpaceStart=$(parted --script "${blockDevice}" unit % print free \
         | awk -v "x=${currentPartitionCount}" '$1 == x {getline; print $1}')
