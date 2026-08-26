@@ -1732,6 +1732,10 @@ static int parse_argv(int argc, char *argv[])
                 case 'r':
                         sysrootdir = optarg;
                         sysrootdirlen = strlen(sysrootdir);
+                        if (sysrootdirlen < 1) {
+                                log_error("sysrootdir is set but empty!");
+                                exit(EXIT_FAILURE);
+                        }
                         /* ignore trailing '/' */
                         if (sysrootdir[sysrootdirlen-1] == '/')
                                 sysrootdirlen--;
@@ -1804,6 +1808,10 @@ static int parse_argv(int argc, char *argv[])
                 case 'B':
                         dracutdir = optarg;
                         dracutdirlen = strlen(dracutdir);
+                        if (dracutdirlen < 1) {
+                                log_error("dracutdir is set but empty!");
+                                exit(EXIT_FAILURE);
+                        }
                         /* ignore trailing '/' */
                         if (dracutdir[dracutdirlen-1] == '/')
                                 dracutdirlen--;
