@@ -32,9 +32,9 @@ install() {
         for _lib in "${dracutsysrootdir-}$_dir"/libcurl.so.* "${dracutsysrootdir-}$_dir"/libcrypto.so.*; do
             [[ -e $_lib ]] || continue
             if ! [[ $_nssckbi ]]; then
-                read -r -d '' _nssckbi < <(grep -F --binary-files=text -z libnssckbi "$_lib")
+                read -r -d '' _nssckbi < <(grep -Faz libnssckbi "$_lib")
             fi
-            read -r -d '' _crt < <(grep -E --binary-files=text -z "\.(pem|crt)" "$_lib" | sed 's/\x0//g')
+            read -r -d '' _crt < <(grep -Eaz "\.(pem|crt)" "$_lib" | sed 's/\x0//g')
             [[ $_crt ]] || continue
             [[ $_crt == /*/* ]] || continue
             if [[ -e $_crt ]]; then
@@ -62,7 +62,7 @@ install() {
         for _dir in $libdirs; do
             [[ -e ${dracutsysrootdir-}$_dir/libnssckbi.so ]] || continue
             # this looks for directory-ish strings in the file
-            grep -z -o --binary-files=text '/[[:alpha:]][[:print:]]*' "${dracutsysrootdir-}${_dir}"/libnssckbi.so \
+            grep -aoz '/[[:alpha:]][[:print:]]*' "${dracutsysrootdir-}${_dir}"/libnssckbi.so \
                 | while read -r -d '' _p11roots || [[ $_p11roots ]]; do
                     IFS=":" read -r -a _p11roots <<< "$_p11roots"
                     # the string can be a :-separated list of dirs
