@@ -84,15 +84,15 @@ install() {
             find "${dracutsysrootdir-}$systemdsystemunitdir" "${dracutsysrootdir-}$systemdsystemconfdir" -type f -name "*.socket" | while read -r socket_unit; do
                 # systemd-cryptsetup utility only supports SOCK_STREAM (ListenStream) sockets, so we ignore
                 # other types like SOCK_DGRAM (ListenDatagram), SOCK_SEQPACKET (ListenSequentialPacket), etc.
-                if ! grep -E -q "^ListenStream\s*=\s*$_luksfile$" "$socket_unit"; then
+                if ! grep -E -q "^ListenStream[[:space:]]*=[[:space:]]*$_luksfile$" "$socket_unit"; then
                     continue
                 fi
 
-                service_name=$(grep -E "^Service\s*=\s*" "$socket_unit" | cut -d= -f2)
+                service_name=$(grep -E "^Service[[:space:]]*=[[:space:]]*" "$socket_unit" | cut -d= -f2)
 
                 if [ -z "$service_name" ]; then
                     # if no explicit Service= is defined, construct the service name based on the socket unit's name
-                    if grep -Eiq "^Accept\s*=\s*(1|yes|y|true|t|on)$" "$socket_unit"; then
+                    if grep -Eiq "^Accept[[:space:]]*=[[:space:]]*(1|yes|y|true|t|on)$" "$socket_unit"; then
                         # if Accept is truthy, assemble a service template
                         service_name=$(basename "$socket_unit" .socket)"@.service"
                     else
@@ -111,12 +111,12 @@ install() {
                 # which itself depends on cryptsetup.target. This could lead to either:
                 #   a) systemd-cryptsetup falling back to a passphrase prompt due to a missing socket file
                 #   b) a deadlock caused by a circular dependency (service unit -> sysinit.target -> cryptsetup.target -> service unit)
-                if ! grep -Eiq "^DefaultDependencies\s*=\s*(0|no|n|false|f|off)" "$socket_unit"; then
+                if ! grep -Eiq "^DefaultDependencies[[:space:]]*=[[:space:]]*(0|no|n|false|f|off)" "$socket_unit"; then
                     dwarning "crypt: $socket_unit: default dependencies are not disabled," \
                         "the socket file may not exist by the time systemd-cryptsetup gets executed"
                 fi
 
-                if ! grep -Eiq "^DefaultDependencies\s*=\s*(0|no|n|false|f|off)" "${socket_unit%/*}/$service_name"; then
+                if ! grep -Eiq "^DefaultDependencies[[:space:]]*=[[:space:]]*(0|no|n|false|f|off)" "${socket_unit%/*}/$service_name"; then
                     dwarning "crypt: ${socket_unit%/*}/$service_name: default dependencies are not disabled," \
                         "the service unit may encounter a deadlock due to a circular dependency"
                 fi
