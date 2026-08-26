@@ -155,16 +155,3 @@ mount_nfs() {
     fi
     mount -t "$nfs" -o"$options" "$server:$path" "$mntdir"
 }
-
-get_rpc_user() {
-    while read -r line; do
-        user="${line%%:*}"
-        case $user in
-            _rpc | rpc | rpcuser | nfsnobody)
-                echo "$user"
-                return
-                ;;
-        esac
-    done < /etc/passwd
-    echo "root"
-}

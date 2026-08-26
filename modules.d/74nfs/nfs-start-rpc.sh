@@ -20,7 +20,7 @@ str_starts "$nfs" "nfs" || return 0
 command -v portmap > /dev/null && [ -z "$(pidof portmap)" ] && portmap
 if command -v rpcbind > /dev/null && [ -z "$(pidof rpcbind)" ]; then
     mkdir -p /run/rpcbind
-    chown "$(get_rpc_user):" /run/rpcbind
+    chown "$(get_user _rpc rpc rpcuser nfsnobody):" /run/rpcbind
     rpcbind
 fi
 

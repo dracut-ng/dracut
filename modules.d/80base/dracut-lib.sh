@@ -465,6 +465,23 @@ check_quiet() {
     fi
 }
 
+# get_user <user1> [user2 ...]
+# Look up /etc/passwd for the first matching username among candidates.
+# Output the username if found, or 'root' as a fallback.
+get_user() {
+    local line user
+    while read -r line; do
+        user="${line%%:*}"
+        case " $* " in
+            *" $user "*)
+                echo "$user"
+                return 0
+                ;;
+        esac
+    done < /etc/passwd
+    echo "root"
+}
+
 incol2() {
     debug_off
     local check
