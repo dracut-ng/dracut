@@ -609,7 +609,7 @@ eval set -- "$TEMP"
 if [[ -n ${DRACUT_EXTRA_ARGS-} ]]; then
     reset_lastpipe="$(shopt -p lastpipe)"
     shopt -s lastpipe
-    if xargs printf '%s\0' <<< "$DRACUT_EXTRA_ARGS" 2> /dev/null | mapfile -d '' _extra_args; then
+    if xargs -r printf '%s\0' <<< "$DRACUT_EXTRA_ARGS" 2> /dev/null | mapfile -d '' _extra_args; then
         set -- "${_extra_args[@]}" "$@"
     else
         printf "%s\n" "dracut[W]: Ignoring malformed DRACUT_EXTRA_ARGS: $DRACUT_EXTRA_ARGS" >&2
