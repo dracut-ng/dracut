@@ -22,7 +22,7 @@ RUN case $(dpkg --print-architecture) in \
         arm64) arch_pkgs="qemu-efi-aarch64 qemu-system-arm" ;; \
     esac; \
     if [ "$DISTRIBUTION" != "debian:latest" ]; then cpio=3cpio; else cpio=cpio; fi; \
-    if [ "$DISTRIBUTION" = "debian:sid" ]; then \
+    if [ "$DISTRIBUTION" != "debian:latest" ] && [ "$DISTRIBUTION" != "ubuntu:rolling" ]; then \
         systemd_pkgs="systemd-tpm"; \
     fi; \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
