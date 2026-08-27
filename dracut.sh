@@ -3661,22 +3661,17 @@ if [[ $outfile_final ]]; then
     fi
 fi
 
-btrfs_uuid() {
-    btrfs filesystem show "$1" | sed -n '1s/^.*uuid: //p'
-}
-
 freeze_ok_for_btrfs() {
-    local mnt uuid1 uuid2
+    local dest_uuid root_uuid
     # If the output file is on btrfs, we need to make sure that it's
     # not on a subvolume of the same file system as the root FS.
     # Otherwise, fsfreeze() might freeze the entire system.
     # This is most conveniently checked by comparing the FS uuid.
 
     [[ "$(stat -f -c %T -- "/")" == "btrfs" ]] || return 0
-    mnt=$(stat -c %m -- "$1")
-    uuid1=$(btrfs_uuid "$mnt")
-    uuid2=$(btrfs_uuid "/")
-    [[ $uuid1 && $uuid2 && $uuid1 != "$uuid2" ]]
+    dest_uuid=$(findmnt -no uuid -T "$1")
+    root_uuid=$(findmnt -no uuid -T "/")
+    [[ $dest_uuid && $root_uuid && $dest_uuid != "$root_uuid" ]]
 }
 
 freeze_ok_for_fstype() {
