@@ -26,7 +26,7 @@ install() {
     inst_multiple grep sed seq readlink chzdev
     if [[ $hostonly ]]; then
         local _tempfile
-        _tempfile=$(mktemp --tmpdir="${DRACUT_TMPDIR}" dracut-zdev.XXXXXX)
+        _tempfile=$(mktemp -p "${DRACUT_TMPDIR}" dracut-zdev.XXXXXX)
         {
             chzdev qeth --export - --configured --persistent --quiet --type
             chzdev lcs --export - --configured --persistent --quiet --type
