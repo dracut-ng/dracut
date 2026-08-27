@@ -916,13 +916,13 @@ static const char *elf_map_string(const char *map, size_t src_len, size_t offset
                 if (!sect_name || strcmp(sect_name, ".dynamic") != 0) \
                         continue; \
 \
-                Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
-                if ((char *)dyn < (char *)map || (char *)dyn > (char *)map + src_len) \
+                if (ELF_BYTESWAP(B, shdr[i].sh_offset) > src_len) \
                         break; \
+                Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
 \
-                for (Elf##B##_Dyn *d = dyn; ELF_BYTESWAP(32, d->d_tag) != DT_NULL; d++) { \
-                        if ((char *)d < (char *)map || (char *)d + sizeof(Elf##B##_Dyn) > (char *)map + src_len) \
-                                break; \
+                for (Elf##B##_Dyn *d = dyn; \
+                        (char *)d + sizeof(Elf##B##_Dyn) <= (char *)map + src_len && \
+                        ELF_BYTESWAP(32, d->d_tag) != DT_NULL; d++) { \
                         if (ELF_BYTESWAP(B, d->d_tag) == DT_RUNPATH) \
                                 seen_runpath = true; /* RUNPATH has precedence over RPATH. */ \
                         else if (seen_runpath || ELF_BYTESWAP(B, d->d_tag) != DT_RPATH) \
@@ -1078,13 +1078,13 @@ skip:
                 if (!sect_name || strcmp(sect_name, ".dynamic") != 0) \
                         continue; \
 \
-                Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
-                if ((char *)dyn < (char *)map || (char *)dyn > (char *)map + src_len) \
+                if (ELF_BYTESWAP(B, shdr[i].sh_offset) > src_len) \
                         break; \
+                Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
 \
-                for (Elf##B##_Dyn *d = dyn; !soname && ELF_BYTESWAP(32, d->d_tag) != DT_NULL; d++) { \
-                        if ((char *)d < (char *)map || (char *)d + sizeof(Elf##B##_Dyn) > (char *)map + src_len) \
-                                break; \
+                for (Elf##B##_Dyn *d = dyn; \
+                        !soname && (char *)d + sizeof(Elf##B##_Dyn) <= (char *)map + src_len && \
+                        ELF_BYTESWAP(32, d->d_tag) != DT_NULL; d++) { \
                         if (ELF_BYTESWAP(B, d->d_tag) != DT_SONAME) \
                                 continue; \
 \
@@ -1168,13 +1168,13 @@ skip:
                 if (!sect_name || strcmp(sect_name, ".dynamic") != 0) \
                         continue; \
 \
-                Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
-                if ((char *)dyn < (char *)map || (char *)dyn > (char *)map + src_len) \
+                if (ELF_BYTESWAP(B, shdr[i].sh_offset) > src_len) \
                         break; \
+                Elf##B##_Dyn *dyn = (Elf##B##_Dyn *)((char *)map + ELF_BYTESWAP(B, shdr[i].sh_offset)); \
 \
-                for (Elf##B##_Dyn *d = dyn; ELF_BYTESWAP(32, d->d_tag) != DT_NULL; d++) { \
-                        if ((char *)d < (char *)map || (char *)d + sizeof(Elf##B##_Dyn) > (char *)map + src_len) \
-                                break; \
+                for (Elf##B##_Dyn *d = dyn; \
+                        (char *)d + sizeof(Elf##B##_Dyn) <= (char *)map + src_len && \
+                        ELF_BYTESWAP(32, d->d_tag) != DT_NULL; d++) { \
                         if (ELF_BYTESWAP(B, d->d_tag) != DT_NEEDED) \
                                 continue; \
 \
