@@ -65,7 +65,7 @@ test_run() {
 }
 
 test_setup() {
-    CPIO_TESTDIR=$(mktemp --directory -p "$TESTDIR" cpio-test.XXXXXXXXXX)
+    CPIO_TESTDIR=$(mktemp -d -p "$TESTDIR" cpio-test.XXXXXXXXXX)
     export CPIO_TESTDIR
     return 0
 }
