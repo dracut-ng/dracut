@@ -88,7 +88,7 @@ test_run() {
 
         export PATH=".:$PATH"
         # shellcheck disable=SC2034  # NEWROOT defined for dracut-lib.sh, set by base/init.sh
-        NEWROOT=$(mktemp --directory -p "$TESTDIR" newroot.XXXXXXXXXX)
+        NEWROOT=$(mktemp -d -p "$TESTDIR" newroot.XXXXXXXXXX)
         # shellcheck disable=SC2034  # PREFIX defined for dracut-lib.sh to avoid creating /run/initramfs
         PREFIX=/nonexistent
 
