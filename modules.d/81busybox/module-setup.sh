@@ -21,7 +21,7 @@ install() {
 
     # do not depend on CONFIG_FEATURE_INSTALLER
     # install busybox symlinks manually
-    for _path in $($_busybox --list-all); do
+    for _path in $($_busybox --list-full); do
         if [[ ${_path##*/} == busybox ]]; then
             _busybox_path="/${_path#/}"
         else
