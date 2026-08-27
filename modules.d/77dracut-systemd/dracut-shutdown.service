@@ -12,3 +12,6 @@ OnFailure=dracut-shutdown-onfailure.service
 RemainAfterExit=yes
 Type=oneshot
 ExecStop=/usr/lib/dracut/dracut-initramfs-restore
+
+[Install]
+WantedBy=sysinit.target
