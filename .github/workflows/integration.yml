@@ -38,7 +38,7 @@ jobs:
                     - debian:latest
                     - fedora:latest
                     - opensuse:latest
-                    - ubuntu:devel
+                    - ubuntu:rolling
                     - void:latest
                 test:
                     - "10"
@@ -57,7 +57,7 @@ jobs:
         name: syncheck
         runs-on: ubuntu-24.04
         container:
-            image: ubuntu:devel
+            image: ubuntu:rolling
         steps:
             - name: "Checkout Repository"
               uses: actions/checkout@v7
@@ -82,7 +82,7 @@ jobs:
                     - arch:latest
                     - fedora:latest
                     - opensuse:latest
-                    - ubuntu:devel
+                    - ubuntu:rolling
                     - void:latest
                 test:
                     - "11"
@@ -98,7 +98,7 @@ jobs:
                     - "83"
                 exclude:
                     # cpio is not installed on Debian/Ubuntu
-                    - container: ubuntu:devel
+                    - container: ubuntu:rolling
                       test: "83"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
@@ -126,7 +126,7 @@ jobs:
                     - arch:latest
                     - fedora:latest
                     - opensuse:latest
-                    - ubuntu:devel
+                    - ubuntu:rolling
                 test:
                     - "40"
                     - "41"
@@ -187,14 +187,14 @@ jobs:
                     - arch:latest
                     - fedora:latest
                     - opensuse:latest
-                    - ubuntu:devel
+                    - ubuntu:rolling
                 test:
                     - "31"
                     - "60"
                     - "61"
                 exclude:
                     # https://github.com/dracut-ng/dracut/issues/2541
-                    - container: ubuntu:devel
+                    - container: ubuntu:rolling
                       test: "61"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
@@ -223,7 +223,7 @@ jobs:
                     - network-manager
                 container:
                     - debian:latest
-                    - ubuntu:devel
+                    - ubuntu:rolling
                 test:
                     - "70"
                     - "71"
