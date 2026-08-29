@@ -34,6 +34,11 @@ install() {
 
     # install busybox symlinks manually
     for _path in ${_busybox_applets}; do
+        # blkid is not compatible: https://github.com/dracut-ng/dracut/issues/2512
+        if [[ ${_path##*/} == blkid ]]; then
+            continue
+        fi
+
         # if busybox is built without CONFIG_FEATURE_INSTALLER=y, the list
         # has only plain names
         if [[ ${_path##*/} == "${_path}" ]]; then
