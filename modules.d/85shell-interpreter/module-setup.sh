@@ -17,8 +17,13 @@ depends() {
         fi
     done
 
-    shell=$(realpath /bin/sh)
-    shell=${shell##*/}
+    local shell
+    if check_module "busybox"; then
+        shell=busybox
+    else
+        shell=$(realpath /bin/sh)
+        shell=${shell##*/}
+    fi
 
     echo "$shell"
     return 0
