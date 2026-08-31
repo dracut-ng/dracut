@@ -1429,6 +1429,12 @@ esac
 hostonly=${hostonly-}
 hostonly_mode=${hostonly_mode-}
 
+# when no_kernel is not specified in hostonly mode and /proc/modules does not exists,
+# set no_kernel to yes
+if [[ $no_kernel ]] && [[ $hostonly ]] && ! [[ -e /proc/modules ]]; then
+    no_kernel="yes"
+fi
+
 if [[ $reproducible == yes ]] && [[ -z ${SOURCE_DATE_EPOCH-} ]]; then
     SOURCE_DATE_EPOCH=$(stat -c %Y "$dracutbasedir/dracut-functions.sh")
     export SOURCE_DATE_EPOCH
