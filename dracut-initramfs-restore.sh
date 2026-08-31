@@ -13,8 +13,6 @@ trap 'echo "Received SIGTERM signal, ignoring!" >&2' TERM
 
 KERNEL_VERSION="$(uname -r)"
 
-[ "$dracutbasedir" ] || dracutbasedir=/usr/lib/dracut
-
 find_initrd_for_kernel_version() {
     local kernel_version="$1"
     local base_path f initrd machine_id
@@ -57,7 +55,7 @@ extract_initrd() {
     if command -v 3cpio > /dev/null; then
         3cpio --extract "$initrd"
     else
-        "$dracutbasedir/dracut-extractinitrd" "$initrd"
+        dracut-extractinitrd "$initrd"
     fi
 }
 
