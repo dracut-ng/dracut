@@ -1,0 +1,77 @@
+DRACUT-EXTRACTINITRD(8)
+=======================
+:doctype: manpage
+:man source:   dracut
+:man manual:   dracut
+
+NAME
+----
+dracut-extractinitrd - extracts or lists files from an initrd image
+
+SYNOPSIS
+--------
+**dracut-extractinitrd** [_OPTION_...] _INITRD_ [_PATTERN_...]
+
+DESCRIPTION
+-----------
+The dracut-extractinitrd command extracts or lists the content of a given
+initramfs image using cpio and the appropriate decompressor command.
+
+The initramfs image may be a single compressed cpio archive, or the
+concatenation of any number of uncompressed cpio archives optionally followed
+by a compressed cpio archive.
+
+**Note:** This is a dracut internal tool, do not expect a stable interface
+across versions.
+
+OPTIONS
+-------
+**-l**, **--list**::
+    List the contents of the cpio archives
+
+**-P**, **--parts RANGE**::
+    Only operate on specified cpio archive range (e.g. 1, 1-3, 2-, -2)
+
+**--to-stdout**::
+    Extract files to standard output
+
+**-D**, **--directory DIR**::
+    Change to directory DIR before extracting
+
+**-v**, **--verbose**::
+    Display verbose messages about extraction
+
+**--debug**::
+    Print debugging information
+
+EXAMPLES
+--------
+
+.List the contents of an initramfs image
+----
+dracut-extractinitrd -l initramfs.img
+----
+
+.Unpack the initramfs image to some-dir/
+----
+dracut-extractinitrd -D some-dir/ initramfs.img
+----
+
+BUGS
+----
+dracut-extractinitrd does not support initramfs images with more than one
+compressed cpio archive.
+
+AVAILABILITY
+------------
+The dracut-extractinitrd command is part of the dracut package and is available
+from
+link:$$https://github.com/dracut-ng/dracut$$[https://github.com/dracut-ng/dracut]
+
+HISTORY
+-------
+dracut-extractinitrd is derived from Debian initramfs-tools' **unmkinitramfs**.
+
+SEE ALSO
+--------
+man:dracut[8]
