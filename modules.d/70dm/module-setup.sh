@@ -30,4 +30,11 @@ install() {
     inst_rules "$moddir/11-dm.rules"
 
     inst_hook shutdown 25 "$moddir/dm-shutdown.sh"
+
+    if dracut_module_included "busybox" && grep -q "blkid -o udev" "${initdir}${udevdir}/rules.d/13-dm-disk.rules" 2> /dev/null; then
+        # The busybox blkid applet does not support the option -o.
+        rm -f "${initdir}/bin/blkid" "${initdir}/sbin/blkid" \
+            "${initdir}/usr/bin/blkid" "${initdir}/usr/sbin/blkid"
+        inst_binary blkid
+    fi
 }
