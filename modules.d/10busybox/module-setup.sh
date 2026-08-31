@@ -39,6 +39,11 @@ install() {
             # See https://github.com/vda-linux/busybox_mirror/issues/33
             continue
         fi
+        if [[ ${_path##*/} == mount ]]; then
+            # The busybox mount applet does not resolve "auto" to the actual filesystem.
+            # See https://github.com/vda-linux/busybox_mirror/issues/34
+            continue
+        fi
 
         # if busybox is built without CONFIG_FEATURE_INSTALLER=y, the list
         # has only plain names
