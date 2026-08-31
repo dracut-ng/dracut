@@ -118,7 +118,7 @@ test_full_extraction() {
 
             # Unpack it
             rm -rf "$TESTDIR/output"
-            "${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" "$TESTDIR/initrd.img" || {
+            dracut-extractinitrd ${DEBUG:+--debug} -D "$TESTDIR/output" "$TESTDIR/initrd.img" || {
                 echo >&2 'E: dracut-extractinitrd failed'
                 return 1
             }
@@ -135,7 +135,7 @@ test_part_extraction() {
 
     echo "I: Testing extracting part 1 of initrd with $compressor"
     rm -rf "$TESTDIR/output"
-    "${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 1 "$TESTDIR/initrd.img" || {
+    dracut-extractinitrd ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 1 "$TESTDIR/initrd.img" || {
         echo >&2 'E: dracut-extractinitrd failed'
         return 1
     }
@@ -143,7 +143,7 @@ test_part_extraction() {
 
     echo "I: Testing extracting part 2 of initrd with $compressor"
     rm -rf "$TESTDIR/output"
-    "${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2 "$TESTDIR/initrd.img" || {
+    dracut-extractinitrd ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2 "$TESTDIR/initrd.img" || {
         echo >&2 'E: dracut-extractinitrd failed'
         return 1
     }
@@ -151,7 +151,7 @@ test_part_extraction() {
 
     echo "I: Testing extracting everything except part 1 of initrd with $compressor"
     rm -rf "$TESTDIR/output"
-    "${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2- "$TESTDIR/initrd.img" || {
+    dracut-extractinitrd ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2- "$TESTDIR/initrd.img" || {
         echo >&2 'E: dracut-extractinitrd failed'
         return 1
     }
@@ -174,17 +174,17 @@ test_extract_to_stdout() {
     construct_initrd_image "2" "2" "$compressor"
 
     echo "I: Testing pattern does not match anything of initrd with $compressor"
-    metadata=$("${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} --to-stdout \
+    metadata=$(dracut-extractinitrd ${DEBUG:+--debug} --to-stdout \
         "$TESTDIR/initrd.img" -- non-existing)
     assert_equal "$metadata" ''
 
     echo "I: Testing extracting early 1 metadata of initrd with $compressor"
-    metadata=$("${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} --to-stdout \
+    metadata=$(dracut-extractinitrd ${DEBUG:+--debug} --to-stdout \
         "$TESTDIR/initrd.img" -- kernel/dir0/metadata)
     assert_equal "$metadata" 'early0'
 
     echo "I: Testing extracting two metadata files of initrd with $compressor"
-    metadata=$("${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} --to-stdout \
+    metadata=$(dracut-extractinitrd ${DEBUG:+--debug} --to-stdout \
         "$TESTDIR/initrd.img" -- kernel/dir1/metadata dir0/metadata)
     assert_equal "$metadata" $'early1\nmain0'
 }
@@ -195,7 +195,7 @@ test_list() {
     construct_initrd_image "1" "2" "$compressor"
 
     echo "I: Testing list full content of initrd with $compressor"
-    metadata=$("${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} --list "$TESTDIR/initrd.img")
+    metadata=$(dracut-extractinitrd ${DEBUG:+--debug} --list "$TESTDIR/initrd.img")
     assert_equal "$metadata" '.
 kernel
 kernel/dir0
@@ -238,7 +238,7 @@ dir1/file9
 dir1/metadata'
 
     echo "I: Testing list part 2 of initrd with $compressor"
-    metadata=$("${PKGLIBDIR}/dracut-extractinitrd" ${DEBUG:+--debug} --list --part 2 "$TESTDIR/initrd.img")
+    metadata=$(dracut-extractinitrd ${DEBUG:+--debug} --list --part 2 "$TESTDIR/initrd.img")
     assert_equal "$metadata" '.
 dir0
 dir0/file0
@@ -255,6 +255,9 @@ dir0/metadata'
 }
 
 test_run() {
+    if [[ ${V-} -ge 1 ]]; then
+        echo "found dracut-extractinitrd: $(command -v dracut-extractinitrd)"
+    fi
     for compressor in no_compressor gzip bzip2 lzma xz lzop 'lz4 -l' zstd; do
         if ! command -v "${compressor%% *}" &> /dev/null; then
             echo "I: Skip testing with '$compressor' because the command is missing." >&2
