@@ -57,23 +57,26 @@ This option forces dracut to only include the specified dracut modules.
 In most cases the "add_dracutmodules" option is what you want to use.
 This option is not recommended to use (use at your own risk).
 
-*add_drivers+=*" __<kernel modules>__ "::
-Specify a space-separated list of kernel modules to add to the initramfs.
+*add_drivers+=*" __<kernel drivers>__ "::
+Specify a space-separated list of kernel drivers to add to the initramfs.
 The kernel modules have to be specified without the ".ko" suffix.
+The kernel subsystems have to be specified with an "=" as a prefix, like
+"=drivers/net/team".
 
 *force_drivers+=*" __<list of kernel modules>__ "::
-See add_drivers above. But in this case it is ensured that the drivers
-are tried to be loaded early via modprobe.
+Specify a space-separated list of kernel modules to add. Modules are tried to
+be loaded early via modprobe. Only accepts kernel modules.
 
 *omit_drivers+=*" __<kernel modules>__ "::
 Specify a space-separated list of kernel modules not to add to the
 initramfs. The kernel modules have to be specified without the ".ko" suffix.
 
-*drivers+=*" __<kernel modules>__ "::
-Specify a space-separated list of kernel modules to exclusively include in
-the initramfs. The kernel modules have to be specified without the ".ko"
-suffix.
-This option forces dracut to only include the specified kernel modules.
+*drivers+=*" __<kernel drivers>__ "::
+Specify a space-separated list of kernel drivers to exclusively include in the
+initramfs. The kernel modules have to be specified without the ".ko" suffix.
+The kernel subsystems have to be specified with an "=" as a prefix, like
+"=drivers/net/team".
+This option forces dracut to only include the specified kernel drivers.
 In most cases the "--add-drivers" option is what you want to use.
 This option is not recommended to use (use at your own risk).
 
@@ -94,8 +97,8 @@ above.
 Specify a space-separated list of kernel filesystem modules to exclusively
 include in the generic initramfs.
 
-*drivers_dir=*"__<kernel modules directory>__"::
-Specify the directory where to look for kernel modules.
+*drivers_dir=*"__<kernel drivers directory>__"::
+Specify the directory where to look for kernel drivers.
 
 *fw_dir+=*" :__<dir>__[:__<dir>__ ...] "::
 Specify additional colon-separated list of directories where to look for
