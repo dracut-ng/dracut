@@ -34,6 +34,12 @@ install() {
 
     # install busybox symlinks manually
     for _path in ${_busybox_applets}; do
+        if [[ ${_path##*/} == blkid ]] && grep -qr "blkid -o" "${udevdir}/rules.d" 2> /dev/null; then
+            # The busybox blkid applet does not support the option -o.
+            # See https://github.com/vda-linux/busybox_mirror/issues/33
+            continue
+        fi
+
         # if busybox is built without CONFIG_FEATURE_INSTALLER=y, the list
         # has only plain names
         if [[ ${_path##*/} == "${_path}" ]]; then
