@@ -8,10 +8,7 @@ TEST_DESCRIPTION="kernel cpio extraction tests for dracut-cpio"
 # see dracut-cpio source for unit tests
 
 test_check() {
-    if ! [[ -x "$PKGLIBDIR/dracut-cpio" ]]; then
-        echo "Test needs dracut-cpio... Skipping"
-        return 1
-    fi
+    require_binaries_for_test dracut-cpio
 }
 
 test_dracut_cpio() {
@@ -56,6 +53,9 @@ EOF
 }
 
 test_run() {
+    if [[ ${V-} -ge 1 ]]; then
+        echo "found dracut-cpio: $(command -v dracut-cpio)"
+    fi
     # dracut-cpio is typically used with compression and strip disabled, to
     # increase the chance of (reflink) extent sharing.
     test_dracut_cpio "simple" "--no-compress" "--nostrip"
