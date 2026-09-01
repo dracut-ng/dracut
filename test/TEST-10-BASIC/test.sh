@@ -23,7 +23,8 @@ test_setup() {
     build_client_rootfs "$TESTDIR/rootfs"
     build_ext4_image "$TESTDIR/rootfs" "$TESTDIR"/root.img dracut
 
-    test_dracut
+    # Busybox is tested in a separate test case
+    test_dracut --omit busybox
 }
 
 # shellcheck disable=SC1090

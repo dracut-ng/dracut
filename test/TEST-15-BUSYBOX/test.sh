@@ -4,11 +4,17 @@ set -eu
 # shellcheck disable=SC2034
 TEST_DESCRIPTION="busybox applets win over host binaries when busybox module is included"
 
+# Uncomment this to debug failures
+#DEBUGFAIL="rd.debug rd.shell"
+
 test_check() {
     require_binaries_for_test busybox
 }
 
 test_setup() {
+    build_client_rootfs "$TESTDIR/rootfs"
+    build_ext4_image "$TESTDIR/rootfs" "$TESTDIR"/root.img dracut
+
     busybox --list-full > "${TESTDIR}/busybox.links"
     # add an extra link to see if the list is used
     echo "usr/bin/silly-serval" >> "${TESTDIR}/busybox.links"
@@ -49,9 +55,7 @@ test_run() {
 
     # Test using busybox
     rm "$TESTDIR/initramfs.testing"
-    test_dracut \
-        --no-hostonly --no-kernel --drivers "" \
-        --modules "base busybox"
+    test_dracut --add busybox
 
     # Check applets the base module would otherwise install from the host.
     # Each must resolve to busybox in the resulting initrd.
@@ -63,6 +67,16 @@ test_run() {
         echo "FAIL: switch_root is a busybox symlink, host version was not preserved" >&2
         ret=1
     fi
+
+    declare -a disk_args=()
+    qemu_add_drive disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_args "$TESTDIR"/root.img root
+    test_marker_reset
+    "$testdir"/run-qemu -nic none \
+        "${disk_args[@]}" \
+        -append "root=LABEL=dracut $TEST_KERNEL_CMDLINE" \
+        -initrd "$TESTDIR/initramfs.testing"
+    test_marker_check
 
     return "$ret"
 }
