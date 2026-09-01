@@ -98,6 +98,9 @@ jobs:
                     - "80"
                     - "83"
                 exclude:
+                    # https://github.com/void-linux/void-packages/issues/62317
+                    - container: void:latest
+                      test: "15"
                     # cpio is not installed on Debian/Ubuntu
                     - container: ubuntu:rolling
                       test: "83"
