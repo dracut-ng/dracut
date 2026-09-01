@@ -17,6 +17,6 @@ fi
 # release resources on iso-scan boots with rd.live.ram
 if [ -d /run/initramfs/isoscan ] \
     && [ -f /run/initramfs/squashed.img ] || [ -f /run/initramfs/rootfs.img ]; then
-    umount --detach-loop /run/initramfs/live
+    umount -d /run/initramfs/live
     umount /run/initramfs/isoscan
 fi
