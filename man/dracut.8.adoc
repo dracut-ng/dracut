@@ -387,8 +387,8 @@ Default:
     _/var/log/dracut.log_
 
 **-l, --local**::
-    Activates the local mode. dracut will use modules from the current working
-    directory instead of the system-wide installed modules in
+    Activates local mode. Dracut will use modules and executables from the
+    current working directory instead of the system-wide installed modules in
     _/usr/lib/dracut/modules.d_.
     This is useful when running dracut from a git checkout.
 
