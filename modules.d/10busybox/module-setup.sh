@@ -44,6 +44,11 @@ install() {
             # See https://github.com/vda-linux/busybox_mirror/issues/34
             continue
         fi
+        if [[ ${_path##*/} == nbd-client ]]; then
+            # The busybox nbd-client applet does not support the option -check.
+            # See https://github.com/vda-linux/busybox_mirror/issues/35
+            continue
+        fi
 
         # if busybox is built without CONFIG_FEATURE_INSTALLER=y, the list
         # has only plain names
