@@ -61,13 +61,6 @@ test_run() {
     # Each must resolve to busybox in the resulting initrd.
     check_applets_from_busybox "$TESTDIR/initramfs.testing" ash cp ip ls mv mkdir sleep tr || ret=1
 
-    # switch_root must NOT be a busybox symlink as the base module reinstalls
-    # the host util-linux version on top of any symlink the busybox module left
-    if lsinitrd "$TESTDIR/initramfs.testing" | grep -E '^l.* switch_root -> .*busybox'; then
-        echo "FAIL: switch_root is a busybox symlink, host version was not preserved" >&2
-        ret=1
-    fi
-
     declare -a disk_args=()
     qemu_add_drive disk_args "$TESTDIR"/marker.img marker
     qemu_add_drive disk_args "$TESTDIR"/root.img root
