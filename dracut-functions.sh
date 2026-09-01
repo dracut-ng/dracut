@@ -1562,8 +1562,6 @@ fi
 
 if ! [[ $DRACUT_INSTALL ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then
     DRACUT_INSTALL="${BASH_SOURCE[0]%/*}/dracut-install"
-elif ! [[ $DRACUT_INSTALL ]] && [[ -x "${BASH_SOURCE[0]%/*}/src/install/dracut-install" ]]; then
-    DRACUT_INSTALL="${BASH_SOURCE[0]%/*}/src/install/dracut-install"
 fi
 
 # Test if the configured dracut-install command exists.

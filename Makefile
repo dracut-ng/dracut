@@ -63,7 +63,7 @@ manpages = $(man1pages) $(man5pages) $(man7pages) $(man8pages)
 
 .PHONY: install clean distclean archive test all check AUTHORS CONTRIBUTORS doc
 
-all: dracut.pc dracut-install src/extractinitrd/extractinitrd dracut-util
+all: dracut.pc extractinitrd dracut-install dracut-util
 
 %.o : %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(KMOD_CFLAGS) $(SYSTEMD_CFLAGS) $(if $(SYSTEMD_LIBS),-DHAVE_SYSTEMD) $< -o $@
@@ -84,21 +84,16 @@ src/install/log.o: src/install/log.c src/install/log.h src/install/macro.h src/i
 src/install/util.o: src/install/util.c src/install/util.h src/install/macro.h src/install/log.h
 src/install/strv.o: src/install/strv.c src/install/strv.h src/install/util.h src/install/macro.h src/install/log.h
 
-src/install/dracut-install: $(DRACUT_INSTALL_OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ $(DRACUT_INSTALL_OBJECTS) $(LDLIBS) $(FTS_LIBS) $(KMOD_LIBS) $(SYSTEMD_LIBS)
-
-dracut-install: src/install/dracut-install
-	ln -fs $< $@
+dracut-install: $(DRACUT_INSTALL_OBJECTS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS) $(FTS_LIBS) $(KMOD_LIBS) $(SYSTEMD_LIBS)
 
 EXTRACTINITRD_OBJECTS = src/extractinitrd/extractinitrd.o
-src/extractinitrd/extractinitrd: $(EXTRACTINITRD_OBJECTS)
+extractinitrd: $(EXTRACTINITRD_OBJECTS)
+	$(CC) $(LDFLAGS) -o $@ $^
 
 UTIL_OBJECTS = src/util/util.o
-util/util.o: src/util/util.c
-util/util: $(UTIL_OBJECTS)
-
-dracut-util: src/util/util
-	cp -a $< $@
+dracut-util: $(UTIL_OBJECTS)
+	$(CC) $(LDFLAGS) -o $@ $^
 
 .PHONY: indent-c
 indent-c:
@@ -252,11 +247,11 @@ endif
 		ln -sf ../dracut-initqueue.service \
 		$(DESTDIR)$(systemdsystemunitdir)/initrd.target.wants/dracut-initqueue.service; \
 	fi
-	if [ -f src/install/dracut-install ]; then \
-		install -m 0755 src/install/dracut-install $(DESTDIR)$(pkglibdir)/dracut-install; \
+	if [ -f dracut-install ]; then \
+		install -m 0755 dracut-install $(DESTDIR)$(pkglibdir)/dracut-install; \
 	fi
-	if [ -f src/extractinitrd/extractinitrd ]; then \
-		install -m 0755 src/extractinitrd/extractinitrd $(DESTDIR)$(pkglibdir)/extractinitrd; \
+	if [ -f extractinitrd ]; then \
+		install -m 0755 extractinitrd $(DESTDIR)$(pkglibdir)/extractinitrd; \
 	fi
 	if [ -f dracut-util ]; then \
 		install -m 0755 dracut-util $(DESTDIR)$(pkglibdir)/dracut-util; \
@@ -296,9 +291,9 @@ clean:
 	$(RM) */*/*~
 	$(RM) $(manpages:%=%.xml) dracut.xml
 	$(RM) dracut-*.tar.bz2 dracut-*.tar.xz
-	$(RM) dracut-install src/install/dracut-install $(DRACUT_INSTALL_OBJECTS)
-	$(RM) src/extractinitrd/extractinitrd $(EXTRACTINITRD_OBJECTS)
-	$(RM) dracut-util src/util/util $(UTIL_OBJECTS)
+	$(RM) dracut-install $(DRACUT_INSTALL_OBJECTS)
+	$(RM) extractinitrd $(EXTRACTINITRD_OBJECTS)
+	$(RM) dracut-util $(UTIL_OBJECTS)
 	$(RM) $(manpages)
 	$(RM) dracut.pc
 	$(RM) dracut-cpio src/dracut-cpio/target/release/dracut-cpio*

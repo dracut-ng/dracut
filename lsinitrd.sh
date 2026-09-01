@@ -111,11 +111,7 @@ if command -v 3cpio > /dev/null; then
     unset threecpio_help_output
 fi
 if ! [[ $EXTRACTOR ]]; then
-    if [[ -f "$dracutbasedir/src/extractinitrd/extractinitrd" ]]; then
-        EXTRACTOR="$dracutbasedir/src/extractinitrd/extractinitrd"
-    else
-        EXTRACTOR="$dracutbasedir/extractinitrd"
-    fi
+    EXTRACTOR="$dracutbasedir/extractinitrd"
     if ! [[ -x $EXTRACTOR ]]; then
         echo
         echo "Error: '$EXTRACTOR' not found, cannot continue!" >&2

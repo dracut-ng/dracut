@@ -13,14 +13,6 @@ test_check() {
     require_binaries_for_test cpio diff find gzip
 }
 
-get_extractinitrd_cmd() {
-    if [ "$PKGLIBDIR" = "$basedir" ]; then
-        echo "${PKGLIBDIR}/src/extractinitrd/extractinitrd"
-    else
-        echo "${PKGLIBDIR}/extractinitrd"
-    fi
-}
-
 # Dummy compressor; wrapper for cat that ignores its argument (-c)
 # shellcheck disable=SC2329
 no_compressor() {
@@ -126,7 +118,7 @@ test_full_extraction() {
 
             # Unpack it
             rm -rf "$TESTDIR/output"
-            $(get_extractinitrd_cmd) ${DEBUG:+--debug} -D "$TESTDIR/output" "$TESTDIR/initrd.img" || {
+            "${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" "$TESTDIR/initrd.img" || {
                 echo >&2 'E: extractinitrd failed'
                 return 1
             }
@@ -143,7 +135,7 @@ test_part_extraction() {
 
     echo "I: Testing extracting part 1 of initrd with $compressor"
     rm -rf "$TESTDIR/output"
-    $(get_extractinitrd_cmd) ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 1 "$TESTDIR/initrd.img" || {
+    "${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 1 "$TESTDIR/initrd.img" || {
         echo >&2 'E: extractinitrd failed'
         return 1
     }
@@ -151,7 +143,7 @@ test_part_extraction() {
 
     echo "I: Testing extracting part 2 of initrd with $compressor"
     rm -rf "$TESTDIR/output"
-    $(get_extractinitrd_cmd) ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2 "$TESTDIR/initrd.img" || {
+    "${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2 "$TESTDIR/initrd.img" || {
         echo >&2 'E: extractinitrd failed'
         return 1
     }
@@ -159,7 +151,7 @@ test_part_extraction() {
 
     echo "I: Testing extracting everything except part 1 of initrd with $compressor"
     rm -rf "$TESTDIR/output"
-    $(get_extractinitrd_cmd) ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2- "$TESTDIR/initrd.img" || {
+    "${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} -D "$TESTDIR/output" --parts 2- "$TESTDIR/initrd.img" || {
         echo >&2 'E: extractinitrd failed'
         return 1
     }
@@ -182,17 +174,17 @@ test_extract_to_stdout() {
     construct_initrd_image "2" "2" "$compressor"
 
     echo "I: Testing pattern does not match anything of initrd with $compressor"
-    metadata=$($(get_extractinitrd_cmd) ${DEBUG:+--debug} --to-stdout \
+    metadata=$("${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} --to-stdout \
         "$TESTDIR/initrd.img" -- non-existing)
     assert_equal "$metadata" ''
 
     echo "I: Testing extracting early 1 metadata of initrd with $compressor"
-    metadata=$($(get_extractinitrd_cmd) ${DEBUG:+--debug} --to-stdout \
+    metadata=$("${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} --to-stdout \
         "$TESTDIR/initrd.img" -- kernel/dir0/metadata)
     assert_equal "$metadata" 'early0'
 
     echo "I: Testing extracting two metadata files of initrd with $compressor"
-    metadata=$($(get_extractinitrd_cmd) ${DEBUG:+--debug} --to-stdout \
+    metadata=$("${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} --to-stdout \
         "$TESTDIR/initrd.img" -- kernel/dir1/metadata dir0/metadata)
     assert_equal "$metadata" $'early1\nmain0'
 }
@@ -203,7 +195,7 @@ test_list() {
     construct_initrd_image "1" "2" "$compressor"
 
     echo "I: Testing list full content of initrd with $compressor"
-    metadata=$($(get_extractinitrd_cmd) ${DEBUG:+--debug} --list "$TESTDIR/initrd.img")
+    metadata=$("${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} --list "$TESTDIR/initrd.img")
     assert_equal "$metadata" '.
 kernel
 kernel/dir0
@@ -246,7 +238,7 @@ dir1/file9
 dir1/metadata'
 
     echo "I: Testing list part 2 of initrd with $compressor"
-    metadata=$($(get_extractinitrd_cmd) ${DEBUG:+--debug} --list --part 2 "$TESTDIR/initrd.img")
+    metadata=$("${PKGLIBDIR}/extractinitrd" ${DEBUG:+--debug} --list --part 2 "$TESTDIR/initrd.img")
     assert_equal "$metadata" '.
 dir0
 dir0/file0

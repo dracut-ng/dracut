@@ -11,10 +11,8 @@
 /dracut-util
 /dracut.conf.d/*.conf
 /dracut.pc
+/extractinitrd
 /src/dracut-cpio/target/
-/src/extractinitrd/extractinitrd
-/src/install/dracut-install
-/src/util/util
 /test/*/*.html
 /test/*/*.log
 /test/*/.testdir*
