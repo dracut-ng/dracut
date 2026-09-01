@@ -40,6 +40,15 @@ test_run() {
     fi
     local ret=0
 
+    # Test override the list of applets
+    DRACUT_MODULE_BUSYBOX_LINKS="$(cat "${TESTDIR}/busybox.links")" \
+        test_dracut \
+        --no-hostonly --no-kernel --drivers "" \
+        --modules "base busybox"
+    check_applets_from_busybox "$TESTDIR/initramfs.testing" ash cp ip ls mv mkdir silly-serval sleep tr || ret=1
+
+    # Test using busybox
+    rm "$TESTDIR/initramfs.testing"
     test_dracut \
         --no-hostonly --no-kernel --drivers "" \
         --modules "base busybox"
@@ -54,14 +63,6 @@ test_run() {
         echo "FAIL: switch_root is a busybox symlink, host version was not preserved" >&2
         ret=1
     fi
-
-    # repeat the same test, but override the list of applets
-    rm "$TESTDIR/initramfs.testing"
-    DRACUT_MODULE_BUSYBOX_LINKS="$(cat "${TESTDIR}/busybox.links")" \
-        test_dracut \
-        --no-hostonly --no-kernel --drivers "" \
-        --modules "base busybox"
-    check_applets_from_busybox "$TESTDIR/initramfs.testing" ash cp ip ls mv mkdir silly-serval sleep tr || ret=1
 
     return "$ret"
 }
