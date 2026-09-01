@@ -296,8 +296,8 @@ clean:
 	$(RM) dracut-util $(UTIL_OBJECTS)
 	$(RM) $(manpages)
 	$(RM) dracut.pc
-	$(RM) dracut-cpio src/dracut-cpio/target/
-	$(RM) -rf build/ doc_site/modules/ROOT/pages/man/*
+	$(RM) dracut-cpio
+	$(RM) -rf build/ doc_site/modules/ROOT/pages/man/* src/dracut-cpio/target/
 	$(MAKE) -C test clean
 
 distclean: clean
