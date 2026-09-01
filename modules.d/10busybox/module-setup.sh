@@ -39,6 +39,11 @@ install() {
             # See https://github.com/vda-linux/busybox_mirror/issues/33
             continue
         fi
+        if [[ ${_path##*/} == mke2fs ]]; then
+            # e2fsprogs provides mke2fs. mkfs.ext2, mkfs.ext3, and mkfs.ext4 are symlinks to it.
+            # Busybox does not provide a mkfs.ext4 applet and mkfs.ext* would point to busybox then.
+            continue
+        fi
         if [[ ${_path##*/} == mount ]]; then
             # The busybox mount applet does not resolve "auto" to the actual filesystem.
             # See https://github.com/vda-linux/busybox_mirror/issues/34
