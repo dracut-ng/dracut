@@ -10,7 +10,6 @@
 # - dash (to increase coverage)
 # - rng-tools (to increase coverage)
 # - ntfs3g (to keep container small)
-# - xorriso (to keep container small, no .iso generation)
 
 ARG OPTION=systemd
 
@@ -51,6 +50,7 @@ emerge --quiet --deep --autounmask-continue=y --with-bdeps=n --noreplace \
     dev-lang/python \
     dev-lang/rust-bin \
     dev-libs/libfido2 \
+    dev-libs/libisoburn \
     dev-libs/libxslt \
     dev-libs/openssl \
     dev-ruby/asciidoctor \
@@ -70,6 +70,7 @@ emerge --quiet --deep --autounmask-continue=y --with-bdeps=n --noreplace \
     sys-devel/flex \
     sys-fs/btrfs-progs \
     sys-fs/cryptsetup \
+    sys-fs/erofs-utils \
     sys-fs/mdadm \
     sys-fs/multipath-tools \
     sys-fs/squashfs-tools \
