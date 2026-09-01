@@ -1,0 +1,141 @@
+DRACUT-INSTALL(8)
+=================
+:doctype: manpage
+:man source:   dracut
+:man manual:   dracut
+
+NAME
+----
+dracut-install - install files or kernel modules into initramfs staging directory
+
+SYNOPSIS
+--------
+**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_] [_OPTION_]... --all _SOURCE_...
+
+**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_] [_OPTION_]... _SOURCE_ _DEST_
+
+**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_] [_OPTION_]... --module _KERNELMODULE_...
+
+DESCRIPTION
+-----------
+**dracut-install** installs files or kernel modules from _rootfs_ or
+_SYSROOTDIR_ into an initramfs image being prepared in _DESTROOTDIR_ (the
+staging directory) as _DEST_, resolving dependencies for executables and
+modules. If _DEST_ is not set, use _SOURCE_ (relative to _SYSROOTDIR_ if
+applicable).
+
+_KERNELMODULE_ can have the formats:
+
+* **absolute path** with a leading `/`
+* **=<kernel subdir>[/<kernel subdir>...]** like `=drivers/hid`
+* **<module name>**, e.g. `ext4`
+
+**Note:** This is a dracut internal tool, do not expect a stable interface
+across versions.
+
+OPTIONS
+-------
+
+**-D**, **--destrootdir**::
+    Install all files to _DESTROOTDIR_ as the root
+
+**-r**, **--sysrootdir**::
+    Install all files from _SYSROOTDIR_
+
+**-a**, **--all**::
+    Install all _SOURCE_ arguments to _DESTROOTDIR_
+
+**-o**, **--optional**::
+    If _SOURCE_ or kernel module does not exist, do not fail
+
+**-d**, **--dir**::
+    _SOURCE_ is a directory
+
+**-l**, **--ldd**::
+    Also install shebang executables and libraries
+
+**-L**, **--logdir** _DIR_::
+    Log files which were installed from the host to _DIR_
+
+**-n**, **--dry-run**::
+    Don't actually copy files, just show what would be installed
+
+**-R**, **--resolvelazy**::
+    Only install shebang executables and libraries for all _SOURCE_ files
+
+**-H**, **--hostonly**::
+    Mark all _SOURCE_ files as hostonly
+
+**-f**, **--fips**::
+    Also install all `.SOURCE.hmac` files
+
+**--module**, **-m**::
+    Install kernel modules, instead of files
+
+**--kerneldir**::
+    Specify the kernel module directory (default: `/lib/modules/$(uname -r)`)
+
+**--firmwaredirs**::
+    Specify the firmware directory search path with **:** separation (default:
+    value of the `DRACUT_FIRMWARE_PATH` environment variable if set, otherwise
+    content of `/sys/module/firmware_class/parameters/path`, plus
+    `/lib/firmware/updates/$(uname -r)`, `/lib/firmware/updates`,
+    `/lib/firmware/$(uname -r)`, `/lib/firmware`)
+
+**--silent**::
+    Don't display error messages for kernel module install
+
+**--modalias**::
+    Only generate module list from `/sys/devices` modalias list
+
+**-p**, **--mod-filter-path**::
+    Filter kernel modules by path regexp
+
+**-P**, **--mod-filter-nopath**::
+    Exclude kernel modules by path regexp
+
+**-s**, **--mod-filter-symbol**::
+    Filter kernel modules by symbol regexp
+
+**-S**, **--mod-filter-nosymbol**::
+    Exclude kernel modules by symbol regexp
+
+**-N**, **--mod-filter-noname**::
+    Exclude kernel modules by name regexp
+
+**--json-supported**::
+    Show whether this build supports JSON
+
+**-v**, **--verbose**::
+    Show more output
+
+**--debug**::
+    Show debug output
+
+**--version**::
+    Show package version
+
+**-h --help**::
+    Show help
+
+EXAMPLES
+--------
+
+.Install MD drivers, but exclude bcache and md-cluster ones
+----
+dracut-install -D $DESTROOTDIR --module -P ".*/(bcache/|md-cluster).*" "=drivers/md"
+----
+
+.Install DRM drivers that provide certain symbols
+----
+dracut-install -D $DESTROOTDIR --module -s "drm_crtc_init|drm_dev_register|drm_encoder_init" "=drivers/gpu/drm"
+----
+
+AVAILABILITY
+------------
+The dracut-install command is part of the dracut package and is available from
+link:$$https://github.com/dracut-ng/dracut$$[https://github.com/dracut-ng/dracut]
+
+SEE ALSO
+--------
+man:dracut[8]
