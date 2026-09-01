@@ -173,9 +173,9 @@ Creates initial ramdisk images for preloading modules
   --tmpdir [DIR]        Temporary directory to be used instead of default
                          ${TMPDIR:-/var/tmp}.
   -r, --sysroot [DIR]   Specify sysroot directory to collect files from.
-  -l, --local           Local mode. Use modules from the current working
-                         directory instead of the system-wide installed in
-                         /usr/lib/dracut/modules.d.
+  -l, --local           Local mode. Use modules and executables from the
+                         current working directory instead of the system-wide
+                         install in /usr/lib/dracut/modules.d.
                          Useful when running dracut from a git checkout.
   -H, --hostonly        Host-only mode: Install only what is needed for
                          booting the local host instead of a generic host.
@@ -851,8 +851,12 @@ while :; do
                     ;;
                 -l | --local)
                     allowlocal="yes"
-                    [[ -f "$(readlink -f "${0%/*}")/dracut.sh" ]] \
-                        && dracutbasedir="$(readlink -f "${0%/*}")"
+                    if [[ -f "$(readlink -f "${0%/*}")/dracut.sh" ]]; then
+                        dracutbasedir="$(readlink -f "${0%/*}")"
+                        # dracutbasedir is repository, add to PATH to use built
+                        # executables
+                        export PATH="${dracutbasedir}:${PATH}"
+                    fi
                     ;;
                 -H | --hostonly | --host-only)
                     hostonly_l="yes"
