@@ -8,7 +8,7 @@
 
 depends() {
     # priority order
-    shells='bash dash busybox'
+    shells='bash busybox dash'
 
     for shell in $shells; do
         if dracut_module_included "$shell"; then
