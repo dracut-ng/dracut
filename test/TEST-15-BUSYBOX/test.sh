@@ -39,32 +39,29 @@ test_run() {
         set -x
     fi
     local ret=0
-    local initrd="$TESTDIR/initramfs"
 
     test_dracut \
         --no-hostonly --no-kernel --drivers "" \
-        --modules "base busybox" \
-        "$initrd"
+        --modules "base busybox"
 
     # Check applets the base module would otherwise install from the host.
     # Each must resolve to busybox in the resulting initrd.
-    check_applets_from_busybox "$initrd" ash cp ip ls mv mkdir sleep tr || ret=1
+    check_applets_from_busybox "$TESTDIR/initramfs.testing" ash cp ip ls mv mkdir sleep tr || ret=1
 
     # switch_root must NOT be a busybox symlink as the base module reinstalls
     # the host util-linux version on top of any symlink the busybox module left
-    if lsinitrd "$initrd" | grep -E '^l.* switch_root -> .*busybox'; then
+    if lsinitrd "$TESTDIR/initramfs.testing" | grep -E '^l.* switch_root -> .*busybox'; then
         echo "FAIL: switch_root is a busybox symlink, host version was not preserved" >&2
         ret=1
     fi
 
     # repeat the same test, but override the list of applets
-    rm "$initrd"
+    rm "$TESTDIR/initramfs.testing"
     DRACUT_MODULE_BUSYBOX_LINKS="$(cat "${TESTDIR}/busybox.links")" \
         test_dracut \
         --no-hostonly --no-kernel --drivers "" \
-        --modules "base busybox" \
-        "$initrd"
-    check_applets_from_busybox "$initrd" ash cp ip ls mv mkdir silly-serval sleep tr || ret=1
+        --modules "base busybox"
+    check_applets_from_busybox "$TESTDIR/initramfs.testing" ash cp ip ls mv mkdir silly-serval sleep tr || ret=1
 
     return "$ret"
 }
