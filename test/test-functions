@@ -12,10 +12,20 @@ export TESTDIR
 export BOOT_ROOT="$TESTDIR"
 export QEMU_LOGFILE="$TESTDIR/qemu.log"
 
-if [[ -z ${basedir-} ]]; then basedir="$(realpath ../..)"; fi
+if [[ -z ${basedir-} ]]; then
+    basedir="$(realpath ../..)"
+else
+    basedir="$(realpath "${basedir}")"
+fi
 
 DRACUT=${DRACUT-dracut}
 PKGLIBDIR=${PKGLIBDIR-$basedir}
+
+if [ "$PKGLIBDIR" = "$basedir" ] && [ -x "$basedir/dracut.sh" ]; then
+    # running for a local build, extend PATH so executables from build will be
+    # used
+    export PATH="${basedir}:${PATH}"
+fi
 
 if [[ -f /etc/machine-id ]]; then
     read -r TOKEN < /etc/machine-id || :
