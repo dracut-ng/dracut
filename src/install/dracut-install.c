@@ -931,7 +931,13 @@ static const char *elf_map_string(const char *map, size_t src_len, size_t offset
                         if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
                                 break; \
 \
-                        const char *runpath = elf_map_string((const char *)map, src_len, ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val)); \
+                        /* Clamp both operands to the map so the offset addition cannot wrap. */ \
+                        size_t strtab_off = ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset); \
+                        if (strtab_off > src_len || \
+                            ELF_BYTESWAP(B, d->d_un.d_val) > src_len - strtab_off) \
+                                break; \
+\
+                        const char *runpath = elf_map_string((const char *)map, src_len, strtab_off + ELF_BYTESWAP(B, d->d_un.d_val)); \
                         if (!runpath) \
                                 break; \
 \
@@ -1091,7 +1097,13 @@ skip:
                         if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
                                 break; \
 \
-                        soname = elf_map_string((const char *)map, src_len, ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val)); \
+                        /* Clamp both operands to the map so the offset addition cannot wrap. */ \
+                        size_t strtab_off = ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset); \
+                        if (strtab_off > src_len || \
+                            ELF_BYTESWAP(B, d->d_un.d_val) > src_len - strtab_off) \
+                                break; \
+\
+                        soname = elf_map_string((const char *)map, src_len, strtab_off + ELF_BYTESWAP(B, d->d_un.d_val)); \
                         if (!soname) \
                                 break; \
                 } \
@@ -1181,7 +1193,13 @@ skip:
                         if (ELF_BYTESWAP(32, shdr[i].sh_link) >= ELF_BYTESWAP(16, ehdr->e_shnum)) \
                                 break; \
 \
-                        const char *soname = elf_map_string((const char *)map, src_len, ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset) + ELF_BYTESWAP(B, d->d_un.d_val)); \
+                        /* Clamp both operands to the map so the offset addition cannot wrap. */ \
+                        size_t strtab_off = ELF_BYTESWAP(B, shdr[ELF_BYTESWAP(32, shdr[i].sh_link)].sh_offset); \
+                        if (strtab_off > src_len || \
+                            ELF_BYTESWAP(B, d->d_un.d_val) > src_len - strtab_off) \
+                                break; \
+\
+                        const char *soname = elf_map_string((const char *)map, src_len, strtab_off + ELF_BYTESWAP(B, d->d_un.d_val)); \
                         if (!soname) \
                                 break; \
                         if (hashmap_get(pdeps, soname)) \
