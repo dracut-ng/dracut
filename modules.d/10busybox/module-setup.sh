@@ -54,6 +54,11 @@ install() {
             # See https://github.com/vda-linux/busybox_mirror/issues/35
             continue
         fi
+        if [[ ${_path##*/} == sulogin ]]; then
+            # The busybox sulogin applet does not support the option -e.
+            # See https://github.com/vda-linux/busybox_mirror/issues/36
+            continue
+        fi
 
         # if busybox is built without CONFIG_FEATURE_INSTALLER=y, the list
         # has only plain names
