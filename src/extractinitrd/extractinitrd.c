@@ -633,7 +633,7 @@ static void usage(FILE *stream)
 {
         fprintf(stream, "\
 \n\
-Usage: extractinitrd [-l|--list] [-P|--parts RANGE] [--to-stdout] [-D|--directory DIR]\n\
+Usage: dracut-extractinitrd [-l|--list] [-P|--parts RANGE] [--to-stdout] [-D|--directory DIR]\n\
                      [-v|--verbose] [--debug] INITRD [PATTERN...]\n\
 \n\
 Options:\n\
