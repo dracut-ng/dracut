@@ -97,14 +97,6 @@ install() {
     inst_simple "$moddir/insmodpost.sh" /sbin/insmodpost.sh
 
     if ! dracut_module_included "systemd"; then
-        # Prefer the host's util-linux switch_root over the busybox
-        # applet. When the busybox dracut module is included it runs first and
-        # may have symlinked switch_root to its applet. Drop that symlink so
-        # the host binary is installed instead
-        if dracut_module_included "busybox"; then
-            rm -f "${initdir}/bin/switch_root" "${initdir}/sbin/switch_root" \
-                "${initdir}/usr/bin/switch_root" "${initdir}/usr/sbin/switch_root"
-        fi
         inst_multiple switch_root || dfatal "Failed to install switch_root"
         inst_script "$moddir/init.sh" "/init"
         inst_hook cmdline 01 "$moddir/parse-kernel.sh"
