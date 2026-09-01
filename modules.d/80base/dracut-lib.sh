@@ -512,9 +512,17 @@ udevproperty() {
     done
 }
 
+_resolve_path() {
+    if command -v realpath > /dev/null; then
+        realpath "$@"
+    else
+        readlink -e -q "$@"
+    fi
+}
+
 find_mount() {
     local dev wanted_dev
-    wanted_dev="$(readlink -e -q "$1")"
+    wanted_dev="$(_resolve_path "$1")"
     while read -r dev _ || [ -n "$dev" ]; do
         [ "$dev" = "$wanted_dev" ] && echo "$dev" && return 0
     done < /proc/mounts
@@ -645,7 +653,7 @@ copytree() {
     local src="$1" dest="$2"
     [ -d "$src" ] || return 1
     mkdir -p "$dest" || return 1
-    dest=$(readlink -e -q "$dest") || return 1
+    dest=$(resolve_path "$dest") || return 1
     (
         cd "$src" || exit 1
         cp -af . -t "$dest"
@@ -727,8 +735,9 @@ devnames() {
     esac
 
     for d in $dev; do
+        [ -e "$d" ] || return 255
         names="$names
-$(readlink -e -q "$d")" || return 255
+$(_resolve_path "$d")"
     done
 
     echo "${names#
