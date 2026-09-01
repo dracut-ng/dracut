@@ -59,6 +59,10 @@ man8pages = man/dracut.8 \
             modules.d/77dracut-systemd/dracut-pre-udev.service.8 \
             modules.d/77initqueue/dracut-initqueue.service.8
 
+ifeq ($(enable_dracut_cpio),yes)
+man8pages += man/dracut-cpio.8
+endif
+
 manpages = $(man1pages) $(man5pages) $(man7pages) $(man8pages)
 
 .PHONY: install clean distclean archive test all check AUTHORS CONTRIBUTORS doc
