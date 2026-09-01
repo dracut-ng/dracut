@@ -57,7 +57,7 @@ extract_initrd() {
     if command -v 3cpio > /dev/null; then
         3cpio --extract "$initrd"
     else
-        "$dracutbasedir/extractinitrd" "$initrd"
+        "$dracutbasedir/dracut-extractinitrd" "$initrd"
     fi
 }
 
