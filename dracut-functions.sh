@@ -1554,7 +1554,7 @@ fi
 DRACUT_LDCONFIG=${DRACUT_LDCONFIG:-ldconfig}
 DRACUT_TESTBIN=${DRACUT_TESTBIN:-/bin/sh}
 
-if ! [[ ${DRACUT_INSTALL-} ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then
+if ! [[ ${DRACUT_INSTALL-} ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut.sh" ]] && [[ -x "${BASH_SOURCE[0]%/*}/dracut-install" ]]; then
     # running from build dir, use build result
     DRACUT_INSTALL="${BASH_SOURCE[0]%/*}/dracut-install"
 elif ! [[ ${DRACUT_INSTALL-} ]]; then
