@@ -18,7 +18,11 @@ installkernel() {
             "=drivers/video/backlight"
     fi
 
-    hostonly=$(optional_hostonly) instmods amdkfd hyperv_fb "=drivers/pwm"
+    if [[ ${DRACUT_ARCH:-$(uname -m)} != mips64 ]]; then
+        hostonly=$(optional_hostonly) instmods amdkfd hyperv_fb "=drivers/pwm"
+    else
+        hostonly=$(optional_hostonly) instmods "=drivers/pwm"
+    fi
 
     # if the hardware is present, include module even if it is not currently loaded,
     # as we could e.g. be in the installer; nokmsboot boot parameter will disable
@@ -50,9 +54,18 @@ installkernel() {
             hostonly=$(optional_hostonly) instmods "$modname"
         done
     else
-        dracut_instmods -o -s "drm_crtc_init|drm_dev_register|drm_encoder_init" "=drivers/gpu/drm" "=drivers/staging"
-        # also include privacy screen providers (see above comment)
-        # atm all providers live under drivers/platform/x86
-        dracut_instmods -o -s "drm_privacy_screen_register" "=drivers/platform/x86"
+        if [[ ${DRACUT_ARCH:-$(uname -m)} != mips64 ]]; then
+            dracut_instmods -o -s "drm_crtc_init|drm_dev_register|drm_encoder_init" "=drivers/gpu/drm" "=drivers/staging"
+            # also include privacy screen providers (see above comment)
+            # atm all providers live under drivers/platform/x86
+            dracut_instmods -o -s "drm_privacy_screen_register" "=drivers/platform/x86"
+        else
+            # If we are using mips64 (assumed to be MIPS-based
+            # Loongson), only install loongson, radeon, and amdgpu as
+            # these are the only three DRM drivers supported by these
+            # platforms. We need to minimise the sizes of the initramfs so
+            # that it fits within the RAM allocated by the system firmware.
+            dracut_instmods -o -s "drm_crtc_init|drm_dev_register|drm_encoder_init" "=drivers/gpu/drm/amd/amdgpu" "=drivers/gpu/drm/amd/amdxcp" "=drivers/gpu/drm/loongson" "=drivers/gpu/drm/radeon"
+        fi
     fi
 }
