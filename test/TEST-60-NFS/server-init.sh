@@ -91,6 +91,8 @@ mkdir -p /run/rpcbind
 : > /dev/watchdog
 modprobe nfsd
 : > /dev/watchdog
+command -v rpcdebug > /dev/null && rpcdebug -m rpc -s all && rpcdebug -m nfsd -s all
+: > /dev/watchdog
 mount -t nfsd nfsd /proc/fs/nfsd
 : > /dev/watchdog
 exportfs -r
