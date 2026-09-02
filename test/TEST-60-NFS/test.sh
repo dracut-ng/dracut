@@ -55,11 +55,16 @@ client_test() {
     qemu_add_drive disk_args "$TESTDIR"/marker.img marker 1
     qemu_add_drive disk_args "$TESTDIR"/marker2.img marker2 1
 
+    # The rd.driver.pre=nfsv3 kernel command line option is a temporary
+    # workaround to fix a kernel bug: nfsv3 is needed by NFSv4 tests until
+    # flexfilelayout exposes it as a softdep or the symbol nfs3_set_ds_client
+    # is resolved from the driver.
+    # https://github.com/dracut-ng/dracut/issues/2688
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -device virtio-net-pci,netdev=lan0,mac="$mac" \
         -netdev dgram,id=lan0,local.type=inet,local.host=localhost,local.port=60601,remote.type=inet,remote.host=localhost,remote.port=60600 \
-        -append "$TEST_KERNEL_CMDLINE $cmdline ro" \
+        -append "$TEST_KERNEL_CMDLINE $cmdline ro rd.driver.pre=nfsv3" \
         -initrd "$TESTDIR"/initramfs.testing
 
     if ! test_marker_check nfs-OK; then
