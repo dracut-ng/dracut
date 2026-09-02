@@ -3133,8 +3133,6 @@ if [[ -e $outfile ]]; then
     outfile="${outfile}.tmp"
 fi
 
-dinfo "*** Creating image file '$outfile' ***"
-
 # Read list of files and echo them plus all leading directories.
 # The same directories might be printed multiple times (even with sorted input)!
 add_directories() {
@@ -3202,6 +3200,8 @@ if [[ $do_hardlink == yes ]] && command -v hardlink > /dev/null; then
         clamp_mtimes "$initdir" -type d
     fi
 fi
+
+dinfo "*** Creating image file '$outfile' ***"
 
 [[ $EUID != 0 ]] && cpio_owner="0:0"
 
