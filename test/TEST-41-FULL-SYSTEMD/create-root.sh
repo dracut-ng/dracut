@@ -24,7 +24,10 @@ umount /root/usr
 mount -t btrfs -o subvol=usr /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_usr /root/usr
 mount --bind /root/usr /root_crypt/usr
 cp -a -t /root /source/*
-cp -a -t /root_crypt /source/*
+for path in /source/*; do
+    [ "${path##*/}" = usr ] && continue
+    cp -a "$path" /root_crypt
+done
 mkdir -p /root/run /root_crypt/run
 btrfs filesystem sync /root/usr
 btrfs filesystem sync /root
