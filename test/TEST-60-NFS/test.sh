@@ -8,7 +8,7 @@ TEST_DESCRIPTION="root filesystem on NFS with $USE_NETWORK"
 
 test_check() {
     # curl needed for url-lib
-    require_binaries_for_test curl exportfs
+    require_binaries_for_test curl dnsmasq exportfs rpc.mountd rpc.nfsd tcpdump
 }
 
 # Uncomment this to debug failures
