@@ -8,7 +8,7 @@ TEST_DESCRIPTION="root filesystem on NFS with $USE_NETWORK"
 
 test_check() {
     # curl needed for url-lib
-    require_binaries_for_test curl dnsmasq exportfs rpc.mountd rpc.nfsd tcpdump
+    require_binaries_for_test curl dnsmasq exportfs nfsdcld rpc.mountd rpc.nfsd tcpdump
 }
 
 # Uncomment this to debug failures
@@ -225,7 +225,7 @@ make_server_rootfs() {
         --add-confdir test-root \
         -a "bash $USE_NETWORK nfs" \
         --add-drivers "nfsd sunrpc lockd" \
-        -I "exportfs pidof rpc.nfsd rpc.mountd dnsmasq tcpdump" \
+        -I "exportfs pidof rpc.nfsd rpc.mountd dnsmasq tcpdump nfsdcld" \
         --install-optional "/etc/netconfig /etc/nsswitch.conf /etc/rpc /etc/protocols /etc/services /usr/etc/nsswitch.conf /usr/etc/rpc /usr/etc/protocols /usr/etc/services rpc.idmapd /etc/idmapd.conf" \
         -f "$TESTDIR"/initramfs.root
 

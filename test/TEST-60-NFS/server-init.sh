@@ -95,6 +95,8 @@ mount -t nfsd nfsd /proc/fs/nfsd
 : > /dev/watchdog
 exportfs -r
 : > /dev/watchdog
+nfsdcld
+: > /dev/watchdog
 rpc.nfsd
 : > /dev/watchdog
 rpc.mountd
