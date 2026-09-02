@@ -225,7 +225,7 @@ make_server_rootfs() {
         --add-confdir test-root \
         -a "bash $USE_NETWORK nfs" \
         --add-drivers "nfsd sunrpc lockd" \
-        -I "exportfs pidof rpc.nfsd rpc.mountd dnsmasq tcpdump nfsdcld" \
+        -I "exportfs pidof rpc.nfsd rpc.mountd dnsmasq tcpdump nfsdcld ${SERVER_DEBUG:+rpcdebug}" \
         --install-optional "/etc/netconfig /etc/nsswitch.conf /etc/rpc /etc/protocols /etc/services /usr/etc/nsswitch.conf /usr/etc/rpc /usr/etc/protocols /usr/etc/services rpc.idmapd /etc/idmapd.conf" \
         -f "$TESTDIR"/initramfs.root
 
