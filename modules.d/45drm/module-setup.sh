@@ -12,6 +12,7 @@ installkernel() {
     if [[ ${DRACUT_ARCH} == arm* || ${DRACUT_ARCH} == aarch64 ]]; then
         # arm/aarch64 specific modules needed by drm
         hostonly=$(optional_hostonly) instmods \
+            leds-qcom-lpg \
             "=drivers/gpu/drm/i2c" \
             "=drivers/gpu/drm/panel" \
             "=drivers/gpu/drm/bridge" \
