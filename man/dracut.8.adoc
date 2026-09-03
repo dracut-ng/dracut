@@ -117,6 +117,22 @@ example:
 ----
 ===============================
 
+**--prefer** _<list of dracut modules>_::
+    Add a space-separated list of dracut modules to be preferred. Preferred modules
+    will be included if they are supported by your system, but safely skipped if
+    they are not compatible or have missing dependencies.
+    If a module appears in both _prefer_ and _omit_ lists, it will be omitted.
+    This parameter can be specified multiple times.
++
+[NOTE]
+===============================
+If the list has multiple arguments, then you have to put these in quotes. For
+example:
+----
+# dracut --prefer "module1 module2"  ...
+----
+===============================
+
 **-m, --modules** _<list of dracut modules>_::
     Specify a space-separated list of dracut modules to call when building the
     initramfs. Modules are located in _/usr/lib/dracut/modules.d_. This
