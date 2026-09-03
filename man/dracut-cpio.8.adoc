@@ -1,0 +1,57 @@
+DRACUT-CPIO(8)
+==============
+:doctype: manpage
+:man source:   dracut
+:man manual:   dracut
+
+NAME
+----
+dracut-cpio - builds cpio archives, optimized for copy-on-write filesystems
+
+SYNOPSIS
+--------
+**dracut-cpio** [_OPTIONS_...] _OUTPUT_
+
+DESCRIPTION
+-----------
+dracut-cpio builds cpio archives, optimized for copy-on-write filesystems by
+using the man:copy_file_range[2] syscall via Rust's io::copy(). See the
+man:dracut[8] **--enhanced-cpio** option. _OUTPUT_ is the path of the cpio
+archive to create. The list of files to include is read from stdin.
+
+**Note:** This is a dracut internal tool, do not expect a stable interface
+across versions.
+
+OPTIONS
+-------
+**--data-align** _ALIGNMENT_::
+    Attempt to pad archive to achieve ALIGNMENT (in bytes) for file data.
+
+**-0**, **--null**::
+    Expect null delimeters in stdin filename list instead of newline.
+
+**--mtime** _EPOCH_::
+    Use EPOCH for archived mtime instead of filesystem reported values.
+
+**--owner** _UID:GID_::
+    Use _UID_ and _GID_ instead of filesystem reported owner values.
+
+**--truncate-existing**::
+    Truncate and overwrite any existing _OUTPUT_ file, instead of appending.
+
+**-h**, **--help**::
+    Print help message.
+
+EXAMPLE
+-------
+
+`find fs-tree/ | dracut-cpio archive.cpio`
+
+AVAILABILITY
+------------
+The dracut-cpio command is part of the dracut package and is available from
+link:$$https://github.com/dracut-ng/dracut$$[https://github.com/dracut-ng/dracut]
+
+SEE ALSO
+--------
+man:dracut[8]

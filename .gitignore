@@ -7,11 +7,11 @@
 /.project
 /Makefile.inc
 /dracut-cpio
+/dracut-extractinitrd
 /dracut-install
 /dracut-util
 /dracut.conf.d/*.conf
 /dracut.pc
-/extractinitrd
 /src/dracut-cpio/target/
 /test/*/*.html
 /test/*/*.log

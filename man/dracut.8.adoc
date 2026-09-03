@@ -712,6 +712,17 @@ _DRACUT_TESTBIN_::
 Default:
     _/bin/sh_
 
+_DRACUT_RUNTIMEDIR_::
+    overrides the directory containing compiled dracut tools to be installed
+    into the initramfs, e.g. **dracut-util**. Used with **--sysroot**. If using
+    **dracut** installed on the host (outside the sysroot) to build an
+    initramfs for a cross-compiled sysroot, use this option to set the location
+    of cross-compiled dracut runtime tools.
++
+Default:
+    _$dracutsysrootdir/usr/lib/dracut_ with **--sysroot**,
+    _$prefix/lib/dracut_ otherwise
+
 _DRACUT_INSTALL_::
     overrides path and options for executing _dracut-install_ internally.
     Optional. Can be used to debug _dracut-install_ while running the
@@ -777,7 +788,7 @@ Default:
 
 _DRACUT_INSTALL_LOG_TARGET_::
     overrides **DRACUT_LOG_TARGET** for **dracut-install**. It allows
-    running **dracut-install* to run with different log target that
+    running **dracut-install** to run with different log target that
     **dracut** runs with.
 +
 Default:
