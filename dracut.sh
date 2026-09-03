@@ -1330,7 +1330,7 @@ DRACUT_COMPRESS_ZSTD=${DRACUT_COMPRESS_ZSTD:-zstd}
 DRACUT_COMPRESS_LZ4=${DRACUT_COMPRESS_LZ4:-lz4}
 DRACUT_COMPRESS_CAT=${DRACUT_COMPRESS_CAT:-cat}
 
-if [[ $_no_compress_l == "$DRACUT_COMPRESS_CAT" ]]; then
+if [[ $_no_compress_l == cat ]]; then
     compress="$DRACUT_COMPRESS_CAT"
 fi
 
