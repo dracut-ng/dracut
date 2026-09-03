@@ -1117,8 +1117,9 @@ remove_hostonly_files() {
 # returns OK if kernel_module is loaded
 # modprobe fails if /lib/modules is not available (--no-kernel use case)
 load_fstype() {
-    local - fs _fs="${2:-$1}"
+    local - d fs _fs="${2:-$1}"
     set +x
+    [ -n "$1" ] || return 1
     while read -r d fs || [ "$d" ]; do
         [ "${fs:-$d}" = "$_fs" ] && return 0
     done < /proc/filesystems
