@@ -137,24 +137,30 @@ else
     fi
 fi
 
+dev_to_overlay_pathname() {
+    local device="$1"
+    local label uuid
+
+    label=$(blkid -s LABEL -o value "$device") || label=""
+    uuid=$(blkid -s UUID -o value "$device") || uuid=""
+    echo "overlay-$label-$uuid"
+}
+
 # overlay setup helper function
 do_live_overlay() {
     # create a sparse file for the overlay
     # overlay: if non-ram overlay searching is desired, do it,
     #              otherwise, create traditional overlay in ram
 
-    l=$(blkid -s LABEL -o value "$livedev") || l=""
-    u=$(blkid -s UUID -o value "$livedev") || u=""
-
     if [ -z "$overlay" ]; then
-        pathspec="/${live_dir}/overlay-$l-$u"
+        pathspec="/${live_dir}/$(dev_to_overlay_pathname "$livedev")"
     elif strstr "$overlay" ":"; then
         # pathspec specified, extract
         pathspec=${overlay##*:}
     fi
 
     if [ -z "$pathspec" ] || [ "$pathspec" = "auto" ]; then
-        pathspec="/${live_dir}/overlay-$l-$u"
+        pathspec="/${live_dir}/$(dev_to_overlay_pathname "$livedev")"
     elif ! str_starts "$pathspec" "/"; then
         pathspec=/"${pathspec}"
     fi
