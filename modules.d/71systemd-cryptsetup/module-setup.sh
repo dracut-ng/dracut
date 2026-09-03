@@ -73,7 +73,7 @@ install() {
         while read -r _mapper _dev _luksfile _luksoptions || [[ -n $_mapper ]]; do
             # ignore paths followed by a device specification
             if [[ $_luksfile == *":"* ]]; then
-                return
+                continue
             fi
 
             # if no explicit path is provided, try to include units for auto-discoverable keys
