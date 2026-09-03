@@ -221,6 +221,17 @@ cpio_extract() {
 }
 
 # Takes optional pattern arguments
+cpio_extract_to_directory() {
+    local directory="$1"
+    shift
+    if [ "$EXTRACTOR" = 3cpio ]; then
+        3cpio --extract -C "$directory" --make-directories --parts "$parts" $verbose "$image" -- "$@"
+    else
+        "$EXTRACTOR" -D "$directory" --parts "$parts" $verbose "$image" -- "$@"
+    fi
+}
+
+# Takes optional pattern arguments
 cpio_extract_to_stdout() {
     if [ "$EXTRACTOR" = 3cpio ]; then
         3cpio --extract --parts "$parts" --to-stdout "$image" -- "$@"
@@ -244,13 +255,14 @@ extract_squash_img() {
     [[ $SQUASH_TMPDIR == none ]] && return 1
     [[ -s $SQUASH_TMPFILE ]] && return 0
 
+    cpio_extract_to_directory "$TMPDIR" squash-root.img squashfs-root.img erofs-root.img
+
     # Before dracut 104 the image was named squash-root.img. Keep the old name
     # so newer versions of lsinitrd can inspect initrds build with older dracut
     # versions.
     for _img in squash-root.img squashfs-root.img erofs-root.img; do
         _tmp="$TMPDIR/$_img"
-        cpio_extract_to_stdout "$_img" > "$_tmp"
-        [[ -s $_tmp ]] || continue
+        [[ -s $_tmp && -f $_tmp ]] || continue
 
         SQUASH_TMPFILE="$_tmp"
 
