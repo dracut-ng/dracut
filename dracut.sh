@@ -1533,7 +1533,10 @@ dracut_module_path() {
 if [[ ${hostonly-} == "-h" ]] && [[ $no_kernel != yes ]]; then
     if ! [[ $DRACUT_KERNEL_MODALIASES ]] || ! [[ -f $DRACUT_KERNEL_MODALIASES ]]; then
         export DRACUT_KERNEL_MODALIASES="${DRACUT_TMPDIR}/modaliases"
-        $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${srcmods:+--kerneldir "$srcmods"} --modalias > "$DRACUT_KERNEL_MODALIASES"
+        if ! $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${srcmods:+--kerneldir "$srcmods"} --modalias > "$DRACUT_KERNEL_MODALIASES"; then
+            dfatal "Generating the kernel modalias cache failed; cannot continue in host-only mode."
+            exit 1
+        fi
     fi
 fi
 
