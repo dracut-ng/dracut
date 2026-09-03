@@ -632,7 +632,7 @@ fn params_process(props: &mut ArchiveProperties) -> argument::Result<PathBuf> {
         Argument::short_flag(
             '0',
             "null",
-            "Expect null delimeters in stdin filename list instead of newline.",
+            "Expect null delimiters in stdin filename list instead of newline.",
         ),
         Argument::value(
             "mtime",
