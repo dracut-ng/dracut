@@ -50,6 +50,10 @@ WARNING: Avoid manually omitting dracut modules, as you may inadvertently
 remove essential ones that dracut can't detect or warn you about. Using this
 option is not recommended and is at your own risk.
 
+*prefer_dracutmodules+=*" __<dracut modules>__ "::
+Specify a space-separated list of dracut modules that will be added
+if their preconditions are met.
+
 *dracutmodules+=*" __<dracut modules>__ "::
 Specify a space-separated list of dracut modules to call when building the
 initramfs. Modules are located in _/usr/lib/dracut/modules.d_.

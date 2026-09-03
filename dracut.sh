@@ -96,6 +96,8 @@ Creates initial ramdisk images for preloading modules
   --force-add [LIST]    Force to add a space-separated list of dracut modules
                          to the default set of modules, when -H is specified.
   -o, --omit [LIST]     Omit a space-separated list of dracut modules.
+  --prefer [LIST]       Specify a space-separated list of dracut modules that
+                         will be added if their preconditions are met.
   -m, --modules [LIST]  Specify a space-separated list of dracut modules to
                          call when building the initramfs. Modules are located
                          in /usr/lib/dracut/modules.d.
@@ -392,6 +394,7 @@ rearrange_params() {
             --long add-drivers: \
             --long force-drivers: \
             --long omit-drivers: \
+            --long prefer: \
             --long modules: \
             --long omit: \
             --long drivers: \
@@ -595,6 +598,7 @@ no_kernel=
 nofscks=
 omit_dracutmodules=
 omit_drivers=
+prefer_dracutmodules=
 prefix=
 ro_mnt=
 squash_compress=
@@ -693,6 +697,11 @@ while :; do
                     ;;
                 -o | --omit)
                     omit_dracutmodules_l+=("$2")
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --prefer)
+                    prefer_dracutmodules_l+=("$2")
                     PARMS_TO_STORE+=" '$2'"
                     shift
                     ;;
@@ -1126,6 +1135,7 @@ export SYSTEMCTL=${SYSTEMCTL:-systemctl}
 ((${#add_dracutmodules_l[@]})) && add_dracutmodules+=" ${add_dracutmodules_l[*]} "
 ((${#omit_dracutmodules_l[@]})) && omit_dracutmodules+=" ${omit_dracutmodules_l[*]} "
 ((${#force_add_dracutmodules_l[@]})) && force_add_dracutmodules+=" ${force_add_dracutmodules_l[*]} "
+((${#prefer_dracutmodules_l[@]})) && prefer_dracutmodules+=" ${prefer_dracutmodules_l[*]} "
 ((${#fscks_l[@]})) && fscks+=" ${fscks_l[*]} "
 ((${#add_fstab_l[@]})) && add_fstab+=" ${add_fstab_l[*]} "
 ((${#install_items_l[@]})) && install_items+=" ${install_items_l[*]} "
@@ -1863,7 +1873,7 @@ check_module() {
         fi
     fi
 
-    if [[ " $dracutmodules $add_dracutmodules $force_add_dracutmodules" == *\ $_mod\ * ]]; then
+    if [[ " $dracutmodules $add_dracutmodules $force_add_dracutmodules $prefer_dracutmodules" == *\ $_mod\ * ]]; then
         if [[ " $dracutmodules $force_add_dracutmodules " == *\ $_mod\ * ]]; then
             module_check "$_mod" 1 "$_moddir"
             _ret=$?
@@ -1871,7 +1881,7 @@ check_module() {
             module_check "$_mod" 0 "$_moddir"
             _ret=$?
         fi
-        # explicit module, so also accept _ret=255
+        # explicit or preferred module, so accept _ret=0 and _ret=255
         [[ $_ret == 0 || $_ret == 255 ]] || return 1
     else
         # module not in our list
@@ -1897,6 +1907,9 @@ check_module() {
         [[ " $add_dracutmodules " == *\ $_mod\ * ]] \
             && [[ " $add_dracutmodules " != *\ $_moddep\ * ]] \
             && add_dracutmodules+=" $_moddep "
+        [[ " $prefer_dracutmodules " == *\ $_mod\ * ]] \
+            && [[ " $prefer_dracutmodules " != *\ $_moddep\ * ]] \
+            && prefer_dracutmodules+=" $_moddep "
         [[ " $force_add_dracutmodules " == *\ $_mod\ * ]] \
             && [[ " $force_add_dracutmodules " != *\ $_moddep\ * ]] \
             && force_add_dracutmodules+=" $_moddep "
@@ -2597,6 +2610,7 @@ if [[ $printconfig ]]; then
         nofscks \
         omit_dracutmodules \
         omit_drivers \
+        prefer_dracutmodules \
         prefix \
         ro_mnt \
         squash_compress \

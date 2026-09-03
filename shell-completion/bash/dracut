@@ -40,7 +40,7 @@ _dracut() {
             --no-uefi --no-ukify --no-machineid --version --parallel --printconfig
             '
         [ARG]='-a -m -o -d -I -k -c -L -r -i
-            --kver --add --force-add --add-drivers --force-drivers
+            --kver --add --force-add --add-drivers --force-drivers --prefer
             --omit-drivers --modules --omit --drivers --filesystems --install
             --fwdir --libdirs --fscks --add-fstab --mount --device
             --kmoddir --conf --confdir --tmpdir --stdlog --compress --prefix
@@ -63,7 +63,7 @@ _dracut() {
                 comps=$(compgen -f -- "$cur")
                 compopt -o filenames
                 ;;
-            -a | -m | -o | --add | --modules | --omit)
+            -a | -m | -o | --add | --modules | --omit | --prefer)
                 comps=$(dracut --list-modules 2> /dev/null)
                 ;;
             --compress-level)
