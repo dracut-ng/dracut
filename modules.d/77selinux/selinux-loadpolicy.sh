@@ -46,7 +46,19 @@ rd_load_policy() {
             [ -e "$NEWROOT"/.autorelabel ] && LANG=C /usr/sbin/setenforce 0
             mount --rbind /dev "$NEWROOT/dev"
             LANG=C chroot "$NEWROOT" /sbin/restorecon -R /dev
-            umount -R "$NEWROOT/dev"
+
+            # busybox does not support umount --recursive
+            local target
+            sed '1!G;h;$!d' /proc/self/mountinfo | while read -r _ _ _ _ target _; do
+                case "$target" in
+                    "$NEWROOT"/dev | "$NEWROOT"/dev/*)
+                        target=$(printf '%b_' "$target")
+                        target=${target%_}
+                        umount "$target"
+                        ;;
+                esac
+            done
+
             return 0
         fi
 
