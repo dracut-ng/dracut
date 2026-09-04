@@ -42,7 +42,18 @@ squash_install() {
     # Create mount points for squash loader and basic directories
     mkdir -p "$initdir"/squash
     for _dir in squash usr/bin usr/sbin usr/lib; do
-        mkdir -p "$squashdir/$_dir"
+        if [[ -L ${dracutsysrootdir-}/$_dir ]]; then
+            # the host directory is a symlink (e.g. /usr/sbin -> bin on
+            # merged-usr systems); replicate the same symlink in the
+            # loader, otherwise tools installed into one merged tree
+            # (e.g. sh in usr/sbin) are not reachable from the other
+            # (/usr/bin/sh). The target text is copied from the host so
+            # that the link is valid both at boot time and while the
+            # loader directory is still being populated.
+            ln -sfn "$(readlink "${dracutsysrootdir-}/$_dir")" "$squashdir/$_dir"
+        else
+            mkdir -p "$squashdir/$_dir"
+        fi
         [[ $_dir == usr/* ]] && ln_r "/$_dir" "${_dir#usr}"
     done
 
