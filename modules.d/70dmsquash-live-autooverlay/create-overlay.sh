@@ -70,11 +70,19 @@ gatherData() {
 
     overlayPartition=${blockDevice}$((currentPartitionCount + 1))
 
-    label=$(blkid --match-tag LABEL --output value "$rootDevice")
-    uuid=$(blkid --match-tag UUID --output value "$rootDevice")
-    if [ -z "$label" ] || [ -z "$uuid" ]; then
-        die "Overlay creation failed: failed to look up root device label and UUID"
+    local line
+    line=$(blkid "$rootDevice")
+
+    label="${line#* LABEL=\"}"
+    if [ "$label" = "$line" ]; then
+        die "Overlay creation failed: failed to look up root device label"
     fi
+    label="${label%%\"*}"
+    uuid="${line#* UUID=\"}"
+    if [ "$uuid" = "$line" ]; then
+        die "Overlay creation failed: failed to look up root device UUID"
+    fi
+    uuid="${uuid%%\"*}"
 }
 
 createPartition() {

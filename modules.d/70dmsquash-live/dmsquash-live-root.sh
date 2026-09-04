@@ -139,10 +139,24 @@ fi
 
 dev_to_overlay_pathname() {
     local device="$1"
-    local label uuid
+    local label line uuid
 
-    label=$(blkid -s LABEL -o value "$device") || label=""
-    uuid=$(blkid -s UUID -o value "$device") || uuid=""
+    line=$(blkid "$device")
+
+    label="${line#* LABEL=\"}"
+    if [ "$label" != "$line" ]; then
+        label="${label%%\"*}"
+    else
+        label=""
+    fi
+
+    uuid="${line#* UUID=\"}"
+    if [ "$uuid" != "$line" ]; then
+        uuid="${uuid%%\"*}"
+    else
+        uuid=""
+    fi
+
     echo "overlay-$label-$uuid"
 }
 
