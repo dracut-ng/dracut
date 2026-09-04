@@ -652,49 +652,6 @@ copytree() {
     )
 }
 
-# Evaluates command for UUIDs either given as arguments for this function or all
-# listed in /dev/disk/by-uuid.  UUIDs doesn't have to be fully specified.  If
-# beginning is given it is expanded to all matching UUIDs.  To pass full UUID to
-# your command use '$___' as a place holder.  Remember to escape '$'!
-#
-# foreach_uuid_until [ -p prefix ] command UUIDs
-#
-# prefix - string to put just before $___
-# command - command to be evaluated
-# UUIDs - list of UUIDs separated by space
-#
-# The function returns after *first successful evaluation* of the given command
-# with status 0.  If evaluation fails for every UUID function returns with
-# status 1.
-#
-# Example:
-# foreach_uuid_until "mount -U \$___ /mnt; echo OK; umount /mnt" \
-#       "01234 f512 a235567f-12a3-c123-a1b1-01234567abcb"
-foreach_uuid_until() (
-    cd /dev/disk/by-uuid || return 1
-
-    [ "$1" = -p ] && local prefix="$2" && shift 2
-    local cmd="$1"
-    shift
-    local uuids_list="$*"
-    local uuid
-    local full_uuid
-    local ___
-
-    [ -n "${cmd}" ] || return 1
-
-    for uuid in ${uuids_list:-*}; do
-        for full_uuid in "${uuid}"*; do
-            [ -e "${full_uuid}" ] || continue
-            # shellcheck disable=SC2034
-            ___="${prefix}${full_uuid}"
-            eval "${cmd}" && return 0
-        done
-    done
-
-    return 1
-)
-
 # Get kernel name for given device.  Device may be the name too (then the same
 # is returned), a symlink (full path), UUID (prefixed with "UUID=") or label
 # (prefixed with "LABEL=").  If just a beginning of the UUID is specified or
