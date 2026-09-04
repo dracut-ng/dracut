@@ -1,3 +1,7 @@
+# Not installed
+# - fcoe-utils (x86_64 kernel doesn't support it)
+# - NetworkManager (Azure Linux primarily uses systemd-networkd)
+
 FROM mcr.microsoft.com/azurelinux-beta/base/core:4.0
 
 # export
@@ -19,27 +23,34 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     cargo \
     chrony \
     cifs-utils \
+    crypto-policies-scripts \
     cryptsetup \
     device-mapper-multipath \
     dhcpcd \
     diffutils \
     dnsmasq \
+    dracut-live \
     e2fsprogs \
+    erofs-utils \
     fuse3 \
     gcc \
+    ignition \
     iproute \
     iputils \
     iscsi-initiator-utils \
     jq \
     kbd \
-    kexec-tools \
+    kdump-utils \
     kernel \
+    kexec-tools \
     kmod-devel \
+    libfido2 \
     libkcapi-hmaccalc \
     libselinux-utils \
     lvm2 \
     make \
     mdadm \
+    memstrack \
     ndctl \
     nfs-utils \
     nvme-cli \
