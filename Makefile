@@ -59,6 +59,10 @@ man8pages = man/dracut.8 \
             modules.d/77dracut-systemd/dracut-pre-udev.service.8 \
             modules.d/77initqueue/dracut-initqueue.service.8
 
+ifeq ($(enable_dracut_cpio),yes)
+man8pages += man/dracut-cpio.8
+endif
+
 manpages = $(man1pages) $(man5pages) $(man7pages) $(man8pages)
 
 .PHONY: install clean distclean archive test all check AUTHORS CONTRIBUTORS doc
@@ -257,7 +261,7 @@ endif
 		install -m 0755 dracut-util $(DESTDIR)$(pkglibdir)/dracut-util; \
 	fi
 ifeq ($(enable_dracut_cpio),yes)
-	install -m 0755 dracut-cpio $(DESTDIR)$(pkglibdir)/dracut-cpio
+	install -m 0755 dracut-cpio $(DESTDIR)$(bindir)/dracut-cpio
 endif
 	mkdir -p $(DESTDIR)${prefix}/lib/kernel/install.d
 	install -m 0755 install.d/50-dracut.install $(DESTDIR)${prefix}/lib/kernel/install.d/50-dracut.install
