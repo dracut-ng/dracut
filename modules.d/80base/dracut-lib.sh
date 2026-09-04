@@ -711,20 +711,35 @@ foreach_uuid_until() (
 #   /dev/sdf3
 devnames() {
     local dev="$1"
-    local d
-    local names
+    local d line names target
 
     case "$dev" in
         UUID=*)
-            # shellcheck disable=SC2016
-            dev="$(foreach_uuid_until '! blkid -U $___' "${dev#UUID=}")" \
-                && return 255
-            [ -z "$dev" ] && return 255
+            target="${dev#UUID=}"
+            dev="$(blkid | while read -r line; do
+                case "$line" in
+                    *" UUID=\"${target}"*\")
+                        echo "${line%%:*}"
+                        ;;
+                esac
+            done)"
             ;;
-        LABEL=*) dev="$(blkid -L "${dev#LABEL=}")" || return 255 ;;
+        LABEL=*)
+            target="${dev#LABEL=}"
+            dev="$(blkid | while read -r line; do
+                case "$line" in
+                    *" LABEL=\"${target}\""*)
+                        echo "${line%%:*}"
+                        break
+                        ;;
+                esac
+            done)"
+            ;;
         /dev/?*) ;;
         *) return 255 ;;
     esac
+
+    [ -n "$dev" ] || return 255
 
     for d in $dev; do
         names="$names
