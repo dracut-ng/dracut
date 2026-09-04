@@ -52,16 +52,19 @@ install() {
         if [[ ${_path##*/} == mount ]]; then
             # The busybox mount applet does not resolve "auto" to the actual filesystem.
             # See https://github.com/vda-linux/busybox_mirror/issues/34
+            # Note: When dropping this workaround, replace /bin/mount by mount
             continue
         fi
         if [[ ${_path##*/} == nbd-client ]]; then
             # The busybox nbd-client applet does not support the option -check.
             # See https://github.com/vda-linux/busybox_mirror/issues/35
+            # Note: When dropping this workaround, replace /usr/sbin/nbd-client by nbd-client
             continue
         fi
         if [[ ${_path##*/} == sulogin ]]; then
             # The busybox sulogin applet does not support the option -e.
             # See https://github.com/vda-linux/busybox_mirror/issues/36
+            # Note: When dropping this workaround, replace /sbin/sulogin by sulogin
             continue
         fi
 

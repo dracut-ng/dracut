@@ -36,7 +36,7 @@ if getargbool 1 rd.shell || getarg rd.break; then
 
     if getargbool 0 SYSTEMD_SULOGIN_FORCE; then
         # allows passwordless logins if root account is locked.
-        exec sulogin -e
+        exec /sbin/sulogin -e
     else
         exec sulogin
     fi
