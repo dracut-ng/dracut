@@ -3529,13 +3529,16 @@ if [[ $uefi == yes ]]; then
         unset uefi_cmdline
     fi
 
-    if [[ -s ${dracutsysrootdir-}${uefi_splash_image} ]]; then
-        uefi_splash_image="${dracutsysrootdir-}${uefi_splash_image}"
-        uefi_splash_offs=${offs}
-        offs=$((offs + $(stat -Lc%s "$uefi_splash_image")))
-        offs=$((offs + "$align" - offs % "$align"))
-    else
-        unset uefi_splash_image
+    if [[ $uefi_splash_image ]]; then
+        if [[ -s ${dracutsysrootdir-}${uefi_splash_image} ]]; then
+            uefi_splash_image="${dracutsysrootdir-}${uefi_splash_image}"
+            uefi_splash_offs=${offs}
+            offs=$((offs + $(stat -Lc%s "$uefi_splash_image")))
+            offs=$((offs + "$align" - offs % "$align"))
+        else
+            dfatal "UEFI splash image '$uefi_splash_image' does not exist"
+            exit 1
+        fi
     fi
 
     echo "$SBAT_DEFAULT" > "$sbat_out"
