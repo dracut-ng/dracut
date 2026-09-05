@@ -45,14 +45,15 @@ RUN \
 
 # busybox container
 # replace GNU coreutils, util-linux, kmod binaries with busybox binaries
-# workaround for busybox blkid compatibility, see https://github.com/dracut-ng/dracut/issues/2512
+# skip incompatible busybox applets (see modules.d/10busybox/module-setup.sh)
 RUN \
 if [ "$OPTION" == "busybox" ] ; then \
-  mkdir /busybox && cd /busybox && /bin/busybox --install -s /busybox ;\
-  cp -a /busybox/* /bin/ ;\
-  cp -a /busybox/* /sbin/ ;\
-  cp -a /busybox/* /usr/bin/ ;\
-  cp -a /busybox/* /usr/sbin/ ;\
+  for path in $(busybox --list-full); do \
+    [ "${path##*/}" != busybox ] || continue; \
+    case "${path##*/}" in \
+      blkid | losetup | mke2fs | mount) continue ;; \
+    esac; \
+    ln -svfn -- /bin/busybox "$path"; \
+  done; \
   rm -f /bin/kmod ;\
-  apk fix --reinstall blkid ;\
 fi
