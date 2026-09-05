@@ -74,12 +74,12 @@ setup_interface() {
     fi
 
     if getargbool 1 rd.peerdns; then
-        [ -n "${search}${domain}" ] && echo "search $search $domain" > /tmp/net."$netif".resolv.conf
+        [ -n "${search}${domain}" ] && echo "search $search $domain" > /tmp/net."$netif".IPv4.resolv.conf
         if [ -n "$namesrv" ]; then
             for s in $namesrv; do
                 echo nameserver "$s"
             done
-        fi >> /tmp/net."$netif".resolv.conf
+        fi >> /tmp/net."$netif".IPv4.resolv.conf
     fi
     # Note: hostname can be fqdn OR short hostname, so chop off any
     # trailing domain name and explicitly add any domain if set.
@@ -105,12 +105,12 @@ setup_interface6() {
         ${preferred_lft:+preferred_lft ${preferred_lft}}
 
     if getargbool 1 rd.peerdns; then
-        [ -n "${search}${domain}" ] && echo "search $search $domain" > /tmp/net."$netif".resolv.conf
+        [ -n "${search}${domain}" ] && echo "search $search $domain" > /tmp/net."$netif".IPv6.resolv.conf
         if [ -n "$namesrv" ]; then
             for s in $namesrv; do
                 echo nameserver "$s"
             done
-        fi >> /tmp/net."$netif".resolv.conf
+        fi >> /tmp/net."$netif".IPv6.resolv.conf
     fi
 
     # Note: hostname can be fqdn OR short hostname, so chop off any
@@ -235,20 +235,26 @@ case $reason in
         fi
         unset layer2
         setup_interface
+
+        # Classless static routes (DHCP option 121) are IPv4-only. Record them
+        # alongside the default route in the per-interface gw file, which
+        # setup_net sources, rather than embedding them in the setup_net hook
+        # below (which a concurrent IPv6 lease would overwrite).
+        if [ -n "$new_classless_static_routes" ]; then
+            OLDIFS="$IFS"
+            IFS=".$IFS"
+            parse_option_121 "$new_classless_static_routes" >> /tmp/net."$netif".gw
+            IFS="$OLDIFS"
+        fi
+
         set | while read -r line || [ -n "$line" ]; do
             [ "${line#new_}" = "$line" ] && continue
             echo "$line"
-        done > /tmp/dhclient."$netif".dhcpopts
+        done > /tmp/dhclient."$netif".IPv4.dhcpopts
 
         {
             echo '. /lib/net-lib.sh'
             echo "setup_net $netif"
-            if [ -n "$new_classless_static_routes" ]; then
-                OLDIFS="$IFS"
-                IFS=".$IFS"
-                parse_option_121 "$new_classless_static_routes"
-                IFS="$OLDIFS"
-            fi
             echo "source_hook initqueue/online $netif"
             [ -e /tmp/net."$netif".manualup ] || echo "/sbin/netroot $netif"
             echo "rm -f -- $hookdir/initqueue/setup_net_$netif.sh"
@@ -280,7 +286,7 @@ case $reason in
         set | while read -r line || [ -n "$line" ]; do
             [ "${line#new_}" = "$line" ] && continue
             echo "$line"
-        done > /tmp/dhclient."$netif".dhcpopts
+        done > /tmp/dhclient."$netif".IPv6.dhcpopts
 
         {
             echo '. /lib/net-lib.sh'
