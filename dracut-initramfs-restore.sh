@@ -18,6 +18,7 @@ KERNEL_VERSION="$(uname -r)"
 find_initrd_for_kernel_version() {
     local kernel_version="$1"
     local base_path f initrd machine_id
+    local arg deploy entries entry match opt
 
     if [ -d /efi/Default ] || [ -d /boot/Default ] || [ -d /boot/efi/Default ]; then
         machine_id="Default"
@@ -31,6 +32,57 @@ find_initrd_for_kernel_version() {
     if [ -n "$machine_id" ]; then
         for base_path in /efi /boot /boot/efi; do
             initrd="${base_path}/${machine_id}/${kernel_version}/initrd"
+            if [ -f "$initrd" ]; then
+                echo "$initrd"
+                return
+            fi
+        done
+    fi
+
+    # ostree-based distributions (Silverblue, RHEL for Edge, FCOS) keep
+    # per-deployment images under /boot/ostree/<stateroot>-<bootcsum>/
+    if [ -d /boot/ostree ]; then
+        # Prefer the deployment the running kernel booted with, resolved
+        # through its BLS loader entry: the ostree= kernel argument carries
+        # the deployment path, and the matching entry's "initrd" line then
+        # names the exact image.  The filename must match the kernel
+        # version so spec-valid entries that load a microcode image first
+        # cannot mislead the selection.
+        deploy=""
+        set -f
+        for arg in $(tr -d '\r' < /proc/cmdline); do
+            case $arg in
+                ostree=*) deploy=${arg#ostree=} ;;
+            esac
+        done
+        set +f
+        if [ -n "$deploy" ]; then
+            for entries in /efi/loader/entries /boot/loader*/entries /boot/efi/loader/entries; do
+                for entry in "$entries"/*.conf; do
+                    [ -f "$entry" ] || continue
+                    match=n
+                    for opt in $(sed -n 's/^options[[:space:]]\{1,\}//p' "$entry" | tr -d '\r'); do
+                        if [ "$opt" = "ostree=$deploy" ]; then
+                            match=y
+                            break
+                        fi
+                    done
+                    [ "$match" = y ] || continue
+                    for initrd in $(sed -n 's/^initrd[[:space:]]\{1,\}//p' "$entry" | tr -d '\r'); do
+                        case $initrd in
+                            *initramfs-"${kernel_version}".img) ;;
+                            *) continue ;;
+                        esac
+                        initrd=${initrd#/}
+                        if [ -f "/boot/$initrd" ]; then
+                            echo "/boot/$initrd"
+                            return
+                        fi
+                    done
+                done
+            done
+        fi
+        for initrd in /boot/ostree/*/initramfs-"${kernel_version}".img; do
             if [ -f "$initrd" ]; then
                 echo "$initrd"
                 return
