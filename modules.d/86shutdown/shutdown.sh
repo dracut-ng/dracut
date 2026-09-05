@@ -88,7 +88,7 @@ umount_a() {
         fi
     done < /proc/mounts
 
-    losetup -D 2>&7
+    /sbin/losetup -D 2>&7
 
     exec 7>&-
     [ "$_did_umount" = "y" ] && return 0

@@ -32,7 +32,7 @@ fi
 overlay_device="$_RET_DEVICE"
 mkdir -m 0755 -p /run/overlayfs-backing
 
-if ! mount "$overlay_device" /run/overlayfs-backing; then
+if ! /bin/mount "$overlay_device" /run/overlayfs-backing; then
     warn "Failed to mount encrypted overlay $overlay_device, falling back to tmpfs"
     _overlayfs_crypt_fallback_tmpfs
     return 0

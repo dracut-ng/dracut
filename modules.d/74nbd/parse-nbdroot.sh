@@ -61,4 +61,4 @@ if [ -z "$root" ]; then
     # the device is created and waited for in ./nbdroot.sh
 fi
 
-echo 'nbd-client -check /dev/nbd0 > /dev/null 2>&1' > "$hookdir"/initqueue/finished/nbdroot.sh
+echo '/usr/sbin/nbd-client -check /dev/nbd0 > /dev/null 2>&1' > "$hookdir"/initqueue/finished/nbdroot.sh
