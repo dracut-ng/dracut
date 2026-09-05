@@ -8,7 +8,18 @@ do_merge() {
 
     systemctl --no-block stop sysroot.mount
     swapoff -a
-    umount -R /sysroot
+
+    # busybox does not support umount --recursive
+    local target
+    sed '1!G;h;$!d' /proc/self/mountinfo | while read -r _ _ _ _ target _; do
+        case "$target" in
+            /sysroot | /sysroot/*)
+                target=$(printf '%b_' "$target")
+                target=${target%_}
+                umount "$target"
+                ;;
+        esac
+    done
 
     for tag in $(getargs rd.lvm.mergetags); do
         lvm vgs --noheadings -o vg_name \
