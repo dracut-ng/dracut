@@ -49,10 +49,10 @@ RUN \
 RUN \
 if [ "$OPTION" == "busybox" ] ; then \
   mkdir /busybox && cd /busybox && /bin/busybox --install -s /busybox ;\
+  rm -f /busybox/blkid ;\
   cp -a /busybox/* /bin/ ;\
   cp -a /busybox/* /sbin/ ;\
   cp -a /busybox/* /usr/bin/ ;\
   cp -a /busybox/* /usr/sbin/ ;\
   rm -f /bin/kmod ;\
-  apk fix --reinstall blkid ;\
 fi
