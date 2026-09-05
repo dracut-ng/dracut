@@ -205,7 +205,7 @@ client_test_end() {
     [[ -e "$TESTDIR/client_test_name.txt" ]] || return 0
     test_name=$(cat "$TESTDIR/client_test_name.txt")
     echo "CLIENT TEST END: $test_name [$status]"
-    rm "$TESTDIR/client_test_name.txt"
+    rm -f -- "$TESTDIR/client_test_name.txt"
 }
 
 require_binaries_for_test() {
@@ -269,8 +269,8 @@ stop_webserver() {
     if [[ -s "$TESTDIR/webserver.pid" ]]; then
         pid=$(cat "$TESTDIR/webserver.pid")
         echo "Stopping web server (pid $pid)..." >&2
-        kill "$pid"
-        rm "$TESTDIR/webserver.pid"
+        kill "$pid" || true
+        rm -f -- "$TESTDIR/webserver.pid"
     fi
 }
 
@@ -301,6 +301,22 @@ wait_for_server_startup() {
         tail -n "+$((printed_lines + 1))" "$server_log"
         echo "Server has been start up."
     fi
+}
+
+# Stop the daemonized server QEMU whose pidfile is in $TESTDIR.
+# QEMU removes the pidfile itself when the daemon exits, so the file may
+# already be gone (or hold a dead pid); neither case must fail the test.
+# Only remove the pidfile when the process is already gone, otherwise QEMU
+# deletes it when it exits.
+stop_server() {
+    local server_pid
+    server_pid=$(cat "$TESTDIR"/server.pid 2> /dev/null) || server_pid=
+    [[ -n $server_pid ]] || return 0
+    if ! kill "$server_pid"; then
+        # process already gone, drop the now-stale pidfile
+        rm -f -- "$TESTDIR"/server.pid
+    fi
+    return 0
 }
 
 command -v test_check &> /dev/null || test_check() {
@@ -432,7 +448,7 @@ print_test_result() {
     local ret=${1-1}
     if [ "$ret" -eq 0 ]; then
         client_test_end
-        rm -- test${TEST_RUN_ID:+-$TEST_RUN_ID}.log
+        rm -f -- test${TEST_RUN_ID:+-$TEST_RUN_ID}.log
         echo -e "TEST: $TEST_DESCRIPTION " "$COLOR_SUCCESS" "[OK]" "$COLOR_NORMAL"
     else
         client_test_end "FAILED"
@@ -493,15 +509,24 @@ while (($# > 0)); do
                 (
                     test_setup
                     test_run
+                    # teardown is best effort: the daemonized QEMU removes its
+                    # own pidfile on exit, racing the cleanup below; a failure
+                    # there must not turn a passing test into a failure
+                    trap - ERR
+                    set +e
                     test_cleanup
                     test_common_cleanup
+                    exit 0
                 ) 2>&1 | "$tee_command" "test${TEST_RUN_ID:+-$TEST_RUN_ID}.log"
             else
                 (
                     test_setup
                     test_run
+                    trap - ERR
+                    set +e
                     test_cleanup
                     test_common_cleanup
+                    exit 0
                 ) > test${TEST_RUN_ID:+-$TEST_RUN_ID}.log 2>&1
             fi
             set +o pipefail
