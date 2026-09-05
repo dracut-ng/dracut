@@ -236,18 +236,9 @@ do_live_overlay() {
             if [ -n "${DRACUT_SYSTEMD-}" ]; then
                 if type plymouth > /dev/null 2>&1 && plymouth --ping; then
                     if getargbool 0 rhgb || getargbool 0 splash; then
-                        m='>>>
->>>
->>>
-
-
-'"$m"
-                        m="${m%n.*}"'n.
-
-
-<<<
-<<<
-<<<'
+                        local n='
+'
+                        m=">>>${n}>>>${n}>>>${n}${n}${n}${m%n.*}n.${n}${n}${n}<<<${n}<<<${n}<<<"
                         plymouth display-message --text="${m}"
                     else
                         plymouth ask-question --prompt="${m}" --command=true
