@@ -2605,7 +2605,7 @@ static int install_modules(int argc, char **argv)
                 char *modalias_file;
                 modalias_file = getenv("DRACUT_KERNEL_MODALIASES");
 
-                if (modalias_file == NULL) {
+                if (isempty(modalias_file)) {
                         modalias_list(ctx);
                 } else {
                         _cleanup_fclose_ FILE *f = NULL;
@@ -2967,10 +2967,10 @@ int main(int argc, char **argv)
                 log_debug("%s", argv[r]);
 
         path = getenv("DRACUT_INSTALL_PATH");
-        if (path == NULL)
+        if (isempty(path))
                 path = getenv("PATH");
 
-        if (path == NULL) {
+        if (isempty(path)) {
                 log_error("PATH is not set");
                 exit(EXIT_FAILURE);
         }
