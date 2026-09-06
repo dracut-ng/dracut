@@ -65,7 +65,7 @@ if [ "$overlay_mode" = "device" ] && [ -n "$overlay_device" ]; then
 
     mkdir -m 0755 -p /run/overlayfs-backing
 
-    if mount "$overlay_device" /run/overlayfs-backing; then
+    if /bin/mount "$overlay_device" /run/overlayfs-backing; then
         info "Successfully mounted persistent overlay on $overlay_device"
 
         mkdir -m 0755 -p /run/overlayfs-backing/overlay

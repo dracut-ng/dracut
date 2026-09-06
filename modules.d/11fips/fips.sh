@@ -68,7 +68,7 @@ mount_boot() {
 
         mkdir -p /boot
         fips_info "Mounting $boot as /boot"
-        mount -oro "$boot" /boot || return 1
+        /bin/mount -oro "$boot" /boot || return 1
         FIPS_MOUNTED_BOOT=1
     elif ! ismounted /boot && [ -d "$NEWROOT/boot" ]; then
         # shellcheck disable=SC2114

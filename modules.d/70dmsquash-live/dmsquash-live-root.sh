@@ -175,10 +175,10 @@ do_live_overlay() {
             mount -o remount,rw "$devspec"
             mount --bind "$devmnt" /run/initramfs/overlayfs
         else
-            mount -n -t auto "$devspec" /run/initramfs/overlayfs || :
+            /bin/mount -n -t auto "$devspec" /run/initramfs/overlayfs || :
         fi
         if [ -f "/run/initramfs/overlayfs$pathspec" ] && [ -w "/run/initramfs/overlayfs$pathspec" ]; then
-            OVERLAY_LOOPDEV=$(losetup -f --show ${readonly_overlay:+-r} "/run/initramfs/overlayfs$pathspec")
+            OVERLAY_LOOPDEV=$(/sbin/losetup -f --show ${readonly_overlay:+-r} "/run/initramfs/overlayfs$pathspec")
             over=$OVERLAY_LOOPDEV
             umount -l /run/initramfs/overlayfs || :
             oltype=$(det_img_fs "$OVERLAY_LOOPDEV")
@@ -268,10 +268,10 @@ do_live_overlay() {
         else
             dd if=/dev/null of=/overlay bs=1024 count=1 seek=$((overlay_size * 1024)) 2> /dev/null
             if [ -n "$setup" ] && [ -n "$readonly_overlay" ]; then
-                RO_OVERLAY_LOOPDEV=$(losetup -f --show /overlay)
+                RO_OVERLAY_LOOPDEV=$(/sbin/losetup -f --show /overlay)
                 over=$RO_OVERLAY_LOOPDEV
             else
-                OVERLAY_LOOPDEV=$(losetup -f --show /overlay)
+                OVERLAY_LOOPDEV=$(/sbin/losetup -f --show /overlay)
                 over=$OVERLAY_LOOPDEV
             fi
         fi
@@ -300,8 +300,8 @@ do_live_overlay() {
         dd if=/dev/null of=/run/initramfs/thin-overlay/meta bs=1b count=1 seek=$((thin_meta_sz)) 2> /dev/null
         dd if=/dev/null of=/run/initramfs/thin-overlay/data bs=1b count=1 seek=$((thin_data_sz)) 2> /dev/null
 
-        THIN_META_LOOPDEV=$(losetup --show -f /run/initramfs/thin-overlay/meta)
-        THIN_DATA_LOOPDEV=$(losetup --show -f /run/initramfs/thin-overlay/data)
+        THIN_META_LOOPDEV=$(/sbin/losetup --show -f /run/initramfs/thin-overlay/meta)
+        THIN_DATA_LOOPDEV=$(/sbin/losetup --show -f /run/initramfs/thin-overlay/data)
 
         echo 0 $thin_data_sz thin-pool "$THIN_META_LOOPDEV" "$THIN_DATA_LOOPDEV" 1024 1024 | dmsetup create live-overlay-pool
         dmsetup message /dev/mapper/live-overlay-pool 0 "create_thin 0"
@@ -397,7 +397,7 @@ if [ -n "$FSIMG" ]; then
     if [ "$FSIMG" = "$SQUASHED" ]; then
         BASE_LOOPDEV=$SQUASHED_LOOPDEV
     else
-        BASE_LOOPDEV=$(losetup -f --show ${readonly_base:+-r} "$FSIMG")
+        BASE_LOOPDEV=$(/sbin/losetup -f --show ${readonly_base:+-r} "$FSIMG")
         sz=$(blockdev --getsz "$BASE_LOOPDEV")
     fi
     if [ "$setup" = rw ]; then
@@ -435,7 +435,7 @@ if [ -n "$overlayfs" ]; then
 else
     if [ -z "${DRACUT_SYSTEMD-}" ]; then
         [ -n "$ROOTFLAGS" ] && ROOTFLAGS="-o $ROOTFLAGS"
-        printf 'mount %s /dev/mapper/live-rw %s\n' "$ROOTFLAGS" "$NEWROOT" > "$hookdir"/mount/01-$$-live.sh
+        printf '/bin/mount %s /dev/mapper/live-rw %s\n' "$ROOTFLAGS" "$NEWROOT" > "$hookdir"/mount/01-$$-live.sh
     fi
 fi
 [ -e "$SQUASHED" ] && umount -l /run/initramfs/squashfs
