@@ -40,11 +40,26 @@ check_applets_from_busybox() {
     return "$ret"
 }
 
+check_busybox_feature_tr_classes() {
+    local lowercase
+    lowercase=$(echo DRACUT | busybox tr '[:upper:]' '[:lower:]')
+    if [ "$lowercase" != "dracut" ]; then
+        echo "Error: busybox was built without CONFIG_FEATURE_TR_CLASSES" >&2
+        return 1
+    fi
+}
+
+check_busybox_features() {
+    check_busybox_feature_tr_classes
+}
+
 test_run() {
     if [[ ${V-} -ge 2 ]]; then
         set -x
     fi
     local ret=0
+
+    check_busybox_features
 
     # Test override the list of applets
     DRACUT_MODULE_BUSYBOX_LINKS="$(cat "${TESTDIR}/busybox.links")" \
