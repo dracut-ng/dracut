@@ -10,7 +10,7 @@ TEST_DESCRIPTION="live root on a squash filesystem"
 #DEBUGFAIL="rd.shell rd.debug rd.live.debug loglevel=7"
 
 test_check() {
-    require_binaries_for_test mksquashfs xorriso
+    require_binaries_for_test mkfs.erofs mksquashfs xorriso
 }
 
 client_run() {
@@ -73,10 +73,7 @@ test_run() {
     client_run "live" "rd.live.image"
     client_run "livedir" "rd.live.image rd.live.dir=LiveOS"
 
-    # Run the erofs test only if mkfs.erofs is available
-    if command -v mkfs.erofs &> /dev/null; then
-        client_run "erofs" "root=live:/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_root_erofs"
-    fi
+    client_run "erofs" "root=live:/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_root_erofs"
 
     client_run "iso" "iso-scan/filename=linux.iso root=live:/dev/disk/by-label/ISO rd.driver.pre=squashfs rd.driver.pre=ext4"
 
@@ -120,9 +117,7 @@ EOF
     qemu_add_drive disk_args "$TESTDIR"/root_erofs.img root_erofs 1
 
     # Write the erofs compressed filesystem to the partition
-    if command -v mkfs.erofs &> /dev/null; then
-        mkfs.erofs --quiet "$TESTDIR"/root_erofs.img "$TESTDIR"/rootfs/
-    fi
+    mkfs.erofs --quiet "$TESTDIR"/root_erofs.img "$TESTDIR"/rootfs/
 
     # iso drive
     qemu_add_drive disk_args "$TESTDIR"/root_iso.img root_iso 1
