@@ -186,6 +186,10 @@ find_initrd_for_kernel_version() {
                             *) continue ;;
                         esac
                         initrd=${initrd#/}
+                        # OSTree sysroot.bootprefix entries are already
+                        # boot-root-based (/boot/ostree/...); only prepend
+                        # /boot for truly initrd-root-relative paths.
+                        initrd=${initrd#boot/}
                         if [[ -f /boot/$initrd ]]; then
                             echo "/boot/$initrd"
                             return
