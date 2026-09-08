@@ -101,9 +101,9 @@ if command -v 3cpio > /dev/null; then
             EXTRACTOR=3cpio
         fi
     elif command -v cpio > /dev/null; then
-        echo "Warning: Calling '3cpio --help' failed. Cannot check if 3cpio supports --make-directories. Falling back to cpio."
+        echo "Warning: Calling '3cpio --help' failed. Cannot check if 3cpio supports --make-directories. Falling back to cpio." >&2
     else
-        echo "Warning: Calling '3cpio --help' failed. Cannot check if 3cpio supports --make-directories."
+        echo "Warning: Calling '3cpio --help' failed. Cannot check if 3cpio supports --make-directories." >&2
         EXTRACTOR=3cpio
     fi
     unset threecpio_help_output
