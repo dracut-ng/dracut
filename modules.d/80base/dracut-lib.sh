@@ -4,7 +4,7 @@ command -v wait_for_dev > /dev/null || . /lib/dracut-dev-lib.sh
 
 export DRACUT_SYSTEMD
 export NEWROOT
-if [ -n "$NEWROOT" ]; then
+if [ -n "${NEWROOT-}" ]; then
     [ -d "$NEWROOT" ] || mkdir -p -m 0755 "$NEWROOT"
 fi
 
@@ -354,7 +354,7 @@ splitsep() {
 
 setdebug() {
     [ -f /usr/lib/initrd-release ] || return 0
-    if [ -z "$RD_DEBUG" ]; then
+    if [ -z "${RD_DEBUG-}" ]; then
         if [ -e /proc/cmdline ]; then
             RD_DEBUG=no
             if getargbool 0 rd.debug; then
