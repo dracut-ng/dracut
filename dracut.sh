@@ -1182,7 +1182,6 @@ drivers_dir="${drivers_dir%"${drivers_dir##*[!/]}"}"
 [[ $use_fstab_l ]] && use_fstab=$use_fstab_l
 [[ $mdadmconf_l ]] && mdadmconf=$mdadmconf_l
 [[ $lvmconf_l ]] && lvmconf=$lvmconf_l
-[[ $dracutbasedir ]] || dracutbasedir="${dracutsysrootdir-}"/usr/lib/dracut
 [[ $fw_dir ]] || {
     [[ -e /sys/module/firmware_class/parameters/path ]] \
         && fw_path_para=$(< /sys/module/firmware_class/parameters/path)
