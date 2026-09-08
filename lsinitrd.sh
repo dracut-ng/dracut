@@ -113,9 +113,7 @@ fi
 if ! [[ $EXTRACTOR ]]; then
     EXTRACTOR="$dracutbasedir/extractinitrd"
     if ! [[ -x $EXTRACTOR ]]; then
-        echo
         echo "Error: '$EXTRACTOR' not found, cannot continue!" >&2
-        echo
         exit 1
     fi
 fi
