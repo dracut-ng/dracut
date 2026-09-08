@@ -24,7 +24,7 @@ debug_off() {
 }
 
 debug_on() {
-    [ "$RD_DEBUG" = "yes" ] && set -x
+    [ "$RD_DEBUG" != "yes" ] || set -x
 }
 
 # printf %q implementation for POSIX shell
