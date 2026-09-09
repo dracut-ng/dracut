@@ -13,13 +13,13 @@ fstab_mount() {
         if [ "$_pass" -gt 0 ] && ! strstr "$_opts" _netdev; then
             fsck_single "$_dev" "$_fs" "$_opts"
         fi
-        _fs=$(det_fs "$_dev" "$_fs")
+        det_fs "$_dev" "$_fs"
         info "Mounting $_dev"
         if [ -d "$NEWROOT/$_mp" ]; then
-            mount -v -t "$_fs" -o "$_opts" "$_dev" "$NEWROOT/$_mp" 2>&1 | vinfo
+            mount -v -t "$FS" -o "$_opts" "$_dev" "$NEWROOT/$_mp" 2>&1 | vinfo
         else
             [ -d "$_mp" ] || mkdir -p "$_mp"
-            mount -v -t "$_fs" -o "$_opts" "$_dev" "$_mp" 2>&1 | vinfo
+            mount -v -t "$FS" -o "$_opts" "$_dev" "$_mp" 2>&1 | vinfo
         fi
     done < "$1"
     return 0
