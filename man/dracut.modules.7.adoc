@@ -395,15 +395,14 @@ dracut releases.
 
 ==== require_binaries
 
-Helper function for check() in module-setup.sh to check for required installed binaries.
-All of the binaries listed in the arguments of this function should exists in the host.
+Helper function for check() in module-setup.sh to check for required binaries to be installed into initrd.
+All of the binaries listed in the arguments of this function must be available in `DRACUT_INSTALL_PATH` if set, otherwise in `PATH`. If using **-sysroot**, the search path is within the sysroot directory.
 Issues a standardized warning message.
 
 ==== require_any_binary
 
-Helper function for check() in module-setup.sh to check for required installed binaries.
-At least one of the binaries listed in the arguments of this function should exists in
-the host.
+Helper function for check() in module-setup.sh to check for required binaries to be installed into initrd.
+At least one of the binaries listed in the arguments of this function must be available in `DRACUT_INSTALL_PATH` if set, otherwise in `PATH`. If using **-sysroot**, the search path is within the sysroot directory.
 Issues a standardized warning message.
 
 ==== require_binaries_host
