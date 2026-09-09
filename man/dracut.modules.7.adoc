@@ -406,6 +406,12 @@ At least one of the binaries listed in the arguments of this function should exi
 the host.
 Issues a standardized warning message.
 
+==== require_binaries_host
+
+Helper function for check() in module-setup.sh to check for required binaries used while building initrd.
+All of the binaries listed in the arguments of this function must exist in `PATH`.
+Issues a standardized warning message.
+
 ==== require_kernel_modules
 
 Helper function for check() in module-setup.sh to check for required kernel modules.
