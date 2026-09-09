@@ -111,7 +111,10 @@ install() {
         _fcoeconf=$(cmdline)
         [[ $_fcoeconf ]] && printf "%s\n" "$_fcoeconf" >> "${initdir}/etc/cmdline.d/20-fcoe.conf"
     fi
-    inst_multiple "/etc/fcoe/cfg-*"
+
+    if [[ $hostonly ]]; then
+        inst_multiple -o "/etc/fcoe/cfg-*"
+    fi
 
     inst "$moddir/fcoe-up.sh" "/sbin/fcoe-up"
     inst "$moddir/fcoe-edd.sh" "/sbin/fcoe-edd"
