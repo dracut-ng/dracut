@@ -1486,6 +1486,22 @@ require_any_binary() {
 }
 
 # helper function for check() in module-setup.sh
+# to check for required binaries used while building initrd
+# issues a standardized warning message
+require_binaries_host() {
+    local _module_name="${moddir##*/}"
+    local _ret=0
+
+    for cmd in "$@"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            ddebug "Module '${_module_name#[0-9][0-9]}' will not be installed, because host command '$cmd' could not be found!"
+            ((_ret++))
+        fi
+    done
+    return "$_ret"
+}
+
+# helper function for check() in module-setup.sh
 # to check for required kernel modules
 # issues a standardized warning message
 require_kernel_modules() {
