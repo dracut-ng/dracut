@@ -1451,7 +1451,7 @@ optional_hostonly() {
 }
 
 # helper function for check() in module-setup.sh
-# to check for required installed binaries
+# to check for required binaries to be installed into initrd
 # issues a standardized warning message
 require_binaries() {
     local _module_name="${moddir##*/}"
