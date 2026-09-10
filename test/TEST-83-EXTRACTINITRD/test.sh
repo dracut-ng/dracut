@@ -254,6 +254,51 @@ dir0/file9
 dir0/metadata'
 }
 
+# Run extractinitrd with a consumer that closes the pipe without reading
+# anything. Neither an error message nor a non-zero exit status is
+# expected, no matter whether SIGPIPE is ignored by the caller.
+check_broken_pipe() {
+    local sigpipe="$1"
+    shift
+    local errfile="$TESTDIR/broken-pipe.err"
+    local status=0
+
+    (
+        if [ "$sigpipe" = ignored ]; then
+            # Emulate a caller ignoring SIGPIPE, e.g. a systemd unit
+            # with the default IgnoreSIGPIPE=yes.
+            trap '' PIPE
+        fi
+        exec 2> "$errfile"
+        set +e
+        dracut-extractinitrd "$@" | false
+        exit "${PIPESTATUS[0]}"
+    ) || status=$?
+
+    if [ -s "$errfile" ]; then
+        echo >&2 "E: dracut-extractinitrd $* wrote to stderr on a broken pipe (SIGPIPE $sigpipe):"
+        cat >&2 "$errfile"
+        return 1
+    fi
+    if [ "$status" -ne 0 ]; then
+        echo >&2 "E: dracut-extractinitrd $* exited with $status on a broken pipe (SIGPIPE $sigpipe)"
+        return 1
+    fi
+}
+
+test_broken_pipe() {
+    local compressor="$1"
+    local sigpipe
+
+    construct_initrd_image "1" "2" "$compressor"
+
+    for sigpipe in default ignored; do
+        echo "I: Testing broken pipe with SIGPIPE $sigpipe and $compressor"
+        check_broken_pipe "$sigpipe" --to-stdout "$TESTDIR/initrd.img"
+        check_broken_pipe "$sigpipe" --list "$TESTDIR/initrd.img"
+    done
+}
+
 test_run() {
     if [[ ${V-} -ge 1 ]]; then
         echo "found dracut-extractinitrd: $(command -v dracut-extractinitrd)"
@@ -268,6 +313,7 @@ test_run() {
         test_part_extraction "$compressor"
         test_extract_to_stdout "$compressor"
         test_list "$compressor"
+        test_broken_pipe "$compressor"
     done
 }
 
