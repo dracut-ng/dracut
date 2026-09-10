@@ -13,82 +13,29 @@ if getargbool 0 rd.live.debug; then
     set -x
 fi
 
-[ -z "$1" ] && exit 1
+[ "$1" ] || exit 1
 livedev="$1"
-
-# parse various live image specific options that make sense to be
-# specified as their own things
-live_dir=$(getarg rd.live.dir)
-[ -z "$live_dir" ] && live_dir="LiveOS"
-squash_image=$(getarg rd.live.squashimg)
-[ -z "$squash_image" ] && squash_image="squashfs.img"
-
-getargbool 0 rd.live.ram && live_ram="yes"
-getargbool 0 rd.overlay.reset -d rd.live.overlay.reset && reset_overlay="yes"
-getargbool 0 rd.overlay.readonly -d rd.live.overlay.readonly && readonly_overlay="--readonly" || readonly_overlay=""
-getargbool 0 rd.live.overlay.nouserconfirmprompt && overlay_no_user_confirm_prompt="--noprompt" || overlay_no_user_confirm_prompt=""
-overlay=$(get_rd_overlay)
-getargbool 0 rd.writable.fsimg && writable_fsimg="yes"
-overlay_size=$(getarg rd.live.overlay.size=)
-[ -z "$overlay_size" ] && overlay_size=32768
-
-getargbool 0 rd.live.overlay.thin && thin_snapshot="yes"
-getargbool 0 rd.overlay -d rd.live.overlay.overlayfs && overlayfs="yes"
-
-# Take a path to a disk label and return the parent disk if it is a partition
-# Otherwise returns the original path
-get_check_dev() {
-    local _udevinfo
-    dev_path="$(udevadm info -q path --name "$1")"
-    _udevinfo="$(udevadm info -q property --path "${dev_path}")"
-    strstr "$_udevinfo" "DEVTYPE=partition" || {
-        echo "$1"
-        return
-    }
-    parent="${dev_path%/*}"
-    _udevinfo="$(udevadm info -q property --path "${parent}")"
-    strstr "$_udevinfo" "DEVTYPE=disk" || {
-        echo "$1"
-        return
-    }
-    strstr "$_udevinfo" "ID_FS_TYPE=iso9660" || {
-        echo "$1"
-        return
-    }
-
-    # Return the name of the parent disk device
-    echo "$_udevinfo" | grep "DEVNAME=" | sed 's/DEVNAME=//'
-}
-
-# Check ISO checksum only if we have a path to a block device (or just its name
-# without '/dev'). In other words, in this context, we perform the check only
-# if the given $livedev is not a filesystem file image.
-if [ ! -f "$livedev" ]; then
-    # Find the right device to run check on
-    check_dev=$(get_check_dev "$livedev")
-    # CD/DVD media check
-    [ -b "$check_dev" ] && det_fs "$check_dev"
-    case $FS in iso9660 | udf) check=yes ;; esac
-    getarg rd.live.check || check=""
-    if [ -n "$check" ]; then
-        type plymouth > /dev/null 2>&1 && plymouth --hide-splash
-        if [ -n "${DRACUT_SYSTEMD-}" ]; then
-            p=$(dev_unit_name "$check_dev")
-            systemctl start checkisomd5@"${p}".service
-        else
-            checkisomd5 --verbose "$check_dev"
-        fi
-        if [ $? -eq 1 ]; then
-            warn "Media check failed! We do not recommend using this medium. System will halt in 12 hours"
-            sleep 43200
-            die "Media check failed!"
-            exit 1
-        fi
-        type plymouth > /dev/null 2>&1 && plymouth --show-splash
-    fi
-fi
-
 ln -s "$livedev" /run/initramfs/livedev
+
+# Determine the parent disk device for the device - $1
+get_diskDevice() {
+    local -
+    # shellcheck disable=SC2034
+    local dev syspath parent DEVTYPE='' DEVNAME DISKSEQ MAJOR MINOR \
+        PARTN PARTNAME PARTUUID
+    set +x
+    dev="${1##*/}"
+    syspath="/sys/class/block/$dev"
+    [ -d "$syspath" ] || return 1
+    . "$syspath/uevent"
+    case $DEVTYPE in
+        partition)
+            parent=$(readlink -f "$syspath/..")
+            diskDevice="/dev/${parent##*/}"
+            ;;
+        *) diskDevice="/dev/$dev" ;;
+    esac
+}
 
 CMDLINE=$(getcmdline)
 for arg in $CMDLINE; do
@@ -106,6 +53,8 @@ load_fstype "$livedev_fstype"
 # mount the backing of the live image first
 case $livedev_fstype in
     iso9660 | udf)
+        [ -f "$livedev" ] || get_diskDevice "$livedev"
+        getargbool 0 rd.live.check && rd_iso_check "${diskDevice:-$livedev}"
         mntcmd="mount -m -n -t $livedev_fstype"
         opt=ro
         ;;
@@ -128,7 +77,7 @@ case $livedev_fstype in
         if [ -f "$livedev" ]; then
             FSIMG=$livedev
         else
-            mntcmd="mount -m -n -t $livedev_fstype"
+            mntcmd="mount -m -n -t $FS"
         fi
         ;;
 esac
@@ -136,6 +85,25 @@ esac
     $mntcmd -o "${opt:-ro}" "$livedev" /run/initramfs/live > /dev/kmsg 2>&1 \
         || die "Failed to mount '$livedev' bearing the live image."
 }
+
+# parse various live image specific options that make sense to be
+# specified as their own things
+live_dir=$(getarg rd.live.dir)
+[ -z "$live_dir" ] && live_dir="LiveOS"
+squash_image=$(getarg rd.live.squashimg)
+[ -z "$squash_image" ] && squash_image="squashfs.img"
+
+getargbool 0 rd.live.ram && live_ram="yes"
+getargbool 0 rd.overlay.reset -d rd.live.overlay.reset && reset_overlay="yes"
+getargbool 0 rd.overlay.readonly -d rd.live.overlay.readonly && readonly_overlay="--readonly" || readonly_overlay=""
+getargbool 0 rd.live.overlay.nouserconfirmprompt && overlay_no_user_confirm_prompt="--noprompt" || overlay_no_user_confirm_prompt=""
+overlay=$(get_rd_overlay)
+getargbool 0 rd.writable.fsimg && writable_fsimg="yes"
+overlay_size=$(getarg rd.live.overlay.size=)
+[ -z "$overlay_size" ] && overlay_size=32768
+
+getargbool 0 rd.live.overlay.thin && thin_snapshot="yes"
+getargbool 0 rd.overlay -d rd.live.overlay.overlayfs && overlayfs="yes"
 
 dev_to_overlay_pathname() {
     local device="$1"
