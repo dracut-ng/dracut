@@ -112,23 +112,51 @@ resume=UUID=3f5ad593-4546-4a94-a374-bcfb68aa11f7
 
 iso-scan/filename
 ~~~~~~~~~~~~~~~~~
+Requires the dracut 'dmsquash-live' module. +
+Using the GRUB command `loopback <devicename> </path/to/imagefile>`, the GRUB
+boot loader can make a disk device identified by `<devicename>` from an
+image file on the boot or other specified device. This allows GRUB to load
+the boot kernel and initramfs from the device made from the image file.
 
-Mount all mountable devices and search for ISO pointed by the argument. When
-the ISO is found set it up as a loop device. Device containing this ISO
-image will stay mounted at /run/initramfs/isoscandev.
+**iso-scan/filename=**__<filepath>__::
+    _dracut_ must independently identify the disk device holding the image file
+    using _dmsquash-live/iso-scan.sh_ code and the *_iso-scan/filename_*
+    parameter.
++
+All mountable devices will be mounted readonly in `/dev/disk/by-uuid/*` order.
+The first matching *_<filepath>_* is loop setup and mounted. +
++
+NOTE: _ext[43]_, _f2fs_, & _xfs_ filesystems will be mounted with
+`-o ro,noload` or `ro,norecovery` and kernel messages will be checked for a
+dirty or hibernated filesytem, in which case the image will be checked with
+`checkisomd5` for integrity.)
++
+The parent disk device is always unmounted after the .iso image file has been
+loop setup. +
+A link to this disk is saved at `/run/initramfs/isoscandev`. +
+A link to the image loop device is saved at `/run/initramfs/isoloop`.
++
 Using iso-scan/filename with a Fedora/Red Hat/CentOS Live iso should just work
 by copying the original kernel cmdline parameters.
-Requires the dracut 'dmsquash-live' module.
-
++
+IMPORTANT: In the example below, the .iso image file is stored in a directory
+of the *boot partition* (`/isos/`) so that GRUB can address the isofile for
+loop setup and reach the linux kernel and initrd initramfs.
++
+NOTE: The filepaths to the linux kernel and initrd will differ depending
+on the OS distribution and vintage. For example, Fedora 37-41 used paths
+`/images/pxeboot/vmlinuz` & `/images/pxeboot/initrd.img` and earlier versions
+used `isolinux/vmlinuz0` & `isolinux/initrd0.img`.
++
 [listing]
 .Example
 --
-menuentry 'Live' --class gnu-linux --class gnu --class os {
+menuentry 'Live .iso' --class gnu-linux --class gnu --class os {
     set isolabel=Live-x86_64
-    set isofile="/boot/iso/Live-x86_64.iso"
+    set isofile="/boot/isos/Live-x86_64.iso"
     loopback loop $isofile
-    linux (loop)/isolinux/vmlinuz0 boot=isolinux iso-scan/filename=$isofile root=live:LABEL=$isolabel ro rd.live.image quiet
-    initrd (loop)/isolinux/initrd0.img
+    linux (loop)/boot/x86_64/loader/linux iso-scan/filename=$isofile root=live:LABEL=$isolabel ro rd.live.image quiet
+    initrd (loop)/boot/x86_64/loader/initrd
 }
 --
 
