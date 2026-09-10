@@ -112,14 +112,33 @@ resume=UUID=3f5ad593-4546-4a94-a374-bcfb68aa11f7
 
 iso-scan/filename
 ~~~~~~~~~~~~~~~~~
+Requires the dracut 'dmsquash-live' module. +
+Using the GRUB command `loopback <devicename> </path/to/imagefile>`, the GRUB
+boot loader can make a disk device identified by `<devicename>` from an
+image file on the boot or other specified device. This allows GRUB to load
+the boot kernel and initramfs from the device made from the image file.
 
-Mount all mountable devices and search for ISO pointed by the argument. When
-the ISO is found set it up as a loop device. Device containing this ISO
-image will stay mounted at /run/initramfs/isoscandev.
+**iso-scan/filename=**__<filepath>__::
+    _dracut_ must independently identify the disk device holding the image file
+    using _dmsquash-live/iso-scan.sh_ code and the *_iso-scan/filename_*
+    parameter.
++
+All mountable devices will be mounted readonly in `/dev/disk/by-uuid/*` order.
+The first matching *_<filepath>_* is loop mounted. +
++
+NOTE: _ext[43]_, _f2fs_, & _xfs_ filesystems will be mounted with
+`-o ro,noload` or `ro,norecovery` and kernel messages will be checked for a
+dirty or hibernated filesytem, in which case the image will be checked with
+`checkisomd5` for integrity.)
++
+The parent disk device is always unmounted after the .iso image file has been
+loop setup. +
+A link to this disk is saved at `/run/initramfs/isoscandev`. +
+A link to the image loop device is saved at `/run/initramfs/isoloop`.
++
 Using iso-scan/filename with a Fedora/Red Hat/CentOS Live iso should just work
 by copying the original kernel cmdline parameters.
-Requires the dracut 'dmsquash-live' module.
-
++
 [listing]
 .Example
 --
