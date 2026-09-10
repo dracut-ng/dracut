@@ -24,16 +24,6 @@ det_archive() {
     esac
 }
 
-# determine filesystem type for a filesystem image
-det_fs_img() {
-    local dev
-    dev=$(losetup --find --show "$1") rv=""
-    det_fs "$dev"
-    rv=$?
-    losetup -d "$dev"
-    return $rv
-}
-
 # unpack_archive ARCHIVE OUTDIR
 # unpack a (possibly compressed) cpio/tar archive
 unpack_archive() {
