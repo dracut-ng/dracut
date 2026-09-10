@@ -37,12 +37,14 @@ get_diskDevice() {
     esac
 }
 
-CMDLINE=$(getcmdline)
+set +x
+getcmdline
 for arg in $CMDLINE; do
     case $arg in
         ro | rw) opt=$arg ;;
     esac
 done
+[ "$RD_DEBUG" = yes ] && set -x
 
 devInfo=$(blkid "$livedev")
 # The above works for block devices or image files.
@@ -55,8 +57,10 @@ case $livedev_fstype in
     iso9660 | udf)
         [ -f "$livedev" ] || get_diskDevice "$livedev"
         getargbool 0 rd.live.check && rd_iso_check "${diskDevice:-$livedev}"
-        mntcmd="mount -m -n -t $livedev_fstype"
-        opt=ro
+        [ -d /run/initramfs/live ] || {
+            mntcmd="mount -m -n -t $livedev_fstype"
+            [ -f "$livedev" ] && opt=ro,loop
+        }
         ;;
     squashfs | erofs)
         # no mount needed - we've already got the LiveOS image in $livedev

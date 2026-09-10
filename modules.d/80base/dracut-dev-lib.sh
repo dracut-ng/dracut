@@ -126,3 +126,31 @@ cancel_wait_for_dev() {
         /sbin/initqueue --onetime --unique --name daemon-reload systemctl daemon-reload
     fi
 }
+
+# Trigger a disk or partition having property spec
+#  $1 - {LABEL=|UUID=|PARTLABEL=|PARTUUID=|serial=<SERIAL_SHORT>/serial/[pt_spec]}
+#  for action $2 - [add|remove|change|move|online|offline|bind|unbind] default: add
+label_uuid_udevadm_trigger() {
+    local "devspec=${1#block:}" "act=${2:-add}" prop=''
+    case $devspec in
+        serial=*/serial/*)
+            devspec="${devspec#serial}"
+            prop="ID_SERIAL_SHORT${devspec%/serial/*}"
+            udevadm trigger --subsystem-match=block "--action=$act" "--property-match=$prop" --settle
+            devspec="${devspec#*/serial/}"
+            # devspec may have a partition specified after /serial/
+            [ "$devspec" ] && label_uuid_udevadm_trigger "$devspec" "$act"
+            return 0
+            ;;
+        LABEL=* | UUID=*)
+            prop="ID_FS_${devspec}"
+            ;;
+        PARTLABEL=*)
+            prop="ID_PART_ENTRY_NAME=${devspec#PARTLABEL=}"
+            ;;
+        PARTUUID=*)
+            prop="ID_PART_ENTRY_${devspec#PART}"
+            ;;
+    esac
+    udevadm trigger --subsystem-match=block "--action=$act" ${prop:+"--property-match=$prop"} --settle
+}
