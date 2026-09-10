@@ -428,7 +428,7 @@ static bool handle_compressed(FILE *in_file, enum format format, int out_pipe, b
         int pid, wstatus;
 
         if (debug)
-                fprintf(stderr, "extractinitrd: Executing %s %s\n", argv[0], argv[1]);
+                fprintf(stderr, "dracut-extractinitrd: Executing %s %s\n", argv[0], argv[1]);
 
         pid = fork();
         if (pid < 0)
@@ -512,7 +512,7 @@ static bool spawn_cpio(int optc, const char **optv, const char *dirname,
         argv[argc] = NULL;
 
         if (debug) {
-                fprintf(stderr, "extractinitrd: Executing");
+                fprintf(stderr, "dracut-extractinitrd: Executing");
                 for (size_t i = 0; argv[i] != NULL; i++)
                         fprintf(stderr, " %s", argv[i]);
                 if (dirname)
