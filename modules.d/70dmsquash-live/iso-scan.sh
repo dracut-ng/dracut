@@ -13,7 +13,20 @@ isospec=$1
 
 ismounted /run/initramfs/live && exit 0
 
-isopath="${isospec##*:}"
+read_isospec() {
+    # shellcheck disable=SC2086
+    set -- $isospec
+    devspec="$1"
+    shift
+    [ $# -eq 1 ] || {
+        isopath="$devspec"
+        unset -v devspec
+        return 0
+    }
+    isopath="$1"
+}
+IFS='
+' read_isospec
 
 cleanup() {
     case $1 in
@@ -54,6 +67,7 @@ loopmountiso() {
     fsType="${fsType#* TYPE=\"}"
     fsType="${fsType%%\"*}"
     mntcmd="mount -m -n -t $fsType"
+    # Prevent writing to filesystems with journals that may have been hibernated.
     case $fsType in
         btrfs)
             d=d
@@ -135,8 +149,7 @@ loopmountiso() {
     exit 0
 }
 
-[ "$isopath" = "$isospec" ] || {
-    devspec="${isospec%%:*}"
+[ "$devspec" ] && {
     command -v label_uuid_udevadm_trigger > /dev/null || . /lib/dracut-dev-lib.sh
     label_uuid_udevadm_trigger "$devspec"
     label_uuid_to_dev "$devspec"

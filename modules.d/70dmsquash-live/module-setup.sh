@@ -17,7 +17,7 @@ depends() {
 
 # called by dracut
 installkernel() {
-    hostonly='' instmods squashfs loop iso9660 erofs
+    hostonly='' instmods squashfs loop iso9660 erofs btrfs ext4 fat f2fs xfs
 }
 
 # called by dracut
