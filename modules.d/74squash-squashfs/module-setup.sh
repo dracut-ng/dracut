@@ -1,7 +1,8 @@
 #!/bin/bash
 
 check() {
-    require_binaries mksquashfs unsquashfs || return 1
+    require_binaries_host mksquashfs || return 1
+    require_binaries unsquashfs || return 1
     require_kernel_modules squashfs || return 1
 
     return 255
