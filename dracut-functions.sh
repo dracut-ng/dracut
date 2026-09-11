@@ -58,8 +58,9 @@ is_elf() {
     [[ $(head -c 4 "$1") == $'\x7fELF' ]]
 }
 
-# find a binary.  If we were not passed the full path directly,
-# search in the usual places to find the binary.
+# Find a binary to be installed into the initrd. If we were not passed the full
+# path directly, search in the usual places to find the binary
+# (DRACUT_INSTALL_PATH if set, otherwise PATH).
 find_binary() {
     local _delim
     local _path
@@ -94,7 +95,7 @@ find_binary() {
             printf "%s\n" "${_path}"
             return 0
         fi
-    done <<< "${PATH}:"
+    done <<< "${DRACUT_INSTALL_PATH:-${PATH}}:"
 
     [[ -n ${dracutsysrootdir-} ]] && return 1
     type -P "${1##*/}"
