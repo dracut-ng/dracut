@@ -2425,6 +2425,17 @@ done
 for f in $add_fstab; do
     [[ -e $f ]] || continue
     while read -r dev rest || [ -n "$dev" ]; do
+        [[ $dev == \#* ]] && continue
+        [[ $dev ]] || continue
+        dev=$(expand_persistent_dev "$dev")
+        # Canonicalize like the x-initrd.mount scan above does, so the
+        # same device named as /dev/sdX and as UUID=... ends up once in
+        # host_devs.  Unlike that scan we intentionally do NOT skip the
+        # entry when the device is absent now: --add-fstab is an explicit
+        # user request, so the device may show up at boot time; warn
+        # instead of silently dropping it.
+        dev=$(readlink -f "$dev")
+        [[ -b $dev ]] || dwarn "--add-fstab: $dev is not a block device (yet?)"
         push_host_devs "$dev"
     done < "$f"
 done
@@ -2877,6 +2888,7 @@ if [[ $kernel_only != yes ]]; then
     done
 
     for f in $add_fstab; do
+        [[ -e $f ]] || continue
         cat "$f" >> "${initdir}/etc/fstab"
     done
 
