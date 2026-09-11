@@ -58,8 +58,9 @@ is_elf() {
     [[ $(head -c 4 "$1") == $'\x7fELF' ]]
 }
 
-# find a binary.  If we were not passed the full path directly,
-# search in the usual places to find the binary.
+# Find a binary to be installed into the initrd. If we were not passed the full
+# path directly, search in the usual places to find the binary
+# (DRACUT_INSTALL_PATH if set, otherwise PATH).
 find_binary() {
     local _delim
     local _path
@@ -94,7 +95,7 @@ find_binary() {
             printf "%s\n" "${_path}"
             return 0
         fi
-    done <<< "${PATH}:"
+    done <<< "${DRACUT_INSTALL_PATH:-${PATH}}:"
 
     [[ -n ${dracutsysrootdir-} ]] && return 1
     type -P "${1##*/}"
@@ -1114,11 +1115,11 @@ inst() {
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"
         return $_ret
     fi
 }
@@ -1126,11 +1127,11 @@ inst() {
 inst_binary() {
     local _ret _resolve_deps
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${DRACUT_RUNTIMEDIR:+-B "$DRACUT_RUNTIMEDIR"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${DRACUT_RUNTIMEDIR:+-B "$DRACUT_RUNTIMEDIR"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
         return "$_ret"
     fi
 }
@@ -1138,11 +1139,11 @@ inst_binary() {
 inst_script() {
     local _ret _resolve_deps
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} "$@"
         return "$_ret"
     fi
 }
@@ -1161,7 +1162,7 @@ inst_simple() {
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
     if [[ $1 == /* ]]; then
-        if [[ ! -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]]; then
+        if [[ ! -e ${dracutsysrootdir-}/${1#"${dracutsysrootdir-}"} ]] && [[ ! -e ${dracutbasedir-}/${1#"${dracutbasedir-}"} ]]; then
             dwarn "no source: '$1'!"
             return 1
         fi
@@ -1169,11 +1170,11 @@ inst_simple() {
         dwarn "no source: '$1'!"
         return 1
     fi
-    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"; then
+    if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"; then
         return 0
     else
         _ret=$?
-        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"
+        derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir" ${dracutbasedir:+-B "$dracutbasedir"}} ${dstdir:+-D "$dstdir"} ${loginstall:+-L "$loginstall"} ${_hostonly_install:+-H} "$@"
         return $_ret
     fi
 }
@@ -1451,7 +1452,7 @@ optional_hostonly() {
 }
 
 # helper function for check() in module-setup.sh
-# to check for required installed binaries
+# to check for required binaries to be installed into initrd
 # issues a standardized warning message
 require_binaries() {
     local _module_name="${moddir##*/}"
@@ -1483,6 +1484,22 @@ require_any_binary() {
     fi
 
     return 0
+}
+
+# helper function for check() in module-setup.sh
+# to check for required binaries used while building initrd
+# issues a standardized warning message
+require_binaries_host() {
+    local _module_name="${moddir##*/}"
+    local _ret=0
+
+    for cmd in "$@"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            ddebug "Module '${_module_name#[0-9][0-9]}' will not be installed, because host command '$cmd' could not be found!"
+            ((_ret++))
+        fi
+    done
+    return "$_ret"
 }
 
 # helper function for check() in module-setup.sh
