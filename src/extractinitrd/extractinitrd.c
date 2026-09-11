@@ -33,6 +33,7 @@
 
 #include <err.h>
 #include <getopt.h>
+#include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -214,6 +215,14 @@ static bool mkdir_allow_exist(const char *name, mode_t mode)
         return false;
 }
 
+/*
+ * Set once the consumer of our output has gone away, e.g. when
+ * `extractinitrd --list initrd.img | head` is used.  This is not an
+ * error, so it is reported neither on stderr nor via the exit
+ * status.
+ */
+static bool broken_pipe = false;
+
 /* write() with loop in case of partial writes */
 static bool write_all(int fd, const void *buf, size_t len)
 {
@@ -375,7 +384,10 @@ static bool copy_to_pipe(FILE *in_file, const char *in_filename,
 
                 /* Write to pipe */
                 if (!write_all(out_pipe, buf, read_len)) {
-                        warn("pipe write");
+                        if (errno == EPIPE)
+                                broken_pipe = true;
+                        else
+                                warn("pipe write");
                         return false;
                 }
         }
@@ -436,6 +448,9 @@ static bool handle_compressed(FILE *in_file, enum format format, int out_pipe, b
 
         /* Child */
         if (pid == 0) {
+                /* Die quietly if our consumer goes away */
+                signal(SIGPIPE, SIG_DFL);
+
                 /*
                  * Make in_file stdin.  Reset the position of the file
                  * descriptor because stdio will have read-ahead from
@@ -454,8 +469,15 @@ static bool handle_compressed(FILE *in_file, enum format format, int out_pipe, b
         }
 
         /* Parent: wait for child */
-        if (waitpid(pid, &wstatus, 0) != pid ||
-            !WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
+        if (waitpid(pid, &wstatus, 0) != pid) {
+                warn("waitpid");
+                return false;
+        }
+        if (WIFSIGNALED(wstatus) && WTERMSIG(wstatus) == SIGPIPE) {
+                broken_pipe = true;
+                return false;
+        }
+        if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
                 warnx("%s failed", argv[0]);
                 return false;
         }
@@ -484,7 +506,10 @@ static bool write_trailer(int out_pipe)
         memset(&trailer.pad, 0, sizeof(trailer.pad));
 
         if (!write_all(out_pipe, &trailer, sizeof(trailer))) {
-                warn("pipe write");
+                if (errno == EPIPE)
+                        broken_pipe = true;
+                else
+                        warn("pipe write");
                 return false;
         }
 
@@ -532,6 +557,9 @@ static bool spawn_cpio(int optc, const char **optv, const char *dirname,
 
         /* Child */
         if (pid == 0) {
+                /* Die quietly if our consumer goes away */
+                signal(SIGPIPE, SIG_DFL);
+
                 if (dirname && chdir(dirname))
                         _exit(127);
 
@@ -564,13 +592,21 @@ static bool end_cpio(const struct cpio_proc *proc, bool ok)
         close(proc->pipe);
 
         if (ok) {
-                if (waitpid(proc->pid, &wstatus, 0) != proc->pid ||
-                    !WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
+                if (waitpid(proc->pid, &wstatus, 0) != proc->pid) {
+                        warn("waitpid");
+                        return false;
+                }
+                if (WIFSIGNALED(wstatus) && WTERMSIG(wstatus) == SIGPIPE) {
+                        broken_pipe = true;
+                        return false;
+                }
+                if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
                         warnx("cpio failed");
                         return false;
                 }
         } else {
                 kill(proc->pid, SIGTERM);
+                waitpid(proc->pid, NULL, 0);
         }
 
         return true;
@@ -662,6 +698,15 @@ int main(int argc, char **argv)
         int cpio_optc = 0;
         struct cpio_proc cpio_proc = { 0 };
         bool ok = true;
+
+        /*
+         * Handle a broken pipe explicitly via EPIPE instead of dying
+         * from SIGPIPE.  The children reset this to SIG_DFL, so that
+         * they die quietly rather than complain, which is what they
+         * would otherwise do when SIGPIPE is ignored by our caller
+         * (e.g. a systemd unit with the default IgnoreSIGPIPE=yes).
+         */
+        signal(SIGPIPE, SIG_IGN);
 
         /* Parse options */
         opterr = 0;
@@ -790,5 +835,5 @@ int main(int argc, char **argv)
         if (!end_cpio(&cpio_proc, ok))
                 ok = false;
 
-        return !ok;
+        return !ok && !broken_pipe;
 }
