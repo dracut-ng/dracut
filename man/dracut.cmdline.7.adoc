@@ -112,24 +112,99 @@ resume=UUID=3f5ad593-4546-4a94-a374-bcfb68aa11f7
 
 iso-scan/filename
 ~~~~~~~~~~~~~~~~~
+Requires the dracut 'dmsquash-live' module. +
+Using the GRUB command `loopback <devicename> </path/to/imagefile>`, the GRUB
+boot loader can make a disk device identified by `<devicename>` from an
+image file on the boot or other specified device. This allows GRUB to load
+the boot kernel and initramfs from the device made from the image file.
 
-Mount all mountable devices and search for ISO pointed by the argument. When
-the ISO is found set it up as a loop device. Device containing this ISO
-image will stay mounted at /run/initramfs/isoscandev.
+**iso-scan/filename=**[__<devspec>__:]__<filepath>__::
+    _dracut_ must independently identify the disk device holding the image file
+    using _dmsquash-live/iso-scan.sh_ code and the *_iso-scan/filename_*
+    parameter.
+    * *_<devspec>_* may be specified as
+    *{`block:|UUID=|PARTUUID=|LABEL=|PARTLABEL=|serial=<devserial>/serial/<partspec>`}*
+    * *_<filepath>_* specifies the image file for loop mounting by _dracut_ to
+    access the root filesystem within. +
++
+NOTE: _Without_ the optional *_<devspec>_* argument, all mountable devices will
+be mounted readonly in `/dev/disk/by-uuid/*` order. +
+(_ext[43]_, _f2fs_, & _xfs_ filesystems will be mounted with `-o ro,noload` or
+`ro,norecovery`.) +
+The first matching *_<filepath>_* that is successfully loop setup and mounted
+is used.
++
+Kernel messages from mounting will be checked for a dirty or hibernated
+filesytem, in which case the image will be checked with `checkisomd5` for
+integrity.
++
+The parent disk device is always unmounted after the .iso image's loop device
+has been mounted. +
+A link to this disk is saved at `/run/initramfs/isoscandev`. +
+A link to the image loop device primary partition is saved at
+`/run/initramfs/isoloop`.
++
 Using iso-scan/filename with a Fedora/Red Hat/CentOS Live iso should just work
 by copying the original kernel cmdline parameters.
-Requires the dracut 'dmsquash-live' module.
-
++
+The GRUB boot loader will need its appropriate modules for the partition and
+filesystem bearing the .iso file, such as __part_gpt__ or __part_msdos__ and
+_ext2_, _btrfs_, _f2fs_, or _xfs_ and _iso9660_ for the iso filesystem.
++
+In the first example below, the .iso image file is stored in the `/isos/`
+directory of the BOOT PARTITION OF THE HOST OPERATING SYSTEM so that GRUB
+can address the isofile for loop setup and reach the linux kernel and initrds.
++
+NOTE: The filepaths to the linux kernel and initrd below will differ depending
+on the .iso's OS distribution and vintage. +
+For example, Fedora 37-41 used paths `/images/pxeboot/vmlinuz` &
+`/images/pxeboot/initrd.img`.
++
 [listing]
-.Example
+.GRUB menuentry example employing the legacy all device scan.
 --
-menuentry 'Live' --class gnu-linux --class gnu --class os {
-    set isolabel=Live-x86_64
-    set isofile="/boot/iso/Live-x86_64.iso"
-    loopback loop $isofile
-    linux (loop)/isolinux/vmlinuz0 boot=isolinux iso-scan/filename=$isofile root=live:LABEL=$isolabel ro rd.live.image quiet
-    initrd (loop)/isolinux/initrd0.img
+menuentry 'Live .iso' --class gnu-linux --class gnu --class os {
+  insmod part_gpt
+  insmod ext2
+  insmod iso9660
+  insmod loopback
+  set isopath=isos/Live.x86_64.iso
+  loopback loop "$isopath"
+  linux (loop)/boot/x86_64/loader/linux iso-scan/filename="$isopath" root=live:iso-scan ro quiet splash
+  initrd (loop)/boot/x86_64/loader/initrd
 }
+--
+In the following example, the filesystem uuid of a storage partition
+is set to the variable `dev_uuid`, enabling direct addressing of an isofile on
+that filesystem.  On btrfs filesystems, the default root subvolume may need to
+be included as an additional directory level for GRUB as indicated by
+<btrfs_root_subvol/> in the example below.
++
+NOTE: This requires an initramfs built with an updated version of dracut.
++
+[listing]
+.grub.cfg script example for direct isofile access. Also accommodates multiple initrd images, if employed.
+--
+insmod part_gpt
+insmod ext2
+insmod iso9660
+insmod probe
+insmod loopback
+menuentry "Start 'Live .iso' --class gnu-linux --class gnu --class os {
+  set dev_uuid=d746fe81-d206-4cc8-8da9-2130399dbf8f
+  search --no-floppy --set dev -u $dev_uuid
+  set isopath=isos/Live.x86_64.iso
+  loopback loop ($dev)/<btrfs_root_subvol/>"$isopath"
+  initrds=''
+  for f in (loop)/boot/x86_64/loader/initrd*; do
+    initrds="$initrds $f"
+  done
+  linux (loop)/boot/x86_64/loader/linux root=live:iso-scan \
+    iso-scan/filename=UUID=${dev_uuid}:"$isopath" ro quiet splash
+  initrd $initrds
+  loopback -d loop
+}
+done
 --
 
 Misc

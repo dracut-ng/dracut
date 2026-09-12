@@ -15,8 +15,7 @@ if [ -h /dev/root ] && [ -d /run/initramfs/live/updates ] || [ -d /updates ]; th
     umount "$NEWROOT"/run
 fi
 # release resources on iso-scan boots with rd.live.ram
-if [ -d /run/initramfs/isoscan ] \
+if [ -h /run/initramfs/isoscandev ] \
     && [ -f /run/initramfs/squashed.img ] || [ -f /run/initramfs/rootfs.img ]; then
     umount -d /run/initramfs/live
-    umount /run/initramfs/isoscan
 fi

@@ -24,16 +24,6 @@ det_archive() {
     esac
 }
 
-# determine filesystem type for a filesystem image
-det_fs_img() {
-    local dev
-    dev=$(losetup --find --show "$1") rv=""
-    det_fs "$dev"
-    rv=$?
-    losetup -d "$dev"
-    return $rv
-}
-
 # unpack_archive ARCHIVE OUTDIR
 # unpack a (possibly compressed) cpio/tar archive
 unpack_archive() {
@@ -136,4 +126,26 @@ check_live_ram() {
         # Increase /run tmpfs size, if needed.
         mount -o remount,size=$((runsize - runavail + imgsize + minmem))M /run
     fi
+}
+
+# CD/DVD/USB media check
+rd_iso_check() {
+    local - "check_dev=$1" q
+    set +x
+    type plymouth > /dev/null 2>&1 && plymouth --hide-splash
+    if [ "${DRACUT_SYSTEMD-}" ]; then
+        systemctl start "checkisomd5@$(dev_unit_name "$check_dev").service"
+    else
+        # Reduce debug transcript spew.
+        [ "$RD_DEBUG" = yes ] && q=/dev/null || q=/dev/stdout
+        checkisomd5 --verbose "$check_dev" > "$q"
+    fi
+    # Allow user interrupted check, which returns exit code 2.
+    if [ $? -eq 1 ]; then
+        warn "Media check failed! We do not recommend using this medium. System will halt in 12 hours."
+        sleep 43200
+        die "Media check failed!"
+        exit 1
+    fi
+    command -v plymouth > /dev/null 2>&1 && plymouth --show-splash
 }
