@@ -20,35 +20,57 @@ str_replace() {
     printf -- '%s' "${out}${in}"
 }
 
-# get a systemd-compatible unit name from a path
+# Set variable 'DUN' and printf a systemd-compatible unit name from a path=$1.
 # (mimics unit_name_from_path_instance())
 dev_unit_name() {
-    local dev="$1"
+    local -
+    local "dev=$1" out='' chop
+    set +x
 
-    if command -v systemd-escape > /dev/null; then
+    case $dev in
+        '' | /)
+            printf -- '-'
+            return 0
+            ;;
+    esac
+
+    dev="${dev#"${dev%%[^/]*}"}"
+    dev="${dev%"${dev##*[^/]}"}"
+    while :; do case $dev in *//*) dev="${dev%%//*}/${dev#*//}" ;; *) break ;; esac done
+    DUN=''
+    [ "${dev#\.}" != "$dev" ] && DUN='\x2e'
+    dev="${dev#\.}"
+    while :; do
         case $dev in
-            */*) systemd-escape -p -- "$dev" ;;
-            *) systemd-escape -- "$dev" ;;
+            *[\\/\ -]*)
+                chop="${dev%%[\\/ -]*}"
+                out="${out}${chop}"
+                case $dev in
+                    "${chop}\\"*)
+                        out="${out}"'\x5c'
+                        dev="${dev#"${chop}\\"}"
+                        ;;
+                    "${chop}/"*)
+                        out="${out}-"
+                        dev="${dev#"${chop}/"}"
+                        ;;
+                    "${chop} "*)
+                        out="${out}"'\x20'
+                        dev="${dev#"${chop} "}"
+                        ;;
+                    "${chop}-"*)
+                        out="${out}"'\x2d'
+                        dev="${dev#"${chop}-"}"
+                        ;;
+                esac
+                ;;
+            *)
+                DUN="${DUN}${out}${dev}"
+                break
+                ;;
         esac
-        return $?
-    fi
-
-    if [ "$dev" = "/" ] || [ -z "$dev" ]; then
-        printf -- "-"
-        return 0
-    fi
-
-    dev="${1%%/}"
-    dev="${dev##/}"
-    # shellcheck disable=SC1003
-    dev="$(str_replace "$dev" '\' '\x5c')"
-    dev="$(str_replace "$dev" '-' '\x2d')"
-    if [ "${dev##.}" != "$dev" ]; then
-        dev="\x2e${dev##.}"
-    fi
-    dev="$(str_replace "$dev" '/' '-')"
-
-    printf -- "%s" "$dev"
+    done
+    printf -- '%s' "$DUN"
 }
 
 # wait_for_dev <dev> [<timeout>]
