@@ -574,26 +574,67 @@ udevmatch() {
     esac
 }
 
+# Convert a specification string, $1, to a /dev/disk/by-<spec>/path string
+#   saved in variable DEV with spaces/slashes in LABELs replaced by hex codes.
+# Or return $1 unchanged if it doesn't match one of the device specification
+#   prefixes {LABEL=|CDLABEL=|PARTLABEL=|UUID=|PARTUUID=}.
+# NOTE: There is no validation of the existence or validity of the result.
+#
+# If SERIALID=<ID_SERIAL_SHORT>/SERIALID/[<partition spec>] is passed, then
+#   the attached discs are scanned in the /sys/class/block virtual filesystem
+#   and only an EXISTING disc and partition, if requested, is reported.
 label_uuid_to_dev() {
-    local _dev
-    _dev="${1#block:}"
-    case "$_dev" in
-        LABEL=*)
-            echo "/dev/disk/by-label/$(echo "${_dev#LABEL=}" | sed 's,/,\\x2f,g;s, ,\\x20,g')"
-            ;;
-        PARTLABEL=*)
-            echo "/dev/disk/by-partlabel/$(echo "${_dev#PARTLABEL=}" | sed 's,/,\\x2f,g;s, ,\\x20,g')"
+    local - spec lbl iss ptSpec
+    set -x
+    spec="${1#block:}"
+    DEV=''
+    case $spec in
+        LABEL=* | CDLABEL=* | PARTLABEL=*)
+            [ "${spec#P*}" ] || p=p
+            # Note default to by-partlabel for any spec with first character 'P'.
+            DEV="/dev/disk/by-${p+part}label"
+            lbl="${spec#*LABEL=}"
+            while :; do
+                case $lbl in
+                    *\ *) lbl="${lbl%%\ *}"'\x20'"${lbl#*\ }" ;;
+                    */*) lbl="${lbl%%/*}"'\x2f'"${lbl#*/}" ;;
+                    *) break ;;
+                esac
+            done
+            DEV="$DEV/$lbl"
             ;;
         UUID=*)
-            echo "/dev/disk/by-uuid/${_dev#UUID=}"
+            DEV="/dev/disk/by-uuid/${spec#UUID=}"
             ;;
         PARTUUID=*)
-            echo "/dev/disk/by-partuuid/${_dev#PARTUUID=}"
+            DEV="/dev/disk/by-partuuid/${spec#PARTUUID=}"
+            ;;
+        SERIALID=*/SERIALID/*)
+            iss=${spec%%/SERIALID/*}
+            ID_SERIAL_SHORT_to_DISC "${iss#SERIALID=}" && {
+                DEV="$DISC"
+                ptSpec=${spec#*/SERIALID/}
+                [ "$ptSpec" ] && {
+                    case "$ptSpec" in
+                        *[!0-9]* | 0*)
+                            # Anything but a positive integer:
+                            label_uuid_to_dev "$ptSpec"
+                            DEV=$(readlink -f "$DEV")
+                            ;;
+                        *)
+                            aptPartitionName "$DISC" "$ptSpec"
+                            DEV="$aptName"
+                            ;;
+                    esac
+                }
+            }
+            [ -b "$DEV" ] || DEV=''
             ;;
         *)
-            echo "$_dev"
+            DEV="$spec"
             ;;
     esac
+    echo "$DEV"
 }
 
 # Prints unique path for potential file inside specified directory.  It consists

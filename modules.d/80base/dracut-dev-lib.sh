@@ -20,6 +20,18 @@ str_replace() {
     printf -- '%s' "${out}${in}"
 }
 
+# Set 'aptName' to an appropriate name for device $1 partition [$2]. Device names
+# that end with a digit must have a 'p' prepended to the partition number.
+aptPartitionName() {
+    local "dev=$1" "ptNbr=${2:-1}"
+    # Default to partition 1 if missing.
+    # shellcheck disable=SC2034
+    case $dev in
+        *[0-9]) aptName="${dev}p$ptNbr" ;;
+        *) aptName="${dev}$ptNbr" ;;
+    esac
+}
+
 # Set variable 'DUN' and printf a systemd-compatible unit name from a path=$1.
 # (mimics unit_name_from_path_instance())
 dev_unit_name() {
@@ -147,4 +159,71 @@ cancel_wait_for_dev() {
         rm -f -- "${PREFIX-}/etc/systemd/system/${_name}.device.d/timeout.conf"
         /sbin/initqueue --onetime --unique --name daemon-reload systemctl daemon-reload
     fi
+}
+
+# Find the disc device with a particular serial number.
+#   $1 - device serial number (ID_SERIAL_SHORT).
+#   False if not found.
+ID_SERIAL_SHORT_to_DISC() {
+    local -
+    local "iss=$1" s_path dev_id ser
+    for s_path in /sys/class/block/*; do
+        DISC=''
+        [ -d "$s_path" ] || continue
+        [ -f "$s_path/partition" ] && continue
+        read -r dev_id < "$s_path/dev" || continue
+        case ${dev_id%:*} in
+            # Exclude loop (7), cdrom (11), & zram (251, 252, 259)
+            7 | 11 | 25[129]) continue ;;
+        esac
+        DISC="/dev/${s_path##*/}"
+        [ -e "$DISC" ] || continue
+        ser=''
+        if [ -f "$s_path/device/serial" ]; then
+            read -r ser < "$s_path/device/serial" 2> /dev/null
+        elif [ -f "$s_path/device/device/serial" ]; then
+            read -r ser < "$s_path/device/device/serial" 2> /dev/null
+        fi
+        case $ser in
+            "$iss")
+                echo "$DISC"
+                return 0
+                ;;
+        esac
+    done
+    return 1
+}
+
+# Trigger a disk or partition having property spec
+#  $1 - {{LABEL=|UUID=|PARTLABEL=|PARTUUID=}<appropriate id>|SERIALID=<ID_SERIAL_SHORT>/SERIALID/[partition_spec]}
+#  for action $2 - [add|remove|change|move|online|offline|bind|unbind] default: add
+#  with optional additional match [$3]
+label_uuid_udevadm_trigger() {
+    local "devspec=$1" "act=${2:-add}" "match=${3-}"
+    case $devspec in
+        SERIALID=*/SERIALID/*)
+            devspec="${devspec#SERIALID=}"
+            match="--property-match=ID_SERIAL_SHORT=${devspec%/SERIALID/*}${match:+ $match}"
+            udevadm trigger --subsystem-match=block "--action=$act" "$match" --settle
+            devspec="${devspec#*/SERIALID/}"
+            # devspec may have a partition specified after /SERIALID/
+            [ "$devspec" ] && label_uuid_udevadm_trigger "$devspec" "$act" "$match"
+            return 0
+            ;;
+        LABEL=* | UUID=*)
+            match="--property-match=ID_FS_${devspec}${match:+ $match}"
+            ;;
+        PARTLABEL=*)
+            match="--property-match=ID_PART_ENTRY_NAME=${devspec#PARTLABEL=}${match:+ $match}"
+            ;;
+        PARTUUID=*)
+            match="--property-match=ID_PART_ENTRY_UUID=${devspec#PARTUUID=}${match:+ $match}"
+            ;;
+        *[!0-9]* | 0*) return 1 ;; # Anything but a positive integer.
+        *)
+            match="${match} --attr-match=partition=$devspec"
+            ;;
+    esac
+    # shellcheck disable=SC2086
+    [ "$match" ] && udevadm trigger --subsystem-match=block "--action=$act" $match --settle
 }
