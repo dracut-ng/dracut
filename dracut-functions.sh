@@ -1459,7 +1459,7 @@ require_binaries() {
 
     for cmd in "$@"; do
         if ! find_binary "$cmd" &> /dev/null; then
-            dinfo "Module '${_module_name#[0-9][0-9]}' will not be installed, because command '$cmd' could not be found!"
+            dinfo "Module '${_module_name#[0-9][0-9]}' cannot be used, because command '$cmd' could not be found${dracutsysrootdir:+ in sysroot}!"
             ((_ret++))
         fi
     done
@@ -1478,7 +1478,7 @@ require_any_binary() {
     done
 
     if ((_ret != 0)); then
-        dinfo "$_module_name: Could not find any command of '$*'!"
+        dinfo "Module '${_module_name#[0-9][0-9]}' cannot be used, could not find any command of '$*'${dracutsysrootdir:+ in sysroot}!"
         return 1
     fi
 
