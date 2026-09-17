@@ -7,8 +7,6 @@
 
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
-command -v getarg > /dev/null || . /lib/dracut-lib.sh
-
 while [ $# -gt 0 ]; do
     case "$1" in
         --onetime)
@@ -64,7 +62,8 @@ fi
     # shellcheck disable=SC2016
     [ -n "$onetime" ] && echo '[ -e "$job" ] && rm -f -- "$job"'
     [ -n "$env" ] && echo "$env"
-    echo "$exe" "$@"
+    # shellcheck disable=SC2145
+    echo "$exe" \""$@"\"
 } > "/tmp/$$-${job}.sh"
 
 mv -f "/tmp/$$-${job}.sh" "$hookdir/initqueue${qname}/${job}.sh"
