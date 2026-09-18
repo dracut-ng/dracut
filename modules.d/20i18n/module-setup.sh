@@ -133,6 +133,9 @@ install() {
         if dracut_module_included "systemd"; then
             # https://github.com/dracutdevs/dracut/issues/796
             [[ -f ${dracutsysrootdir-}${VCONFIG_CONF} ]] && inst_simple ${VCONFIG_CONF}
+            # install locale.conf here, as install_local_i18n() is
+            # skipped when i18n_install_all is set
+            [[ -f ${dracutsysrootdir-}${I18N_CONF} ]] && inst_simple -H ${I18N_CONF}
 
             inst_rules 90-vconsole.rules
 
@@ -221,9 +224,8 @@ install() {
         # shellcheck disable=SC1090
         [ -f "${dracutsysrootdir-}"$VCONFIG_CONF ] && . "${dracutsysrootdir-}"$VCONFIG_CONF
 
-        if dracut_module_included "systemd" && [[ -f ${dracutsysrootdir-}${I18N_CONF} ]]; then
-            inst_simple ${I18N_CONF}
-        else
+        # with systemd, locale.conf is already installed by install_base()
+        if ! dracut_module_included "systemd" || [[ ! -f ${dracutsysrootdir-}${I18N_CONF} ]]; then
             mksubdirs "${initdir}"${I18N_CONF}
             print_vars LC_ALL LANG >> "${initdir}"${I18N_CONF}
         fi
