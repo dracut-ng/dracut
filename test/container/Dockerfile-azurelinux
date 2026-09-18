@@ -73,3 +73,5 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     xfsprogs \
     xorriso \
     && dnf -y update && dnf clean all
+
+RUN update-crypto-policies --no-reload --set FIPS
