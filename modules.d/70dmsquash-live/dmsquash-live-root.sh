@@ -1,17 +1,14 @@
 #!/bin/sh
 
+[ "$RD_DEBUG" = yes ] && set -x
+PS4='+ $(read -r u _ </proc/uptime; echo "$u") ${BASH_SOURCE-$0}@$LINENO${FUNCNAME:+ $FUNCNAME()}: '
+
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 command -v det_fs > /dev/null || . /lib/fs-lib.sh
 command -v unpack_archive > /dev/null || . /lib/img-lib.sh
 command -v get_rd_overlay > /dev/null || . /lib/overlayfs-lib.sh
 
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
-
-if getargbool 0 rd.live.debug; then
-    exec > /tmp/liveroot.$$.out
-    exec 2>> /tmp/liveroot.$$.out
-    set -x
-fi
 
 [ -z "$1" ] && exit 1
 livedev="$1"

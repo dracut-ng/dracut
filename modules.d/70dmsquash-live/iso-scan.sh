@@ -1,5 +1,8 @@
 #!/bin/sh
 
+[ "$RD_DEBUG" = yes ] && set -x
+PS4='+ $(read -r u _ </proc/uptime; echo "$u") ${BASH_SOURCE-$0}@$LINENO${FUNCNAME:+ $FUNCNAME()}: '
+
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 
 PATH=/usr/sbin:/usr/bin:/sbin:/bin

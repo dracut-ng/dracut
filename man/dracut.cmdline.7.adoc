@@ -1399,9 +1399,6 @@ root=http://example.com/root.squashfs
 root=https://example.com/live.sqfs
 --
 
-**rd.live.debug=**1::
-Enables debug output from the live boot process.
-
 **rd.live.dir=**__<path>__::
 Specifies the directory within the boot device where the squashfs.img or
 rootfs.img can be found.  By default, this is `/LiveOS`.
@@ -1637,6 +1634,8 @@ rd.live.overlay.readonly:: rd.overlay.readonly (since version 110)
 rd.live.overlay:: rd.overlay (since version 110)
 
 rd.live.overlay.reset:: rd.overlay.reset (since version 110)
+
+rd.live.debug:: rd.debug (since version 113)
 
 Configuration in the Initramfs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

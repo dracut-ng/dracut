@@ -357,7 +357,7 @@ setdebug() {
     if [ -z "${RD_DEBUG-}" ]; then
         if [ -e /proc/cmdline ]; then
             RD_DEBUG=no
-            if getargbool 0 rd.debug; then
+            if getargbool 0 rd.debug -d -y rd.live.debug; then
                 RD_DEBUG=yes
                 export PS4='+ $(read -r u _ < /proc/uptime; echo "$u") ${BASH_SOURCE-$0}@$LINENO${FUNCNAME:+ $FUNCNAME()}: '
             fi
@@ -456,7 +456,7 @@ check_quiet() {
     if [ -z "$DRACUT_QUIET" ]; then
         DRACUT_QUIET="yes"
         getargbool 0 rd.info && DRACUT_QUIET="no"
-        getargbool 0 rd.debug && DRACUT_QUIET="no"
+        getargbool 0 rd.debug -d -y rd.live.debug && DRACUT_QUIET="no"
         getarg quiet || DRACUT_QUIET="yes"
         a=$(getarg loglevel=)
         [ -n "$a" ] && [ "$a" -ge 28 ] && DRACUT_QUIET="yes"
@@ -869,7 +869,7 @@ _emergency_shell() {
         /sbin/rdsosreport
         echo 'You might want to save "/run/initramfs/rdsosreport.txt" to a USB stick or /boot'
         echo 'after mounting them and attach it to a bug report.'
-        if ! RD_DEBUG='' getargbool 0 rd.debug -d -y rdnetdebug; then
+        if ! RD_DEBUG='' getargbool 0 rd.debug -d -y rd.live.debug -d -y rdnetdebug; then
             echo
             echo 'To get more debug information in the report,'
             echo 'reboot with "rd.debug" added to the kernel command line.'
