@@ -60,7 +60,7 @@ dracut creates _initramfs_ archives.
 
 == dracut's approach
 
-dracut creates an initrd image by copying tools and files from an installed
+dracut creates an initramfs archive by copying tools and files from an installed
 system and combining it with dracut modules, usually found on an installed
 system in `/usr/lib/dracut/modules.d`.
 
