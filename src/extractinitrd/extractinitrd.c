@@ -719,8 +719,12 @@ int main(int argc, char **argv)
                 cpio_optv[cpio_optc++] = "-t";
         if (verbose)
                 cpio_optv[cpio_optc++] = "-v";
-        if (!do_list && !to_stdout && cpio_supports_no_absolute_filenames())
-                cpio_optv[cpio_optc++] = "--no-absolute-filenames";
+        if (!do_list && !to_stdout) {
+                cpio_optv[cpio_optc++] = "-d";
+
+                if (cpio_supports_no_absolute_filenames())
+                        cpio_optv[cpio_optc++] = "--no-absolute-filenames";
+        }
         while (optind < argc)
                 cpio_optv[cpio_optc++] = argv[optind++];
 
