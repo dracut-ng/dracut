@@ -1561,7 +1561,7 @@ inst_symlink() {
         shift
     fi
     [[ -e ${initdir}/"${2:-$1}" ]] && return 0 # already there
-    [[ -L $1 ]] || return 1
+    [[ -L ${dracutsysrootdir-}$1 ]] || return 1
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
     if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
         return 0
