@@ -9,8 +9,8 @@ check() {
 installkernel() {
     # Include KMS capable drm drivers
 
-    if [[ ${DRACUT_ARCH} == arm* || ${DRACUT_ARCH} == aarch64 ]]; then
-        # arm/aarch64 specific modules needed by drm
+    if [[ ${DRACUT_ARCH} == arm* || ${DRACUT_ARCH} == aarch64 || ${DRACUT_ARCH} == riscv* ]]; then
+        # arm/aarch64/riscv specific modules needed by drm
         hostonly=$(optional_hostonly) instmods \
             leds-qcom-lpg \
             "=drivers/gpu/drm/i2c" \
