@@ -19,6 +19,12 @@ installkernel() {
             "=drivers/video/backlight"
     fi
 
+    # SpacemiT K3: the DP PHY is only reachable from the bridge through a
+    # devicetree phandle, which none of the selection rules above follows
+    if [[ ${DRACUT_ARCH} == riscv* ]]; then
+        hostonly=$(optional_hostonly) instmods phy-k3-inno-dp
+    fi
+
     hostonly=$(optional_hostonly) instmods amdkfd hyperv_fb "=drivers/pwm"
 
     # if the hardware is present, include module even if it is not currently loaded,
