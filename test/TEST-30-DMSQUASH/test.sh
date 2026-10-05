@@ -7,7 +7,7 @@ set -eu
 TEST_DESCRIPTION="live root on a squash filesystem"
 
 # Uncomment these to debug failures
-#DEBUGFAIL="rd.shell rd.debug rd.live.debug loglevel=7"
+#DEBUGFAIL="rd.shell rd.debug loglevel=7"
 
 test_check() {
     require_binaries_for_test mksquashfs xorriso
