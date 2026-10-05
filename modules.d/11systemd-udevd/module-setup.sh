@@ -86,7 +86,6 @@ install() {
 
     inst_binary true
     ln_r "$(find_binary true)" "/usr/bin/loginctl"
-    ln_r "$(find_binary true)" "/bin/loginctl"
 
     # Install required libraries.
     inst_libdir_file {"tls/$DRACUT_ARCH/",tls/,"$DRACUT_ARCH/",}"libudev.so.*"
