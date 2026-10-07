@@ -28,11 +28,14 @@ load_ima_policy() {
     IMAPOLICYPATH="${NEWROOT}${IMAPOLICY}"
 
     # check the existence of the IMA policy file
-    [ -f "${IMAPOLICYPATH}" ] && {
+    if [ ! -f "${IMAPOLICYPATH}" ] || ! {
         info "Loading the provided IMA custom policy"
         printf '%s' "${IMAPOLICYPATH}" > "${IMASECDIR}"/policy \
             || cat "${IMAPOLICYPATH}" > "${IMASECDIR}"/policy
-    }
+    }; then
+        getargbool 0 "rd.ima.require_policy_file" \
+            && die "Required IMA policy not present"
+    fi
 
     return 0
 }
