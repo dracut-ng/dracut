@@ -50,6 +50,11 @@ install() {
         "$systemdsystemunitdir/systemd-pcrnvdone.service.d/*.conf" \
         "$systemdsystemunitdir"/systemd-pcrosseparator.service \
         "$systemdsystemunitdir/systemd-pcrosseparator.service.d/*.conf" \
+        "$systemdsystemunitdir"/systemd-pcrextend.socket \
+        "$systemdsystemunitdir/systemd-pcrextend.socket.d/*.conf" \
+        "$systemdsystemunitdir"/systemd-pcrextend@.service \
+        "$systemdsystemunitdir/systemd-pcrextend@.service.d/*.conf" \
+        "$systemdsystemunitdir"/sockets.target.wants/systemd-pcrextend.socket \
         "$systemdsystemunitdir"/initrd.target.wants/systemd-pcrphase-initrd.service \
         "$systemdsystemunitdir"/sysinit.target.wants/systemd-pcrnvdone.service \
         "$systemdsystemunitdir"/sysinit.target.wants/systemd-pcrosseparator.service \
@@ -64,6 +69,11 @@ install() {
             "$systemdsystemconfdir/systemd-pcrnvdone.service.d/*.conf" \
             "$systemdsystemconfdir"/systemd-pcrosseparator.service \
             "$systemdsystemconfdir/systemd-pcrosseparator.service.d/*.conf" \
+            "$systemdsystemconfdir"/systemd-pcrextend.socket \
+            "$systemdsystemconfdir/systemd-pcrextend.socket.d/*.conf" \
+            "$systemdsystemconfdir"/systemd-pcrextend@.service \
+            "$systemdsystemconfdir/systemd-pcrextend@.service.d/*.conf" \
+            "$systemdsystemconfdir"/sockets.target.wants/systemd-pcrextend.socket \
             "$systemdsystemconfdir"/initrd.target.wants/systemd-pcrphase-initrd.service \
             "$systemdsystemconfdir"/sysinit.target.wants/systemd-pcrnvdone.service \
             "$systemdsystemconfdir"/sysinit.target.wants/systemd-pcrosseparator.service
