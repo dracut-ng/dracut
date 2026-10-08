@@ -84,9 +84,13 @@ install() {
         fi
     fi
 
-    inst_binary true
-    ln_r "$(find_binary true)" "/usr/bin/loginctl"
-    ln_r "$(find_binary true)" "/bin/loginctl"
+    if dracut_module_included "busybox"; then
+        printf "#!/bin/sh\nexit 0\n" > "${initdir}/usr/bin/loginctl"
+        chmod 755 "${initdir}/usr/bin/loginctl"
+    else
+        inst_binary true
+        ln_r "$(find_binary true)" "/usr/bin/loginctl"
+    fi
 
     # Install required libraries.
     inst_libdir_file {"tls/$DRACUT_ARCH/",tls/,"$DRACUT_ARCH/",}"libudev.so.*"
