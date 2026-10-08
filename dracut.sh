@@ -294,6 +294,26 @@ Creates initial ramdisk images for preloading modules
   --uefi-splash-image [FILE]
                         Use [FILE] as a splash image when creating an UEFI
                          executable. Requires bitmap (.bmp) image format.
+  --uefi-pcr-private-key [FILE]
+                        Use [FILE] as the private part of a PEM encoded RSA
+                         key pair. Used to generate a PCR signature to embed
+                         into the UEFI executable.
+  --uefi-pcr-public-key [FILE]
+                        Use [FILE] as the public part of a PEM encoded RSA
+                         key pair. Used to generate a PCR signature to embed
+                         into the UEFI executable, along with the public key.
+  --uefi-pcr-initrd-policy
+                        Generate an additonal PCR signature that are only
+                         satisfied from expected PCR values during the
+                         'enter-initrd' phase, with policy reference 'initrd'
+                         This can be useful for binding a decryption key to a
+                         PCR policy that is only valid for the initrd phase
+                         of booting, e.g. the decryption key for
+                         the root volume.                   
+  --no-uefi-pcr-initrd-policy
+                        Do not generate an additonal PCR signature that are
+                         only satisfied from expected PCR values during the
+                         'enter-initrd' phase.
   --kernel-image [FILE] Location of the kernel image.
   --sbat [PARAMETERS]   The SBAT parameters to be added to .sbat.
                          The string "sbat,1,SBAT Version,sbat,1,
@@ -484,6 +504,10 @@ rearrange_params() {
             --long no-ukify \
             --long uefi-stub: \
             --long uefi-splash-image: \
+            --long uefi-pcr-public-key: \
+            --long uefi-pcr-private-key: \
+            --long uefi-pcr-initrd-policy: \
+            --long no-uefi-pcr-initrd-policy: \
             --long kernel-image: \
             --long sbat: \
             --long no-hostonly-i18n \
@@ -939,6 +963,18 @@ while :; do
                     PARMS_TO_STORE+=" '$2'"
                     shift
                     ;;
+                --uefi-pcr-public-key)
+                    uefi_pcr_public_key_l="$2"
+                    PARMS_TO_STORE+=" '$2"
+                    shift
+                    ;;
+                --uefi-pcr-private-key)
+                    uefi_pcr_private_key_l="$2"
+                    PARMS_TO_STORE+=" '$2"
+                    shift
+                    ;;
+                --uefi-pcr-initrd-policy) uefi_pcr_initrd_policy_l="yes" ;;
+                --no-uefi-pcr-initrd-policy) uefi_pcr_initrd_policy_l="no" ;;
                 --kernel-image)
                     kernel_image_l="$2"
                     PARMS_TO_STORE+=" '$2'"
@@ -1218,6 +1254,9 @@ drivers_dir="${drivers_dir%"${drivers_dir##*[!/]}"}"
 [[ $ukify_l ]] && ukify=$ukify_l
 [[ $uefi_stub_l ]] && uefi_stub=$(path_rel_to_abs "$uefi_stub_l")
 [[ $uefi_splash_image_l ]] && uefi_splash_image=$(path_rel_to_abs "$uefi_splash_image_l")
+[[ $uefi_pcr_public_key_l ]] && uefi_pcr_public_key=$(path_rel_to_abs "$uefi_pcr_public_key_l")
+[[ $uefi_pcr_private_key_l ]] && uefi_pcr_private_key=$(path_rel_to_abs "$uefi_pcr_private_key_l")
+[[ $uefi_pcr_initrd_policy_l ]] && uefi_pcr_initrd_policy=$uefi_pcr_initrd_policy_l
 [[ $kernel_image_l ]] && kernel_image=$(path_rel_to_abs "$kernel_image_l")
 [[ $sbat_l ]] && sbat="$sbat_l"
 [[ $machine_id_l ]] && machine_id="$machine_id_l"
@@ -1266,7 +1305,7 @@ if ! [[ $outfile ]]; then
         fi
 
         if [[ -s $uefi_pcr_private_key && ! -s $uefi_pcr_public_key ]] || [[ ! -s $uefi_pcr_private_key && -s $uefi_pcr_public_key ]]; then
-            dfatal "Need 'uefi_prc_private_key' and 'uefi_prc_public_key' both to be set as a path to a non-empty file."
+            dfatal "Need 'uefi_prc_private_key' and 'uefi_prc_public_key' both to be set as a path to a non-empty file to generate a PCR 11 signature."
             exit 1
         fi
 
