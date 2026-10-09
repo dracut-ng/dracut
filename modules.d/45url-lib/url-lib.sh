@@ -72,10 +72,15 @@ curl_fetch_url() {
         local outdir
         outdir="$(mkuniqdir /tmp curl_fetch_url)"
         (
-            cd "$outdir" || exit
+            cd "$outdir" || exit $?
             # shellcheck disable=SC2086
-            curl $curl_args --remote-name "$url" || return $?
+            curl $curl_args --remote-name "$url"
         )
+        local ret=$?
+        if [ "$ret" -ne 0 ]; then
+            rm -rf -- "$outdir"
+            return $ret
+        fi
         outloc="$outdir/$(ls -A "$outdir")"
     fi
     if ! [ -f "$outloc" ]; then
@@ -106,10 +111,15 @@ ctorrent_fetch_url() {
         local outdir
         outdir="$(mkuniqdir /tmp torrent_fetch_url)"
         (
-            cd "$outdir" || exit
+            cd "$outdir" || exit $?
             # shellcheck disable=SC2086
-            curl $curl_args --remote-name "$url" || return $?
+            curl $curl_args --remote-name "$url"
         )
+        local ret=$?
+        if [ "$ret" -ne 0 ]; then
+            rm -rf -- "$outdir"
+            return $ret
+        fi
         torrent_outloc="$outdir/$(ls -A "$outdir")"
         outloc=${torrent_outloc%.*}
     fi
