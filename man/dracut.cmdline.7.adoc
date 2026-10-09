@@ -607,9 +607,12 @@ options; refer to the documentation of the specific network module in use. For
 NetworkManager, see man:nm-initrd-generator[8].
 
 **ip=**__{dhcp|on|any|dhcp6|auto6|either6|link6|single-dhcp}__::
-    dhcp|on|any::: get ip from dhcp server from all interfaces. If netroot=dhcp,
-    loop sequentially through all interfaces (eth0, eth1, ...) and use the first
-    with a valid DHCP root-path.
+    More than one of the following options can be given, separated by commas.
+    Each is tried in turn until one succeeds.
+
+    dhcp|on::: Get an IP from an IPv4 DHCP server for each interface. If
+    netroot=dhcp, loop sequentially through all interfaces (eth0, eth1, ...)
+    and use the first with a valid DHCP root-path.
 
     single-dhcp::: Send DHCP on all available interfaces in parallel, as
     opposed to one after another. After the first DHCP response is received,
@@ -617,7 +620,7 @@ NetworkManager, see man:nm-initrd-generator[8].
     using the IP on interface for which DHCP succeeded first during early boot.
     Caveat: Does not apply to Network Manager.
 
-    auto6::: IPv6 autoconfiguration
+    auto6::: IPv6 autoconfiguration (SLAAC)
 
     dhcp6::: IPv6 DHCP
 
@@ -625,32 +628,27 @@ NetworkManager, see man:nm-initrd-generator[8].
 
     link6::: bring up interface for IPv6 link-local addressing
 
-**ip=**__<interface>__:__{dhcp|on|any|dhcp6|auto6|link6}__[:[__<mtu>__][:__<macaddr>__]]::
+    any::: Get an IP from an IPv4 and an IPv6 DHCP server and attempt IPv6
+    autoconfiguration (SLAAC) on each interface. All methods are tried in
+    parallel, but only one is required to succeed.
+
+**ip=**__<interface>__:__{dhcp|on|any|dhcp6|auto6|either6|link6}__[:[__<mtu>__][:__<macaddr>__]]::
     This parameter can be specified multiple times.
 +
 =====================
-dhcp|on|any|dhcp6::: get ip from dhcp server on a specific interface
-auto6::: do IPv6 autoconfiguration
-link6::: bring up interface for IPv6 link local address
 <macaddr>::: optionally **set** <macaddr> on the <interface>. This
 cannot be used in conjunction with the **ifname** argument for the
 same <interface>.
 =====================
 
-**ip=**__<client-IP>__:[__<peer>__]:__<gateway-IP>__:__<netmask>__:__<client_hostname>__:__<interface>__:__{none|off|dhcp|on|any|dhcp6|auto6|ibft}__[:[__<mtu>__][:__<macaddr>__]]::
+**ip=**__<client-IP>__:[__<peer>__]:__<gateway-IP>__:__<netmask>__:__<client_hostname>__:__<interface>__:__{none|off|dhcp|on|any|dhcp6|auto6|either6|link6|ibft}__[:[__<mtu>__][:__<macaddr>__]]::
     explicit network configuration. If you want do define a IPv6 address, put it
     in brackets (e.g. [2001:DB8::1]). This parameter can be specified multiple
     times. __<peer>__ is optional and is the address of the remote endpoint
     for pointopoint interfaces and it may be followed by a slash and a decimal
     number, encoding the network prefix length.
-+
-=====================
-<macaddr>::: optionally **set** <macaddr> on the <interface>. This
-cannot be used in conjunction with the **ifname** argument for the
-same <interface>.
-=====================
 
-**ip=**__<client-IP>__:[__<peer>__]:__<gateway-IP>__:__<netmask>__:__<client_hostname>__:__<interface>__:__{none|off|dhcp|on|any|dhcp6|auto6|ibft}__[:[__<dns1>__][:__<dns2>__]]::
+**ip=**__<client-IP>__:[__<peer>__]:__<gateway-IP>__:__<netmask>__:__<client_hostname>__:__<interface>__:__{none|off|dhcp|on|any|dhcp6|auto6|either6|link6|ibft}__[:[__<dns1>__][:__<dns2>__]]::
     explicit network configuration. If you want do define a IPv6 address, put it
     in brackets (e.g. [2001:DB8::1]). This parameter can be specified multiple
     times. __<peer>__ is optional and is the address of the remote endpoint

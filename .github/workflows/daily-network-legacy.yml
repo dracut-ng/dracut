@@ -42,6 +42,7 @@ jobs:
                     - gentoo:latest
                 test:
                     - "50"
+                    - "51"
                     - "60"
         container:
             image: ghcr.io/dracut-ng/${{ matrix.container }}
