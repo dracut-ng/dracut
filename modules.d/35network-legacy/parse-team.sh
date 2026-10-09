@@ -61,6 +61,6 @@ for team in $(getargs team); do
     if ! [ -e /etc/teamd/"${teammaster}".conf ]; then
         warn "Team master $teammaster specified, but no /etc/teamd/$teammaster.conf present. Using $teamrunner."
         mkdir -p /etc/teamd
-        printf -- "%s" "{\"runner\": {\"name\": \"$teamrunner\"}, \"link_watch\": {\"name\": \"ethtool\"}}" > "/tmp/${teammaster}.conf"
+        printf -- "%s" "{\"runner\": {\"name\": \"$teamrunner\"}, \"link_watch\": {\"name\": \"ethtool\"}}" > "/etc/teamd/${teammaster}.conf"
     fi
 done
