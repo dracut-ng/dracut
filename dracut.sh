@@ -294,6 +294,26 @@ Creates initial ramdisk images for preloading modules
   --uefi-splash-image [FILE]
                         Use [FILE] as a splash image when creating an UEFI
                          executable. Requires bitmap (.bmp) image format.
+  --uefi-pcr-private-key [FILE]
+                        Use [FILE] as the private part of a PEM encoded RSA
+                         key pair. Used to generate a PCR signature to embed
+                         into the UEFI executable.
+  --uefi-pcr-public-key [FILE]
+                        Use [FILE] as the public part of a PEM encoded RSA
+                         key pair. Used to generate a PCR signature to embed
+                         into the UEFI executable, along with the public key.
+  --uefi-pcr-initrd-policy
+                        Generate an additonal PCR signature that are only
+                         satisfied from expected PCR values during the
+                         'enter-initrd' phase, with policy reference 'initrd'
+                         This can be useful for binding a decryption key to a
+                         PCR policy that is only valid for the initrd phase
+                         of booting, e.g. the decryption key for
+                         the root volume.                   
+  --no-uefi-pcr-initrd-policy
+                        Do not generate an additonal PCR signature that are
+                         only satisfied from expected PCR values during the
+                         'enter-initrd' phase.
   --kernel-image [FILE] Location of the kernel image.
   --sbat [PARAMETERS]   The SBAT parameters to be added to .sbat.
                          The string "sbat,1,SBAT Version,sbat,1,
@@ -484,6 +504,10 @@ rearrange_params() {
             --long no-ukify \
             --long uefi-stub: \
             --long uefi-splash-image: \
+            --long uefi-pcr-public-key: \
+            --long uefi-pcr-private-key: \
+            --long uefi-pcr-initrd-policy: \
+            --long no-uefi-pcr-initrd-policy: \
             --long kernel-image: \
             --long sbat: \
             --long no-hostonly-i18n \
@@ -939,6 +963,18 @@ while :; do
                     PARMS_TO_STORE+=" '$2'"
                     shift
                     ;;
+                --uefi-pcr-public-key)
+                    uefi_pcr_public_key_l="$2"
+                    PARMS_TO_STORE+=" '$2"
+                    shift
+                    ;;
+                --uefi-pcr-private-key)
+                    uefi_pcr_private_key_l="$2"
+                    PARMS_TO_STORE+=" '$2"
+                    shift
+                    ;;
+                --uefi-pcr-initrd-policy) uefi_pcr_initrd_policy_l="yes" ;;
+                --no-uefi-pcr-initrd-policy) uefi_pcr_initrd_policy_l="no" ;;
                 --kernel-image)
                     kernel_image_l="$2"
                     PARMS_TO_STORE+=" '$2'"
@@ -1218,6 +1254,9 @@ drivers_dir="${drivers_dir%"${drivers_dir##*[!/]}"}"
 [[ $ukify_l ]] && ukify=$ukify_l
 [[ $uefi_stub_l ]] && uefi_stub=$(path_rel_to_abs "$uefi_stub_l")
 [[ $uefi_splash_image_l ]] && uefi_splash_image=$(path_rel_to_abs "$uefi_splash_image_l")
+[[ $uefi_pcr_public_key_l ]] && uefi_pcr_public_key=$(path_rel_to_abs "$uefi_pcr_public_key_l")
+[[ $uefi_pcr_private_key_l ]] && uefi_pcr_private_key=$(path_rel_to_abs "$uefi_pcr_private_key_l")
+[[ $uefi_pcr_initrd_policy_l ]] && uefi_pcr_initrd_policy=$uefi_pcr_initrd_policy_l
 [[ $kernel_image_l ]] && kernel_image=$(path_rel_to_abs "$kernel_image_l")
 [[ $sbat_l ]] && sbat="$sbat_l"
 [[ $machine_id_l ]] && machine_id="$machine_id_l"
@@ -1262,6 +1301,11 @@ if ! [[ $outfile ]]; then
 
         if [[ -n $uefi_secureboot_key && -n $uefi_secureboot_cert ]] && ! command -v sbsign &> /dev/null; then
             dfatal "Need 'sbsign' to create a signed UEFI executable."
+            exit 1
+        fi
+
+        if [[ -s $uefi_pcr_private_key && ! -s $uefi_pcr_public_key ]] || [[ ! -s $uefi_pcr_private_key && -s $uefi_pcr_public_key ]]; then
+            dfatal "Need 'uefi_prc_private_key' and 'uefi_prc_public_key' both to be set as a path to a non-empty file to generate a PCR 11 signature."
             exit 1
         fi
 
@@ -2331,6 +2375,12 @@ if ! [[ $print_cmdline ]] && ! [[ $printconfig ]]; then
                 exit 1
                 ;;
         esac
+
+        if [[ -s $uefi_pcr_private_key && -s $uefi_pcr_public_key ]] && \
+            { ! command -v systemd-measure &> /dev/null && [[ ! -x "${dracutsysrootdir-}${systemdutildir}/systemd-measure" ]]; }; then
+            dfatal "Need 'systemd-measure' to create a TPM PCR 11 signature to embed into a UEFI executable."
+            exit 1
+        fi
 
         if ! [[ -s $uefi_stub ]]; then
             uefi_stub="${dracutsysrootdir-}${systemdprefix}/lib/systemd/boot/efi/linux${EFI_MACHINE_TYPE_NAME}.efi.stub"
@@ -3505,6 +3555,16 @@ get_sbat_string() {
     clean_sbat_string "$out"
 }
 
+get_pcr_banks() {
+    if [[ -z $1 ]]; then
+        return;
+    fi
+    for algo in /sys/class/tpm/"${1}"/pcr-*; do
+        algo=${algo##*/}
+        echo -n "${algo#*-}"
+    done
+}
+
 if [[ $uefi == yes ]]; then
     if [[ $kernel_cmdline ]]; then
         echo -n "$kernel_cmdline" > "$uefi_outdir/cmdline.txt"
@@ -3572,6 +3632,73 @@ if [[ $uefi == yes ]]; then
     uefi_linux_offs="${offs}"
     offs=$((offs + $(stat -Lc%s "$kernel_image")))
     offs=$((offs + "$align" - offs % "$align"))
+
+    if { ! command -v ukify &> /dev/null || [[ $ukify == "no" ]]; } && \
+        [[ -s $uefi_pcr_private_key && -s $uefi_pcr_public_key ]]; then
+        uefi_pcrpkey_offs=${offs}
+        offs=$((offs + $(stat -Lc%s "$uefi_pcr_public_key")))
+        offs=$((offs + "$align" - offs % "$align"))
+
+        dinfo "*** Computing systemd-measure TPM2 PCR 11 signature ***"
+
+        systemd_measure=$(command -v systemd-measure)
+        if [[ -z $systemd_measure ]]; then
+            systemd_measure="${dracutsysrootdir-}${systemdutildir}/systemd-measure"
+        fi
+
+        base_measure_parameters="--initrd=${DRACUT_TMPDIR}/initramfs.img \
+            --linux $kernel_image \
+            --sbat $sbat_out \
+            ${uefi_osrelease:+--osrel "$uefi_osrelease"} \
+            ${uefi_cmdline:+--cmdline "$uefi_cmdline"} \
+            ${uefi_splash_image:+--splash "$uefi_splash_image"} \
+            --pcrpkey $uefi_pcr_public_key \
+            --private-key $uefi_pcr_private_key \
+            --public-key $uefi_pcr_public_key"
+
+        # TODO: add feature to change TPM device, when systemd-measure actually implements its '--tpm2-device' option
+        mapfile -t tmp_banks < <(get_pcr_banks "tpm0")
+        banks=$(IFS='!' ; echo "${tmp_banks[*]}")
+        banks=${banks//\!/ --bank }
+        base_measure_parameters+=" --bank ${banks}"
+
+        uefi_pcr_signature="${uefi_outdir}/tpm2-pcr-signature.json"
+
+        all_measure_parameters="${base_measure_parameters} --policyref=all "
+
+        # shellcheck disable=SC2086
+        if ! $systemd_measure sign ${all_measure_parameters} > "${uefi_pcr_signature}"; then
+            dfatal "Failed to produce TPM2 PCR signature."
+            exit 1
+        fi
+
+        # shellcheck disable=SC2086
+        if ((maxloglvl >= 5)) && ((verbosity_mod_l >= 0)); then
+            $systemd_measure policy-digest ${all_measure_parameters} --json=pretty 2>&1 | ddebug
+        fi
+
+        if [[ $uefi_pcr_initrd_policy != "no" ]]; then
+            initrd_measure_parameters="${base_measure_parameters} --phase=enter-initrd --policyref=initrd --append=${uefi_pcr_signature}"
+
+            # shellcheck disable=SC2086
+            if ! $systemd_measure sign ${initrd_measure_parameters} > "${uefi_pcr_signature}.new"; then
+                dfatal "Failed to produce TPM2 PCR signature for enter-initrd."
+                exit 1
+            fi
+
+            # shellcheck disable=SC2086
+            if ((maxloglvl >= 5)) && ((verbosity_mod_l >= 0)); then
+                $systemd_measure policy-digest ${initrd_measure_parameters} --json=pretty 2>&1 | ddebug
+            fi
+
+            uefi_pcr_signature="${uefi_pcr_signature}.new"
+        fi
+
+        uefi_pcrpsig_offs=${offs}
+        offs=$((offs + $(stat -Lc%s "$uefi_pcr_signature")))
+        offs=$((offs + "$align" - offs % "$align"))
+    fi
+
     uefi_initrd_offs="${offs}"
 
     base_image=$(pe_get_image_base "$uefi_stub")
@@ -3595,6 +3722,15 @@ if [[ $uefi == yes ]]; then
             echo "$sbat" | sed "/${SBAT_DEFAULT//\//\\/}/d" >> "$ukify_sbat"
         fi
 
+        if [[ -s $uefi_pcr_private_key ]]; then
+            mapfile -t tmp_banks < <(get_pcr_banks "tpm0")
+            banks=$(IFS=, ; echo "${tmp_banks[*]}")
+        fi
+
+        if [[ $uefi_pcr_initrd_policy != "no" && -s $uefi_pcr_private_key ]]; then
+            uefi_pcr_initrd_policy="yes"
+        fi
+
         if ukify build \
             --linux "$kernel_image" \
             --initrd "${DRACUT_TMPDIR}/initramfs.img" \
@@ -3607,6 +3743,10 @@ if [[ $uefi == yes ]]; then
             ${uefi_secureboot_engine:+--signing-engine "$uefi_secureboot_engine"} \
             ${uefi_secureboot_key:+--secureboot-private-key "$uefi_secureboot_key"} \
             ${uefi_secureboot_cert:+--secureboot-certificate "$uefi_secureboot_cert"} \
+            ${uefi_pcr_private_key:+--pcr-private-key "$uefi_pcr_private_key"} \
+            ${uefi_pcr_public_key:+--pcr-public-key "$uefi_pcr_public_key"} \
+            ${uefi_pcr_initrd_policy:+--sign-initrd-pcrs} \
+            ${banks:+--pcr-banks "$banks" --policyref=all} \
             --output "${uefi_outdir}/linux.efi"; then
 
             if cp --reflink=auto "${uefi_outdir}/linux.efi" "$outfile"; then
@@ -3627,6 +3767,8 @@ if [[ $uefi == yes ]]; then
             ${uefi_osrelease:+--add-section .osrel="$uefi_osrelease" --change-section-vma .osrel=$(printf 0x%x "$uefi_osrelease_offs")} \
             ${uefi_cmdline:+--add-section .cmdline="$uefi_cmdline" --change-section-vma .cmdline=$(printf 0x%x "$uefi_cmdline_offs")} \
             ${uefi_splash_image:+--add-section .splash="$uefi_splash_image" --change-section-vma .splash=$(printf 0x%x "$uefi_splash_offs")} \
+            ${uefi_pcr_public_key:+--add-section .pcrpkey="$uefi_pcr_public_key" --change-section-vma .pcrpkey=$(printf 0x%x "$uefi_pcrpkey_offs")} \
+            ${uefi_pcr_signature:+--add-section .pcrsig="$uefi_pcr_signature" --change-section-vma .pcrsig=$(printf 0x%x "$uefi_pcrpsig_offs")} \
             --add-section .sbat="$sbat_out" --change-section-vma .sbat="$(printf 0x%x "$uefi_sbat_offs")" \
             --add-section .linux="$kernel_image" --change-section-vma .linux="$(printf 0x%x "$uefi_linux_offs")" \
             --add-section .initrd="${DRACUT_TMPDIR}/initramfs.img" --change-section-vma .initrd="$(printf 0x%x "$uefi_initrd_offs")" \

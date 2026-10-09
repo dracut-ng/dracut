@@ -325,6 +325,87 @@ once more by creating it on the target machine with the --host-only option:
 
 This will reduce the size of the initramfs image significantly.
 
+[[PCRSignature]]
+== Embedding PCR signatures
+dracut can embed TPM2 PCR signatures when generating UEFI executables.
+systemd can use these signatures to be able to verify the boot process,
+and define and initialize NvPCR values.
+Before systemd v262,
+the NvPCR values used to rely on an anchoring secret stored on disk,
+embedding a valid PCR signature is now needed instead.
+
+Embedding PCR signatures are also useful for tying encryption keys for LUKS
+volumes into specific PCR policies at specific stages of a boot process.
+For example, only being able to unlock the root volume of a system during the
+initrd phase of booting, provided the the signature embedded is valid for the
+measured PCR values read into PCR11.
+
+To produce the PCR policy, dracut will need an RSA key pair. These may be
+generated using 'ukify', or 'openssl' directly.
+
+
+=== ukify
+[,console]
+----
+# ukify genkey \
+        --pcr-private-key=/etc/systemd/tpm2-pcr-private-key.pem \
+        --pcr-public-key=/etc/systemd/tpm2-pcr-public-key.pem
+----
+
+=== openssl
+[,console]
+----
+# openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /etc/systemd/tpm2-pcr-private-key.pem
+# openssl rsa -pubout -in /etc/systemd/tpm2-pcr-private-key.pem -out tpm2-pcr-public-key.pem /etc/systemd/tpm2-pcr-public-key.pem
+----
+
+In addition, make sure the keys have stricter permissions.
+
+=== Key permissions
+[,console]
+----
+# chmod 600 /etc/systemd/tpm2-pcr-private-key.pem
+# chmod 644 /etc/systemd/tpm2-pcr-public-key.pem
+----
+
+Different paths may be used, but '/etc/systemd/tpm2-pcr-public-key.pem'
+is one of the paths systemd-cryptenroll check by default if '--tpm-public-key'
+is not specified.
+
+Put these paths into the dracut configuration (see man:dracut.conf[5]),
+into uefi_pcr_private_key and uefi_pcr_pblic_key, respectively.
+These can also be defined directly in the cli with --uefi-pcr-private-key
+and --uefi-pcr-public-key.
+
+Signing and embedding an additional policy only satisfied during 'initrd'
+phase is done by default, but can be overridden by setting
+uefi_pcr_initrd_policy="no",
+or specifying --no-uefi-pcr-initrd-policy in the cli.
+
+=== Enrolling TPM policy into LUKS volume
+To enroll the initrd policy produced by dracut, use the following parameters
+for 'systemd-cryptenroll':
+
+[,console]
+----
+# systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-public-key-policyref=initrd \
+                      --tpm2-public-key=/etc/systemd/tpm2-pcr-public-key.pem \
+                      /dev/disk
+----
+
+_/dev/disk_ being the block device containing the LUKS volume.
+
+This is just an example for using a policy reference specifically,
+and should _NOT_ be used as a fully secure way of unlocking
+with a TPM. Ideally, it should be combined with a PCR lock
+(see man:systemd-pcrlock[8] and '--tpm2-pcrlock' in man:systemd-cryptenroll[1])
+tied to something like PCR7 (Secure Boot state), and pinning the expected hash
+for the volume key
+(see 'fixate-volume-key',and 'tpm2-measure-pcr' in man:cryptab[5]).
+Without this, an attacker could still make a malcicous stub for the executable
+(as a policy signature does not account for Secure Boot state),
+or spoof UUIDs to impersonate the partition of interest. Recreating PCR values
+is not impossible and cannot be used as the only way to secure a LUKS volume.
 
 == Troubleshooting
 

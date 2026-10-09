@@ -367,6 +367,20 @@ installed.
 Specifies an engine to use when signing the created UEFI
 executable. E.g. "pkcs11"
 
+*uefi_pcr_private_key*="_<file>_", *uefi_pcr_public_key*="_<file>_"::
+Specifies the paths to a PEM encoded RSA key pair.
+Used to sign expected PCR 11 values in various boot phases, and to generate
+a PCR 11 signature to embed into the UEFI executable.
+*uefi_pcr_public_key* is also embedded into the UEFI executable.
+
+*uefi_pcr_initrd_policy*="__{yes|no}__"::
+Generate an additonal PCR signature that are only satisfied from expected
+PCR values during the 'enter-initrd' phase,
+with policy reference 'initrd' (default=yes).
+This can be useful for binding a decryption key to a PCR policy
+that is only valid for the initrd phase of booting,
+e.g. the decryption key for the root volume.
+
 *kernel_image=*"_<file>_"::
 Specifies the kernel image, which to include in the UEFI executable. The
 default is _/lib/modules/<KERNEL-VERSION>/vmlinuz_ or

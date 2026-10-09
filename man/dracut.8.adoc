@@ -676,6 +676,28 @@ and no /etc/cmdline/*.conf will be generated into the initramfs.
     Specifies the UEFI stub loader's splash image. Requires bitmap (**.bmp**)
     image format.
 
+**--uefi-pcr-public-key** _<file>_::
+    Specifies the path to the public part of a PEM encoded RSA key file.
+    Used to generate a PCR signature to embed into the UEFI executable,
+    along with the public key.
+
+**--uefi-pcr-private-key** _<file>_::
+    Specifies the path to the private part of a PEM encoded RSA key file.
+    Used to generate a PCR signature to embed into the UEFI executable.
+
+**--uefi-pcr-initrd-policy**::
+    Generate an additonal PCR signature that are only satisfied from
+    expected PCR values during the 'enter-initrd' phase,
+    with policy reference 'initrd' (default).
+    This can be useful for binding a decryption key to a PCR policy
+    that is only valid for the initrd phase of booting,
+    e.g. the decryption key for the root volume.
+
+**--no-uefi-pcr-initrd-policy**::
+    Do not generate an additonal PCR signature that are only satisfied from
+    expected PCR values during the 'enter-initrd' phase,
+    with the policy reference 'initrd'
+
 **--kernel-image** _<file>_::
     Specifies the kernel image, which to include in the UEFI executable. The
     default is _/lib/modules/<KERNEL-VERSION>/vmlinuz_ or
