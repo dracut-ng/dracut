@@ -128,9 +128,9 @@ if ! [ "$nbdport" -gt 0 ] 2> /dev/null; then
     nbdport="-name $nbdport"
 fi
 
-if ! nbd-client -check /dev/nbd0 > /dev/null; then
+if ! /usr/sbin/nbd-client -check /dev/nbd0 > /dev/null; then
     # shellcheck disable=SC2086
-    nbd-client -p -systemd-mark "$nbdserver" $nbdport /dev/nbd0 $opts || exit 1
+    /usr/sbin/nbd-client -p -systemd-mark "$nbdserver" $nbdport /dev/nbd0 $opts || exit 1
 fi
 
 need_shutdown
