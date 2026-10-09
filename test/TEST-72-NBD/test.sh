@@ -101,7 +101,7 @@ test_run() {
     fi
     client_run
     local res="$?"
-    kill_server
+    stop_server
     return "$res"
 }
 
@@ -159,11 +159,7 @@ client_run() {
     #                52:54:00:12:34:05 \
     #                "root=LABEL=dracut rd.luks.uuid=$ID_FS_UUID rd.lv.vg=dracut netroot=dhcp"
 
-    if [[ -s server.pid ]]; then
-        kill -TERM "$(cat "$TESTDIR"/server.pid)"
-        rm -f -- "$TESTDIR"/server.pid
-    fi
-
+    stop_server
 }
 
 make_encrypted_rootfs() {
@@ -262,15 +258,8 @@ test_setup() {
         -f "$TESTDIR"/initramfs.server
 }
 
-kill_server() {
-    if [[ -s $TESTDIR/server.pid ]]; then
-        kill -TERM "$(cat "$TESTDIR"/server.pid)"
-        rm -f -- "$TESTDIR"/server.pid
-    fi
-}
-
 test_cleanup() {
-    kill_server
+    stop_server
 }
 
 # shellcheck disable=SC1090
