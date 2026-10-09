@@ -2,7 +2,7 @@
 
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 
-if ! fipsmode=$(getarg fips) || [ "$fipsmode" = "0" ] || [ -z "$fipsmode" ]; then
+if [ "$(cat /proc/sys/crypto/fips_enabled 2> /dev/null)" != "1" ]; then
     # Do nothing if not in FIPS mode
     return 0
 fi
