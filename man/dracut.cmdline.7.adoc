@@ -520,8 +520,10 @@ FIPS
 ~~~~
 Requires the dracut 'fips' module.
 
-**rd.fips**::
-    enable FIPS
+The FIPS integrity checks run whenever the kernel reports FIPS mode via
+_/proc/sys/crypto/fips_enabled_. On most kernels this is turned on with
+**fips=1** on the kernel command line, but some kernels enable it by other
+means.
 
 **boot=**__<boot device>__::
     specify the device, where /boot is located.
