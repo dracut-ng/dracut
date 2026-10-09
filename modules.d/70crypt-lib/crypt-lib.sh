@@ -173,7 +173,7 @@ test_dev() {
     [ -n "$dev" ] && [ -n "$*" ] || return 1
     [ -d "$mount_point" ] || die 'Mount point does not exist!'
 
-    if mount -r "$dev" "$mount_point" > /dev/null 2>&1; then
+    if /bin/mount -r "$dev" "$mount_point" > /dev/null 2>&1; then
         test "$test_op" "${mount_point}/${f}"
         ret=$?
         umount "$mount_point"
@@ -264,7 +264,7 @@ readkey() {
 
         if [ ! -d "$mntp" ]; then
             mkdir -p "$mntp"
-            mount -r "$keydev" "$mntp" || die 'Mounting rem. dev. failed!'
+            /bin/mount -r "$keydev" "$mntp" || die 'Mounting rem. dev. failed!'
         fi
     fi
 
