@@ -118,12 +118,17 @@ ask_for_password() {
             fi
 
             local i=1
-            while [ $i -le "$tty_tries" ]; do
-                [ -n "$tty_prompt" ] \
-                    && printf "%s" "$tty_prompt [$i/$tty_tries]:" >&2
+            while [ 0 -eq "$tty_tries" ] || [ $i -le "$tty_tries" ]; do
+                if [ -n "$tty_prompt" ]; then
+                    printf "%s" "$tty_prompt" >&2
+                    if [ 0 -ne "$tty_tries" ]; then
+                        printf "%s" " [$i/$tty_tries]" >&2
+                    fi
+                    printf "%s" ":" >&2
+                fi
                 eval "$tty_cmd" && ret=0 && break
                 ret=$?
-                i=$((i + 1))
+                [ 0 -ne "$tty_tries" ] && i=$((i + 1))
                 [ -n "$tty_prompt" ] && printf '\n' >&2
             done
 
@@ -272,7 +277,7 @@ readkey() {
         gpg)
             if [ -f /lib/dracut-crypt-gpg-lib.sh ]; then
                 . /lib/dracut-crypt-gpg-lib.sh
-                gpg_decrypt "$mntp" "$keypath" "$keydev" "$device"
+                gpg_decrypt "$mntp" "$keypath" "$keydev" "$device" "$(getarg rd.luks.key.max-tries)"
             else
                 die "No GPG support to decrypt '$keypath' on '$keydev'."
             fi
