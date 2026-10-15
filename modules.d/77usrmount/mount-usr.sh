@@ -60,7 +60,7 @@ mount_usr() {
                 # if "rw" is specified, we want /usr to be mounted read-write
                 _opts="${_opts:+${_opts},}rw"
             fi
-            echo "$_dev ${NEWROOT}${_mp} $_fs ${_opts} $_freq $_passno"
+            printf "%s\n" "$_dev ${NEWROOT}${_mp} $_fs ${_opts} $_freq $_passno"
             _usr_found="1"
             break
         fi
