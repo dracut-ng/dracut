@@ -1255,16 +1255,6 @@ if ! [[ $outfile ]]; then
     fi
 
     if [[ $uefi == "yes" ]]; then
-        if [[ -n $uefi_secureboot_key && -z $uefi_secureboot_cert ]] || [[ -z $uefi_secureboot_key && -n $uefi_secureboot_cert ]]; then
-            dfatal "Need 'uefi_secureboot_key' and 'uefi_secureboot_cert' both to be set."
-            exit 1
-        fi
-
-        if [[ -n $uefi_secureboot_key && -n $uefi_secureboot_cert ]] && ! command -v sbsign &> /dev/null; then
-            dfatal "Need 'sbsign' to create a signed UEFI executable."
-            exit 1
-        fi
-
         BUILD_ID=$(cat "${dracutsysrootdir-}"/etc/os-release "${dracutsysrootdir-}"/usr/lib/os-release \
             | while read -r line || [[ $line ]]; do
                 [[ $line =~ BUILD_ID\=* ]] && eval "$line" && echo "$BUILD_ID" && break
@@ -3506,6 +3496,16 @@ get_sbat_string() {
 }
 
 if [[ $uefi == yes ]]; then
+    if [[ -n $uefi_secureboot_key && -z $uefi_secureboot_cert ]] || [[ -z $uefi_secureboot_key && -n $uefi_secureboot_cert ]]; then
+        dfatal "Need 'uefi_secureboot_key' and 'uefi_secureboot_cert' both to be set."
+        exit 1
+    fi
+
+    if [[ -n $uefi_secureboot_key && -n $uefi_secureboot_cert ]] && ! command -v sbsign &> /dev/null; then
+        dfatal "Need 'sbsign' to create a signed UEFI executable."
+        exit 1
+    fi
+
     if [[ $kernel_cmdline ]]; then
         echo -n "$kernel_cmdline" > "$uefi_outdir/cmdline.txt"
     elif [[ $hostonly_cmdline == yes ]]; then
