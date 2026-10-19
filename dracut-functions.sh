@@ -291,7 +291,7 @@ get_persistent_dev() {
     local i _tmp _dev _pol
 
     _dev=$(get_maj_min "$1")
-    [ -z "$_dev" ] && return
+    [ -z "$_dev" ] && return 0
 
     if [[ -n $persistent_policy ]]; then
         _pol="/dev/disk/${persistent_policy}/*"
@@ -1388,7 +1388,7 @@ instmods() {
     local _silent
     local _ret
 
-    [[ $no_kernel == yes ]] && return
+    [[ $no_kernel == yes ]] && return 0
 
     if [[ $1 == '-c' ]]; then
         unset _optional

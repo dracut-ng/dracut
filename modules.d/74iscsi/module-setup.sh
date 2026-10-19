@@ -107,7 +107,7 @@ install_iscsiroot() {
         esac
     done
 
-    [ -z "$iscsi_address" ] && return
+    [ -z "$iscsi_address" ] && return 0
     ip_params_for_remote_addr "$iscsi_address"
 
     if [ -n "$iscsi_address" ] && [ -n "$iscsi_targetname" ]; then

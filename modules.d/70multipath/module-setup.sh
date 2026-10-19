@@ -72,7 +72,7 @@ install() {
             local _dev
 
             _dev=$(majmin_to_mpath_dev "$1")
-            [ -z "$_dev" ] && return
+            [ -z "$_dev" ] && return 0
             _allow["$_dev"]="$_dev"
         fi
     }

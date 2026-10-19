@@ -1581,7 +1581,7 @@ dracut_install() {
 dracut_instmods() {
     local _ret _silent=0
     local i
-    [[ $no_kernel == yes ]] && return
+    [[ $no_kernel == yes ]] && return 0
     for i in "$@"; do
         if [[ $i == "--silent" ]]; then
             _silent=1

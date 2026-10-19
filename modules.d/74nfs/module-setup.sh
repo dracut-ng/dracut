@@ -13,8 +13,8 @@ get_nfs_type() {
         [[ $fs == "nfs4" ]] && _nfs4=1
     done
 
-    [[ "$_nfs" ]] && echo "nfs" && return
-    [[ "$_nfs4" ]] && echo "nfs4" && return
+    [[ "$_nfs" ]] && echo "nfs" && return 0
+    [[ "$_nfs4" ]] && echo "nfs4" && return 0
 }
 
 # called by dracut
@@ -58,7 +58,7 @@ cmdline() {
         nfs_root="root=nfs4:$nfs_device"
     else
         nfs_device=$(findmnt -t nfs -n -o SOURCE /)
-        [ -z "$nfs_device" ] && return
+        [ -z "$nfs_device" ] && return 0
         nfs_root="root=nfs:$nfs_device"
     fi
     nfs_options=$(findmnt -t nfs4,nfs -n -o OPTIONS /)
