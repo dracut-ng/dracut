@@ -32,7 +32,7 @@ if [ "${root%%:*}" = "cifs" ]; then
 fi
 
 # If it's not cifs we don't continue
-[ "${netroot%%:*}" = "cifs" ] || return
+[ "${netroot%%:*}" = "cifs" ] || return 1
 
 # Check required arguments
 cifs_to_var "$netroot"

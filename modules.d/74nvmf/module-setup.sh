@@ -79,7 +79,7 @@ installkernel() {
         # mac_re is a list of MAC addresses joined with "|", suitable as regexp
         mac_re=$(nvme nbft show -H -o json \
             | jq -r '[.[].hfi[].mac_addr] | join("|")')
-        [[ $mac_re ]] || return
+        [[ $mac_re ]] || return 1
 
         # Determine the network interfaces matching the MAC addresses from the
         # NBFT, read their drivers using readlink, and install them.

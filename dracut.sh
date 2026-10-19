@@ -2545,7 +2545,7 @@ unset m
 unset rest
 
 _get_fs_type() {
-    [[ $1 ]] || return
+    [[ $1 ]] || return 1
     if [[ -b /dev/block/$1 ]]; then
         ID_FS_TYPE=$(get_fs_env "/dev/block/$1") && host_fs_types["$(readlink -f "/dev/block/$1")"]="$ID_FS_TYPE"
         return 1

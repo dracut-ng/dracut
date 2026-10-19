@@ -140,7 +140,7 @@ install_softiscsi() {
         local _dev=$1
         local iscsi_dev
 
-        [[ -L "/sys/dev/block/$_dev" ]] || return
+        [[ -L "/sys/dev/block/$_dev" ]] || return 1
         iscsi_dev=$(
             cd -P /sys/dev/block/"$_dev" || exit
             echo "$PWD"

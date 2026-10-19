@@ -231,7 +231,7 @@ convert_abs_rel() {
 # $ get_fs_env /dev/sda2
 # ext4
 get_fs_env() {
-    [[ $1 ]] || return
+    [[ $1 ]] || return 1
     unset ID_FS_TYPE
     ID_FS_TYPE=$(blkid -u filesystem -o export -- "$1" \
         | while read -r line || [ -n "$line" ]; do
@@ -961,8 +961,8 @@ block_is_nbd() {
 block_is_iscsi() {
     local _dir
     local _dev=$1
-    [[ -L "/sys/dev/block/$_dev" ]] || return
-    _dir="$(readlink -f "/sys/dev/block/$_dev")" || return
+    [[ -L "/sys/dev/block/$_dev" ]] || return 1
+    _dir="$(readlink -f "/sys/dev/block/$_dev")" || return 1
     until [[ -d "$_dir/sys" || -d "$_dir/iscsi_session" ]]; do
         _dir="$_dir/.."
     done
@@ -976,7 +976,7 @@ block_is_iscsi() {
 block_is_fcoe() {
     local _dir
     local _dev=$1
-    [[ -L "/sys/dev/block/$_dev" ]] || return
+    [[ -L "/sys/dev/block/$_dev" ]] || return 1
     _dir="$(readlink -f "/sys/dev/block/$_dev")"
     until [[ -d "$_dir/sys" ]]; do
         _dir="$_dir/.."

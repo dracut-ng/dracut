@@ -421,7 +421,7 @@ check_finished() {
 
 source_conf() {
     local f
-    [ "$1" ] && [ -d "/$1" ] || return
+    [ "$1" ] && [ -d "/$1" ] || return 1
     # shellcheck disable=SC1090
     for f in "/$1"/*.conf; do [ -e "$f" ] && . "$f"; done
 }
@@ -797,8 +797,8 @@ need_shutdown() {
 }
 
 wait_for_loginit() {
-    [ "$RD_DEBUG" = "yes" ] || return
-    [ -e /run/initramfs/loginit.pipe ] || return
+    [ "$RD_DEBUG" = "yes" ] || return 1
+    [ -e /run/initramfs/loginit.pipe ] || return 1
     debug_off
     echo "DRACUT_LOG_END"
     exec 0<> /dev/console 1<> /dev/console 2<> /dev/console

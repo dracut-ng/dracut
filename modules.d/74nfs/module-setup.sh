@@ -73,7 +73,7 @@ cmdline() {
         nfs_address=${lookup##* }
     fi
 
-    [[ $nfs_address ]] || return
+    [[ $nfs_address ]] || return 1
     ip_params_for_remote_addr "$nfs_address"
 }
 
