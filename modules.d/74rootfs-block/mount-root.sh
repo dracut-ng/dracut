@@ -6,7 +6,8 @@ command -v det_fs > /dev/null || . /lib/fs-lib.sh
 mount_root() {
     local _rflags_ro
     # sanity - determine/fix fstype
-    rootfs=$(det_fs "${root#block:}" "$fstype")
+    det_fs "${root#block:}" "$fstype"
+    rootfs="$FS"
 
     journaldev=$(getarg "root.journaldev=")
     if [ -n "$journaldev" ]; then
@@ -50,7 +51,8 @@ mount_root() {
 
             if [ "$mp" = "/" ]; then
                 # sanity - determine/fix fstype
-                rootfs=$(det_fs "${root#block:}" "$fs")
+                det_fs "${root#block:}" "$fs"
+                rootfs="$FS"
                 rootopts=$opts
                 rootfsck=$fsck
                 break
