@@ -40,7 +40,7 @@ client_run() {
     qemu_add_drive disk_args "$TESTDIR"/marker.img marker
     qemu_add_drive disk_args "$TESTDIR/${disk}-1.img" disk1
 
-    if ! grep -qF 'degraded' "$test_name"; then
+    if ! [[ $test_name =~ "degraded" ]]; then
         # only add disk2 if RAID is NOT degraded
         qemu_add_drive disk_args "$TESTDIR/${disk}-2.img" disk2
     fi
