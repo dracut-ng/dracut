@@ -12,7 +12,7 @@ test_check() {
 }
 
 test_dracut_cpio() {
-    local tdir="${CPIO_TESTDIR}/${1}"
+    local tdir="$TESTDIR/cpio-test/$1"
     shift
     # --enhanced-cpio tells dracut to use dracut-cpio instead of GNU cpio
     local dracut_cpio_params=("--enhanced-cpio" "$@")
@@ -65,14 +65,7 @@ test_run() {
 }
 
 test_setup() {
-    CPIO_TESTDIR=$(mktemp -d -p "$TESTDIR" cpio-test.XXXXXXXXXX)
-    export CPIO_TESTDIR
-    return 0
-}
-
-test_cleanup() {
-    [ -d "${CPIO_TESTDIR-}" ] && rm -rf "$CPIO_TESTDIR"
-    return 0
+    mkdir -p "$TESTDIR"/cpio-test
 }
 
 # shellcheck disable=SC1090
