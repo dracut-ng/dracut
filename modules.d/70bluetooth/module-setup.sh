@@ -29,7 +29,8 @@ depends() {
 }
 
 installkernel() {
-    hostonly=$(optional_hostonly) instmods bluetooth btrtl btintel btbcm bnep ath3k btusb rfcomm hidp
+    hostonly=$(optional_hostonly) instmods bluetooth btrtl btintel btbcm bnep ath3k btusb rfcomm
+    hostonly='' instmods hidp hid_generic uhid
     inst_multiple -o \
         /lib/firmware/ar3k/AthrBT* \
         /lib/firmware/ar3k/ramps* \
