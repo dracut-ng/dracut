@@ -75,26 +75,26 @@ if [ -z "${DRACUT_SYSTEMD-}" ]; then
 
     warn() {
         check_quiet
-        echo "<28>dracut Warning: $*" > /dev/kmsg
-        echo "dracut Warning: $*" >&2
+        printf "<28>dracut Warning: %s\n" "$*" > /dev/kmsg
+        printf "dracut Warning: %s\n" "$*" >&2
     }
 
     info() {
         check_quiet
-        echo "<30>dracut: $*" > /dev/kmsg
+        printf "<30>dracut: %s\n" "$*" > /dev/kmsg
         if [ "$DRACUT_QUIET" != "yes" ]; then
-            echo "dracut: $*" >&2
+            printf "dracut: %s\n" "$*" >&2
         fi
     }
 
 else
 
     warn() {
-        echo "Warning: $*" >&2
+        printf "Warning: %s\n" "$*" >&2
     }
 
     info() {
-        echo "$*"
+        printf "%s\n" "$*"
     }
 
 fi
