@@ -15,8 +15,16 @@
 # re-enumerated as a new block device, leaving any filesystems mounted
 # before the ADSP reset without any backing device.
 #
-# To workaround this, this module load the ADSP driver from a pre-udev hook
+# To workaround this, this module loads the ADSP driver from a pre-udev hook
 # so that the USB re-enumeration happens before the rootfs is mounted.
+#
+# The pre-udev hook also blacklists the driver on all devices, so that udev
+# does not load it from the initrd. The driver boots the DSPs as soon as it
+# probes; if the firmware is unavailable the kernel does not retry loading it
+# later (e.g. once switch-root makes it available). The initrd does not
+# necessarily include the DSP firmware so the DSPs would stay down. With the
+# blacklist, udev loads the driver after switch-root instead, where the
+# firmware may be available.
 
 # called by dracut
 check() {
