@@ -47,7 +47,7 @@ mount_boot() {
             /dev/*) ;;
 
             *)
-                die "You have to specify boot=<boot device> as a boot option for fips=1"
+                die "You have to specify boot=<boot device> as a boot option when the kernel is in FIPS mode"
                 ;;
         esac
 
@@ -75,7 +75,7 @@ mount_boot() {
         rm -fr -- /boot
         ln -sf "$NEWROOT/boot" /boot
     else
-        die "You have to specify boot=<boot device> as a boot option for fips=1"
+        die "You have to specify boot=<boot device> as a boot option when the kernel is in FIPS mode"
     fi
 }
 
