@@ -30,7 +30,7 @@ if [ "${root%%:*}" = "nbd" ]; then
 fi
 
 # If it's not nbd we don't continue
-[ "${netroot%%:*}" = "nbd" ] || return
+[ "${netroot%%:*}" = "nbd" ] || return 1
 
 # Check required arguments
 nroot=${netroot#nbd:}

@@ -1581,7 +1581,7 @@ dracut_install() {
 dracut_instmods() {
     local _ret _silent=0
     local i
-    [[ $no_kernel == yes ]] && return
+    [[ $no_kernel == yes ]] && return 0
     for i in "$@"; do
         if [[ $i == "--silent" ]]; then
             _silent=1
@@ -2545,7 +2545,7 @@ unset m
 unset rest
 
 _get_fs_type() {
-    [[ $1 ]] || return
+    [[ $1 ]] || return 1
     if [[ -b /dev/block/$1 ]]; then
         ID_FS_TYPE=$(get_fs_env "/dev/block/$1") && host_fs_types["$(readlink -f "/dev/block/$1")"]="$ID_FS_TYPE"
         return 1

@@ -29,7 +29,7 @@ installkernel() {
 get_vlan_parent() {
     local link=$1
 
-    [ -d "$link" ] || return
+    [ -d "$link" ] || return 1
     read -r iflink < "$link"/iflink
     for if in /sys/class/net/*; do
         read -r idx < "$if"/ifindex

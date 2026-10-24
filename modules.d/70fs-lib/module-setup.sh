@@ -55,7 +55,7 @@ install() {
     inst "$moddir/fs-lib.sh" "/lib/fs-lib.sh"
     : > "${initdir}"/etc/fstab.empty
 
-    [[ $nofscks == "yes" ]] && return
+    [[ $nofscks == "yes" ]] && return 0
 
     if [[ $fscks == "${fscks#*[^ ]*}" ]]; then
         _helpers=(
