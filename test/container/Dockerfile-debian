@@ -25,11 +25,13 @@ RUN case $(dpkg --print-architecture) in \
     if [ "$DISTRIBUTION" != "debian:latest" ]; then \
         systemd_pkgs="systemd-tpm"; \
     fi; \
+    if [ "$DISTRIBUTION" != "debian:latest" ]; then rng_tools=rng-tools; else rng_tools=rng-tools5; fi; \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Use-Pty=0 \
     $arch_pkgs \
     $cpio \
     $systemd_pkgs \
+    $rng_tools \
     asciidoctor \
     bluez \
     btrfs-progs \
@@ -85,7 +87,6 @@ RUN case $(dpkg --print-architecture) in \
     plymouth-themes \
     procps \
     python3 \
-    rng-tools5 \
     squashfs-tools \
     swtpm \
     systemd-boot-efi \
