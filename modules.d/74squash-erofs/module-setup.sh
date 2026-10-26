@@ -1,7 +1,8 @@
 #!/bin/bash
 
 check() {
-    require_binaries mkfs.erofs fsck.erofs || return 1
+    require_binaries_host mkfs.erofs || return 1
+    require_binaries fsck.erofs || return 1
     require_kernel_modules erofs || return 1
 
     return 255

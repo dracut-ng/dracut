@@ -1002,6 +1002,13 @@ if [[ ! -d $dracutbasedir ]]; then
     printf "dracut[F]: base directory '%s' does not exist.\n" "$dracutbasedir" >&2
     exit 1
 fi
+if ! [[ ${DRACUT_RUNTIMEDIR:-} ]]; then
+    if ! [[ ${dracutsysrootdir-} ]]; then
+        DRACUT_RUNTIMEDIR="${dracutbasedir}"
+    else
+        DRACUT_RUNTIMEDIR="${dracutsysrootdir-}"/usr/lib/dracut
+    fi
+fi
 
 export DRACUT_ARCH=${DRACUT_ARCH:-$(uname -m)}
 
@@ -1561,7 +1568,7 @@ inst_symlink() {
         shift
     fi
     [[ -e ${initdir}/"${2:-$1}" ]] && return 0 # already there
-    [[ -L $1 ]] || return 1
+    [[ -L ${dracutsysrootdir-}$1 ]] || return 1
     [[ ${DRACUT_RESOLVE_LAZY-} ]] || _resolve_deps=1
     if $DRACUT_INSTALL ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${_resolve_deps:+-l} ${DRACUT_FIPS_MODE:+-f} ${_hostonly_install:+-H} "$@"; then
         return 0
@@ -2580,7 +2587,7 @@ for dev in "${!host_fs_types[@]}"; do
     fi
 done
 
-export initdir dracutbasedir \
+export initdir dracutbasedir DRACUT_RUNTIMEDIR \
     dracutmodules force_add_dracutmodules add_dracutmodules omit_dracutmodules \
     prefer_dracutmodules mods_to_load \
     fw_dir drivers_dir debug no_kernel kernel_only \
