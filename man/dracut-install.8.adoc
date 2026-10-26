@@ -10,11 +10,11 @@ dracut-install - install files or kernel modules into initramfs staging director
 
 SYNOPSIS
 --------
-**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_] [_OPTION_]... --all _SOURCE_...
+**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_ [-B _DRACUTDIR_]] [_OPTION_]... --all _SOURCE_...
 
-**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_] [_OPTION_]... _SOURCE_ _DEST_
+**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_ [-B _DRACUTDIR_]] [_OPTION_]... _SOURCE_ _DEST_
 
-**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_] [_OPTION_]... --module _KERNELMODULE_...
+**dracut-install** -D _DESTROOTDIR_ [-r _SYSROOTDIR_ [-B _DRACUTDIR_]] [_OPTION_]... --module _KERNELMODULE_...
 
 DESCRIPTION
 -----------
@@ -41,6 +41,11 @@ OPTIONS
 
 **-r**, **--sysrootdir**::
     Install all files from _SYSROOTDIR_
+
+**-B**, **--dracutdir** _DRACUTDIR_::
+    Allow installing files from the dracut installation at _DRACUTDIR_ in
+    addition to _SYSROOTDIR_ (needed when using dracut installed on the host,
+    outside _SYSROOTDIR_). Only has an effect if **--sysrootdir** is used.
 
 **-a**, **--all**::
     Install all _SOURCE_ arguments to _DESTROOTDIR_
