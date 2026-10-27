@@ -3434,9 +3434,11 @@ create_cpio_with_3cpio() {
         echo "#cpio: $compress_3cpio" >> "$manifest"
     fi
     path_to_manifest "$initdir" < "$UNCOMPRESSED_FILE_LIST" >> "$manifest"
-    if ! 3cpio --create ${cpio_align:+--data-align="${cpio_align}"} "${DRACUT_TMPDIR}/initramfs.img" < "$manifest"; then
+    local res=0
+    3cpio --create ${cpio_align:+--data-align="${cpio_align}"} "${DRACUT_TMPDIR}/initramfs.img" < "$manifest" || res=$?
+    if [[ $res -ne 0 ]]; then
         dfatal "Creation of $outfile failed"
-        exit 1
+        exit $res
     fi
 }
 
