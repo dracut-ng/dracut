@@ -11,7 +11,9 @@ command -v getarg > /dev/null || . /lib/dracut-lib.sh
 
 netif=$1
 do_vlan=$2
-arg=$3
+_IPv=${3:-4}
+_tmp_prefix="/tmp/dhclient.${netif}.IPv${_IPv}"
+shift 3
 
 # Run dhclient in parallel
 do_dhclient() {
@@ -29,14 +31,14 @@ do_dhclient() {
     fi
 
     while [ $_COUNT -lt "$_DHCPRETRY" ]; do
-        info "Starting dhcp for interface $netif"
-        dhclient "$arg" \
+        info "Starting IPv$_IPv dhcp for interface $netif"
+        dhclient -"${_IPv}" "$@" \
             ${_timeout:+--timeout "$_timeout"} \
             -q \
             -1 \
             -cf /etc/dhclient.conf \
-            -pf /tmp/dhclient."$netif".pid \
-            -lf /tmp/dhclient."$netif".lease \
+            -pf "${_tmp_prefix}.pid" \
+            -lf "${_tmp_prefix}.lease" \
             "$netif" &
         wait $! 2> /dev/null
 
@@ -51,16 +53,16 @@ do_dhclient() {
         # If dhclient exited before wait was called, or it was killed by
         # another thread for interface whose DHCP succeeded, then it will not
         # find the process with that pid and return error code 127. In that
-        # case we need to check if /tmp/dhclient.$netif.lease exists. If it
-        # does, it means dhclient finished executing before wait was called,
-        # and it was successful (return 0). If /tmp/dhclient.$netif.lease
-        # does not exist, then it means dhclient was killed by another thread
-        # or it finished execution but failed dhcp on that interface.
+        # case we need to check if /tmp/dhclient.$netif.IPvX.lease exists. If
+        # it does, it means dhclient finished executing before wait was
+        # called, and it was successful (return 0). If the lease file does not
+        # exist, then it means dhclient was killed by another thread or it
+        # finished execution but failed dhcp on that interface.
 
         if [ $retv -eq 127 ]; then
-            read -r pid < /tmp/dhclient."$netif".pid
+            read -r pid < "${_tmp_prefix}.pid"
             info "PID $pid was not found by wait for $netif"
-            if [ -e /tmp/dhclient."$netif".lease ]; then
+            if [ -e "${_tmp_prefix}.lease" ]; then
                 info "PID $pid not found but DHCP successful on $netif"
                 return 0
             fi
@@ -69,14 +71,13 @@ do_dhclient() {
         _COUNT=$((_COUNT + 1))
         [ $_COUNT -lt "$_DHCPRETRY" ] && sleep 1
     done
-    warn "dhcp for interface $netif failed"
-    # nuke those files since we failed; we might retry dhcp again if it's e.g.
-    # `ip=dhcp,dhcp6` and we check for the PID file earlier
-    rm -f /tmp/dhclient."$netif".pid /tmp/dhclient."$netif".lease
+    warn "IPv$_IPv dhcp for interface $netif failed"
+    # nuke those files since we failed
+    rm -f "${_tmp_prefix}.pid" "${_tmp_prefix}.lease"
     return 1
 }
 
-do_dhclient
+do_dhclient "$@"
 ret=$?
 
 # setup nameserver
@@ -111,22 +112,22 @@ if [ $ret -eq 0 ]; then
 
     if ln -s "$netif" "$IFNETFILE" 2> /dev/null; then
         intf=$(readlink "$IFNETFILE")
-        if [ -e /tmp/dhclient."$intf".lease ]; then
-            info "DHCP successful on interface $intf"
+        if [ -e "/tmp/dhclient.$intf.IPv$_IPv.lease" ]; then
+            info "IPv$_IPv DHCP successful on interface $intf"
             # Kill all existing dhclient calls for other interfaces, since we
             # already got one successful interface
 
-            read -r npid < /tmp/dhclient."$netif".pid
+            read -r npid < "${_tmp_prefix}.pid"
             pidlist=$(pgrep dhclient)
             for pid in $pidlist; do
                 [ "$pid" -eq "$npid" ] && continue
                 kill -9 "$pid" > /dev/null 2>&1
             done
         else
-            echo "ERROR! $IFNETFILE exists but /tmp/dhclient.$intf.lease does not exist!!!"
+            echo "ERROR! $IFNETFILE exists but /tmp/dhclient.$intf.IPv$_IPv.lease does not exist!!!"
         fi
     else
-        info "DHCP success on $netif, and also on $intf"
+        info "IPv$_IPv DHCP success on $netif, and also on $intf"
         exit 0
     fi
     exit $ret
