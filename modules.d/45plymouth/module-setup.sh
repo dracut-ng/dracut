@@ -54,6 +54,26 @@ depends() {
 }
 
 # called by dracut
+installkernel() {
+    # With simpledrm alone, the KMS driver of the boot GPU is loaded only after
+    # switching root, and taking over the display from simpledrm makes the
+    # screen flicker while Plymouth is running. In hostonly mode, include that
+    # one driver, but not the drivers of other GPUs (e.g. the discrete GPU of a
+    # hybrid laptop), to keep the benefits of using simpledrm.
+    if [[ -z $hostonly ]] || ! use_simpledrm; then
+        return 0
+    fi
+
+    local i modlink
+    for i in /sys/bus/pci/devices/*/boot_vga; do
+        [[ $(< "$i") == 1 ]] || continue
+        [[ -L ${i%/*}/driver/module ]] || continue
+        modlink=$(readlink "${i%/*}/driver/module")
+        hostonly='' instmods "${modlink##*/}"
+    done
+}
+
+# called by dracut
 install() {
     PKGLIBDIR=$(pkglib_dir)
     PLYMOUTH_POPULATE_SOURCE_FUNCTIONS="$dracutfunctions" \
