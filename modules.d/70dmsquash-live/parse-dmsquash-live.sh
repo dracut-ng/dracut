@@ -33,7 +33,7 @@ case "$liveroot" in
         root="liveiso:${root}"
         rootok=1
         ;;
-    live:/dev/*)
+    live:/dev/* | live:iso-scan)
         root="live:${root#live:}"
         rootok=1
         ;;

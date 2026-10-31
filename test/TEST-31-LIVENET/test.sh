@@ -5,7 +5,7 @@ set -eu
 TEST_DESCRIPTION="live root provided over network"
 
 # Uncomment these to debug failures
-#DEBUGFAIL="rd.shell rd.debug rd.live.debug loglevel=7"
+#DEBUGFAIL="rd.shell rd.debug loglevel=7"
 
 test_check() {
     # python3 needed for HTTP server
