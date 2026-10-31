@@ -25,6 +25,8 @@ read_untrusted_key_value_file() {
                 _value=${_value%\'}
                 ;;
         esac
+        # The variables are used by the scripts sourcing this file.
+        # shellcheck disable=SC2034
         case "${_key}" in
             IMAKEYSDIR) IMAKEYSDIR="${_value}" ;;
             IMAPOLICY) IMAPOLICY="${_value}" ;;
