@@ -192,7 +192,6 @@ unset device luksname luksfile
 # mark device as asked
 : >> "$asked_file"
 
-need_shutdown
 udevsettle
 
 exit 0
