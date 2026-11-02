@@ -3699,7 +3699,7 @@ freeze_ok_for_fstype() {
     local outfile=$1
     local fstype
 
-    [[ "$(stat -c %m -- "$outfile")" == "/" ]] && return 1
+    [[ "$(stat -c %d -- "$outfile")" == "$(stat -c %d -- /)" ]] && return 1
     fstype=$(stat -f -c %T -- "$outfile")
     case $fstype in
         msdos)
@@ -3732,7 +3732,7 @@ if [[ -d ${dracutsysrootdir-}/run/systemd/system ]]; then
     fi
 
     # use fsfreeze only if we're not writing to /
-    if [[ "$(stat -c %m -- "$outfile")" != "/" ]] && freeze_ok_for_fstype "$outfile"; then
+    if [[ "$(stat -c %d -- "$outfile")" != "$(stat -c %d -- /)" ]] && freeze_ok_for_fstype "$outfile"; then
         FSFROZEN="${outfile%/*}"
         if ! (fsfreeze -f "${FSFROZEN}" 2> /dev/null && fsfreeze -u "${FSFROZEN}" 2> /dev/null); then
             dwarn "Could not fsfreeze ${FSFROZEN}"
