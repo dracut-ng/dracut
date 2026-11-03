@@ -33,6 +33,11 @@ install() {
 
     inst_sysusers systemd-network.conf
 
+    # systemd-networkd owns /run/systemd/netif/, which survives switch-root,
+    # so it must run with the same UID/GID as in the real root
+    grep -s '^systemd-network:' "${dracutsysrootdir-}"/etc/passwd >> "$initdir/etc/passwd"
+    grep -s '^systemd-network:' "${dracutsysrootdir-}"/etc/group >> "$initdir/etc/group"
+
     inst_multiple -o \
         "$tmpfilesdir"/systemd-network.conf \
         "$dbussystem"/org.freedesktop.network1.conf \
