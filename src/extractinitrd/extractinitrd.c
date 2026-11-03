@@ -424,8 +424,11 @@ static bool wait_for_child(pid_t pid, const char *program)
 {
         int wstatus;
 
-        if (waitpid(pid, &wstatus, 0) != pid ||
-            !WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
+        if (waitpid(pid, &wstatus, 0) != pid) {
+                warnx("waitpid on %s failed", program);
+                return false;
+        }
+        if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
                 warnx("%s failed", program);
                 return false;
         }
