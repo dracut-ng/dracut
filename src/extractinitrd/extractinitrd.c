@@ -420,12 +420,24 @@ static bool handle_uncompressed(FILE *in_file, const char *in_filename,
         return true;
 }
 
+static bool wait_for_child(pid_t pid, const char *program)
+{
+        int wstatus;
+
+        if (waitpid(pid, &wstatus, 0) != pid ||
+            !WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
+                warnx("%s failed", program);
+                return false;
+        }
+        return true;
+}
+
 static bool handle_compressed(FILE *in_file, enum format format, int out_pipe, bool debug)
 {
         const char *const *argv = decomp_table[format];
         int in_fd = fileno(in_file);
         off_t in_pos = ftell(in_file);
-        int pid, wstatus;
+        int pid;
 
         if (debug)
                 fprintf(stderr, "dracut-extractinitrd: Executing %s %s\n", argv[0], argv[1]);
@@ -454,12 +466,7 @@ static bool handle_compressed(FILE *in_file, enum format format, int out_pipe, b
         }
 
         /* Parent: wait for child */
-        if (waitpid(pid, &wstatus, 0) != pid ||
-            !WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
-                warnx("%s failed", argv[0]);
-                return false;
-        }
-        return true;
+        return wait_for_child(pid, argv[0]);
 }
 
 static bool write_trailer(int out_pipe)
@@ -559,16 +566,11 @@ static bool spawn_cpio(int optc, const char **optv, const char *dirname,
 
 static bool end_cpio(const struct cpio_proc *proc, bool ok)
 {
-        int wstatus;
-
         close(proc->pipe);
 
         if (ok) {
-                if (waitpid(proc->pid, &wstatus, 0) != proc->pid ||
-                    !WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
-                        warnx("cpio failed");
+                if (!wait_for_child(proc->pid, "cpio"))
                         return false;
-                }
         } else {
                 kill(proc->pid, SIGTERM);
         }
