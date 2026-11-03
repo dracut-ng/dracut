@@ -423,8 +423,13 @@ static bool handle_uncompressed(FILE *in_file, const char *in_filename,
 static bool wait_for_child(pid_t pid, const char *program)
 {
         int wstatus;
+        pid_t w;
 
-        if (waitpid(pid, &wstatus, 0) != pid) {
+        do {
+                w = waitpid(pid, &wstatus, 0);
+        } while (w < 0 && errno == EINTR);
+
+        if (w != pid) {
                 warnx("waitpid on %s failed", program);
                 return false;
         }
