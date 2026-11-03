@@ -30,4 +30,5 @@ install() {
     inst_rules "$moddir/11-dm.rules"
 
     inst_hook shutdown 25 "$moddir/dm-shutdown.sh"
+    inst_hook cleanup 89 "$moddir/dm-needshutdown.sh"
 }
