@@ -428,8 +428,18 @@ static bool wait_for_child(pid_t pid, const char *program)
                 warnx("waitpid on %s failed", program);
                 return false;
         }
-        if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
-                warnx("%s failed", program);
+        if (WIFEXITED(wstatus)) {
+                if (WEXITSTATUS(wstatus) != 0) {
+                        warnx("%s failed with exit status %d", program,
+                              WEXITSTATUS(wstatus));
+                        return false;
+                }
+        } else if (WIFSIGNALED(wstatus)) {
+                warnx("%s terminated by signal %d (%s)", program,
+                      WTERMSIG(wstatus), strsignal(WTERMSIG(wstatus)));
+                return false;
+        } else {
+                warnx("%s terminated abnormally", program);
                 return false;
         }
         return true;
