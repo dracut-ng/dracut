@@ -207,7 +207,7 @@ install() {
     inst_simple -H "/etc/nvme/hostnqn"
     inst_simple -H "/etc/nvme/hostid"
 
-    inst_multiple ip sed
+    inst_multiple grep ip
 
     inst_script "${moddir}/nvmf-autoconnect.sh" /sbin/nvmf-autoconnect.sh
     inst_script "${moddir}/nbftroot.sh" /sbin/nbftroot

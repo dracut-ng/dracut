@@ -26,8 +26,9 @@ NVMF_HOSTNQN_OK=
 # Make sure we don't use unsupported options with earlier versions.
 NBFT_SUPPORTED=
 # shellcheck disable=SC2016
-/usr/sbin/nvme connect-all --help 2>&1 | sed -n '/[[:space:]]--nbft[[:space:]]/q1;$q0' \
-    || NBFT_SUPPORTED=1
+if /usr/sbin/nvme connect-all --help 2>&1 | grep -q -e --nbft; then
+    NBFT_SUPPORTED=1
+fi
 
 if [ -e /tmp/nvmf-fc-auto ] && [ "$NVMF_HOSTNQN_OK" ] \
     && [ -f /sys/class/fc/fc_udev_device/nvme_discovery ]; then
