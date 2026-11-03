@@ -254,6 +254,39 @@ dir0/file9
 dir0/metadata'
 }
 
+expect_exit_code() {
+    local expected_rc="$1"
+    local rc="$2"
+    if [ "$rc" -ne "$expected_rc" ]; then
+        echo >&2 "E: Test failed. Expected return code: $expected_rc; got: $rc"
+        return 1
+    fi
+}
+
+test_sigpipe() {
+    local compressor="$1"
+    local rc
+
+    construct_initrd_image "0" "2" "$compressor"
+
+    echo "I: Testing closed pipe when listing content of initrd with $compressor"
+    # could be a pipe to grep, see https://github.com/dracut-ng/dracut/issues/2758
+    rc=0
+    (
+        set -o pipefail
+        dracut-extractinitrd ${DEBUG:+--debug} --list "$TESTDIR/initrd.img" | true
+    ) || rc=$?
+    expect_exit_code 141 "$rc"
+
+    echo "I: Testing closed pipe when extracting initrd compressed with $compressor to stdout"
+    rc=0
+    (
+        set -o pipefail
+        dracut-extractinitrd ${DEBUG:+--debug} --to-stdout "$TESTDIR/initrd.img" | true
+    ) || rc=$?
+    expect_exit_code 141 "$rc"
+}
+
 test_run() {
     if [[ ${V-} -ge 1 ]]; then
         echo "found dracut-extractinitrd: $(command -v dracut-extractinitrd)"
@@ -268,6 +301,7 @@ test_run() {
         test_part_extraction "$compressor"
         test_extract_to_stdout "$compressor"
         test_list "$compressor"
+        test_sigpipe "$compressor"
     done
 }
 

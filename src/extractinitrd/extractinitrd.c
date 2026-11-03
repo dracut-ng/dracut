@@ -435,6 +435,10 @@ static bool wait_for_child(pid_t pid, const char *program)
                         return false;
                 }
         } else if (WIFSIGNALED(wstatus)) {
+                if (WTERMSIG(wstatus) == SIGPIPE) {
+                        raise(SIGPIPE);
+                        return true;
+                }
                 warnx("%s terminated by signal %d (%s)", program,
                       WTERMSIG(wstatus), strsignal(WTERMSIG(wstatus)));
                 return false;
