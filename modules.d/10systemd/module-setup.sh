@@ -119,19 +119,14 @@ install() {
     fi
 
     inst_multiple -o nologin
-    {
-        grep -s '^adm:' "${dracutsysrootdir-}"/etc/passwd
-        # we don't use systemd-networkd, but the user is in systemd.conf tmpfiles snippet
-        grep -s '^systemd-network:' "${dracutsysrootdir-}"/etc/passwd
-    } >> "$initdir/etc/passwd"
+
+    grep -s '^adm:' "${dracutsysrootdir-}"/etc/passwd >> "$initdir/etc/passwd"
 
     {
         grep -s '^wheel:' "${dracutsysrootdir-}"/etc/group
         grep -s '^adm:' "${dracutsysrootdir-}"/etc/group
         grep -s '^utmp:' "${dracutsysrootdir-}"/etc/group
         grep -s '^root:' "${dracutsysrootdir-}"/etc/group
-        # we don't use systemd-networkd, but the user is in systemd.conf tmpfiles snippet
-        grep -s '^systemd-network:' "${dracutsysrootdir-}"/etc/group
     } >> "$initdir/etc/group"
 
     local _systemdbinary="$systemdutildir"/systemd
