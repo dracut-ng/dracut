@@ -27,7 +27,7 @@ det_archive() {
 # determine filesystem type for a filesystem image
 det_fs_img() {
     local dev
-    dev=$(losetup --find --show "$1") rv=""
+    dev=$(/sbin/losetup --find --show "$1") rv=""
     det_fs "$dev"
     rv=$?
     losetup -d "$dev"
@@ -64,7 +64,7 @@ unpack_fs() {
     local img="$1" outdir="$2"
     local mnt
     mnt="$(mkuniqdir /tmp unpack_fs.)"
-    mount -o loop "$img" "$mnt" || {
+    /bin/mount -o loop "$img" "$mnt" || {
         rmdir "$mnt"
         return 1
     }

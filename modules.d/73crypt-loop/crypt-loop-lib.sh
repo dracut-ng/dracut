@@ -22,7 +22,7 @@ loop_decrypt() {
     if [ ! -b "$key" ]; then
         local loopdev
         local opts
-        loopdev=$(losetup -f "${mntp}/${keypath}" --show)
+        loopdev=$(/sbin/losetup -f "${mntp}/${keypath}" --show)
         opts="-d - luksOpen $loopdev ${key##*/}"
 
         ask_for_password \
