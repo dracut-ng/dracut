@@ -137,11 +137,26 @@ setup_net() {
     [ -e /tmp/net."$netif".hostname ] && . /tmp/net."$netif".hostname
     # shellcheck disable=SC1090
     [ -e /tmp/net."$netif".override ] && . /tmp/net."$netif".override
+    # network-legacy records DHCP options per-protocol to avoid a concurrent
+    # dual-stack write race; merge them back into the single file that netroot,
+    # nfs and chrony consume (as the NetworkManager and networkd backends write
+    # it directly), then source it.
+    if [ -e /tmp/dhclient."$netif".IPv4.dhcpopts ] || [ -e /tmp/dhclient."$netif".IPv6.dhcpopts ]; then
+        cat /tmp/dhclient."$netif".IPv4.dhcpopts /tmp/dhclient."$netif".IPv6.dhcpopts 2> /dev/null \
+            > /tmp/dhclient."$netif".dhcpopts
+    fi
     # shellcheck disable=SC1090
     [ -e /tmp/dhclient."$netif".dhcpopts ] && . /tmp/dhclient."$netif".dhcpopts
-    # set up resolv.conf
-    [ -e /tmp/net."$netif".resolv.conf ] \
-        && awk '!array[$0]++' /tmp/net."$netif".resolv.conf > /etc/resolv.conf
+    # set up resolv.conf, merging the cmdline, IPv4 and IPv6 nameservers and
+    # dropping any duplicate lines
+    if [ -e /tmp/net."$netif".resolv.conf ] \
+        || [ -e /tmp/net."$netif".IPv4.resolv.conf ] \
+        || [ -e /tmp/net."$netif".IPv6.resolv.conf ]; then
+        cat /tmp/net."$netif".resolv.conf \
+            /tmp/net."$netif".IPv4.resolv.conf \
+            /tmp/net."$netif".IPv6.resolv.conf 2> /dev/null \
+            | awk '!array[$0]++' > /etc/resolv.conf
+    fi
     # shellcheck disable=SC1090
     [ -e /tmp/net."$netif".gw ] && . /tmp/net."$netif".gw
 
@@ -757,16 +772,19 @@ wait_for_ipv6_dad() {
     return 1
 }
 
+# wait_for_ipv6_auto <interface> [<timeout>]
+# <timeout> overrides rd.net.timeout.ipv6auto= (in seconds); used by callers
+# for which SLAAC is opportunistic and should not block for long.
 wait_for_ipv6_auto() {
     local cnt=0
     local timeout
-    timeout=$(getargs rd.net.timeout.ipv6auto=)
+    timeout=${2:-$(getargs rd.net.timeout.ipv6auto=)}
     timeout=${timeout:-40}
     timeout=$((timeout * 10))
 
     while [ $cnt -lt $timeout ]; do
-        [ -z "$(ip -6 addr show dev "$@" tentative)" ] \
-            && { ip -6 route list proto ra dev "$@" | grep -q ^default; } \
+        [ -z "$(ip -6 addr show dev "$1" tentative)" ] \
+            && { ip -6 route list proto ra dev "$1" | grep -q ^default; } \
             && return 0
         sleep 0.1
         cnt=$((cnt + 1))

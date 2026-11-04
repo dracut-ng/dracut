@@ -38,7 +38,7 @@ fi
 # clear previous test run
 TARGETS='clean all install check' "$PODMAN" run --rm -it \
     --device=/dev/kvm --privileged \
-    -e V -e NO_KVM -e TESTS -e TEST_RUN_ID -e TARGETS -e MAKEFLAGS -e USE_NETWORK -e TEST_DRACUT_ARGS ${TEST_FSTYPE:+-e TEST_FSTYPE} -e TEST_CONTAINER_COMMAND \
+    -e V -e NO_KVM -e TESTS -e TEST_RUN_ID -e TARGETS -e MAKEFLAGS -e USE_NETWORK -e TEST_DRACUT_ARGS -e CONFIGURE_ARG ${TEST_FSTYPE:+-e TEST_FSTYPE} -e TEST_CONTAINER_COMMAND \
     -v "$PWD"/:/z \
     "$CONTAINER" \
     /z/test/test-container.sh
