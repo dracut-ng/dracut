@@ -246,7 +246,8 @@ case $reason in
             if [ -n "$new_classless_static_routes" ]; then
                 OLDIFS="$IFS"
                 IFS=".$IFS"
-                parse_option_121 "$new_classless_static_routes"
+                # shellcheck disable=SC2086
+                parse_option_121 $new_classless_static_routes
                 IFS="$OLDIFS"
             fi
             echo "source_hook initqueue/online $netif"
