@@ -16,7 +16,11 @@
 # before the ADSP reset without any backing device.
 #
 # To workaround this, this module loads the ADSP driver from a pre-udev hook
-# so that the USB re-enumeration happens before the rootfs is mounted.
+# so that the USB re-enumeration happens before the rootfs is mounted. The
+# driver boots all PAS remoteprocs as soon as it probes, so the hook only
+# loads it if the initrd contains all firmwares named by their devicetree
+# nodes. Otherwise the DSPs would stay down, which is worse than the USB
+# reset, so the driver is then left to udev after switch-root.
 #
 # This module also installs a modprobe blacklist for the driver into the
 # initrd on all devices, so that udev does not load it from the initrd. The
@@ -46,7 +50,7 @@ installkernel() {
 
 # called by dracut
 install() {
-    inst_multiple grep modprobe
+    inst_multiple modprobe tr
     inst_hook pre-udev 30 "$moddir/qcom-adsp-pre-udev.sh"
     mkdir -p "$initdir"/etc/modprobe.d
     echo "blacklist qcom_q6v5_pas" > "$initdir"/etc/modprobe.d/70qcom-adsp.conf
