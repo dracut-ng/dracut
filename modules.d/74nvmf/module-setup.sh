@@ -77,7 +77,7 @@ installkernel() {
         local mac_re
 
         # mac_re is a list of MAC addresses joined with "|", suitable as regexp
-        mac_re=$(nvme nbft show -H -o json \
+        mac_re=$(nvme nbft show --hfi --output-format=json \
             | jq -r '[.[].hfi[].mac_addr] | join("|")')
         [[ $mac_re ]] || return 0
 
@@ -126,7 +126,7 @@ cmdline() {
         [[ $trtype == tcp && $nvmf_nbft_mode == nbft ]] \
             && __nvmf_has_nbft && return 0
 
-        nvme list-subsys "${PWD##*/}" -o json | jq -j '
+        nvme list-subsys "${PWD##*/}" --output-format=json | jq -j '
 if type == "array" then .[] else . end |
 .Subsystems[]? |
 .Paths[]? |
@@ -186,7 +186,7 @@ end'
         # builtin looks for keys only, not values.
         # The '+ [{}]' avoids a "null" result for systems without NBFT.
         # The "add" at the end combines an array of objects into one object.
-        _nbft_subsystems=$(nvme nbft show -s -o json \
+        _nbft_subsystems=$(nvme nbft show --subsystem --output-format=json \
             | jq '[.[].subsystem[] |
                                    select(.transport == "tcp") |
                                    {(.traddr + "," + .trsvcid): 0}] + [{}] |
