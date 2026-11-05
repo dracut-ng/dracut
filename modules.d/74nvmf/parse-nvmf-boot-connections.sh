@@ -20,7 +20,7 @@
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 command -v is_ip > /dev/null || . /lib/net-lib.sh
 
-## Sample NBFT output from nvme show-nbft -H -s -d -o json
+## Sample NBFT output from nvme nbft show --hfi --subsystem --discovery --output-format=json
 # [
 #   {
 #     "filename":"/sys/firmware/acpi/tables/NBFT",
@@ -201,7 +201,7 @@ nbft_parse() {
     local nbft_json n_nbft all_hfi_json n_hfi
     local j=-1 i
 
-    nbft_json=$(nvme nbft show -H -o json) || return 0
+    nbft_json=$(nvme nbft show --hfi --output-format=json) || return 0
     n_nbft=$(nbft_run_jq ". | length" "$nbft_json") || return 0
     if [ "$n_nbft" -gt 0 ] && getargbool 0 rd.nvmf.nm; then
         # nm-initrd-generator will take care of the interface setup.
