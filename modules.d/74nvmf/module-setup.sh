@@ -10,6 +10,18 @@ __nvmf_has_nbft() {
     [[ $found ]]
 }
 
+# nvme-cli 2 doesn't read nvme-fabrics.conf, nvme-cli 3 describes --config
+# as an "INI configuration file"
+__nvmf_has_fabrics_conf() {
+    local f
+    nvme connect-all --help 2>&1 | grep -q 'INI configuration' || return 1
+    [ -f "${dracutsysrootdir-}/etc/nvme/nvme-fabrics.conf" ] && return 0
+    for f in "${dracutsysrootdir-}"/etc/nvme/nvme-fabrics.conf.d/*.conf; do
+        [ -f "$f" ] && return 0
+    done
+    return 1
+}
+
 # called by dracut
 check() {
     local -A nvmf_trtypes
@@ -43,8 +55,10 @@ check() {
     }
 
     [[ $hostonly ]] || [[ $mount_needs ]] && {
-        [ -f /etc/nvme/hostnqn ] || return 255
-        [ -f /etc/nvme/hostid ] || return 255
+        if ! __nvmf_has_fabrics_conf; then
+            [ -f /etc/nvme/hostnqn ] || return 255
+            [ -f /etc/nvme/hostid ] || return 255
+        fi
         pushd . > /dev/null
         for_each_host_dev_and_slaves is_nvmf
         local _is_nvmf=$?
@@ -53,7 +67,8 @@ check() {
         require_kernel_modules "${!nvmf_trtypes[@]}" || return 1
         if [ ! -f /sys/class/fc/fc_udev_device/nvme_discovery ] \
             && [ ! -f /etc/nvme/discovery.conf ] \
-            && [ ! -f /etc/nvme/config.json ] && ! __nvmf_has_nbft; then
+            && [ ! -f /etc/nvme/config.json ] \
+            && ! __nvmf_has_fabrics_conf && ! __nvmf_has_nbft; then
             echo "No discovery arguments present"
             return 255
         fi
@@ -216,5 +231,12 @@ install() {
     inst_hook cmdline 92 "$moddir/parse-nvmf-boot-connections.sh"
     inst_simple -H "/etc/nvme/discovery.conf"
     inst_simple -H "/etc/nvme/config.json"
+    if __nvmf_has_fabrics_conf; then
+        local _conf
+        inst_simple -H "/etc/nvme/nvme-fabrics.conf"
+        for _conf in "${dracutsysrootdir-}"/etc/nvme/nvme-fabrics.conf.d/*.conf; do
+            [[ -f $_conf ]] && inst_simple -H "${_conf#"${dracutsysrootdir-}"}"
+        done
+    fi
     inst_rules "$moddir/95-nvmf-initqueue.rules"
 }
