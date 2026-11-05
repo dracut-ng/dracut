@@ -158,6 +158,29 @@ test_part_extraction() {
     verify_extraction 0 2
 }
 
+test_pattern_extraction() {
+    local compressor="$1"
+
+    construct_initrd_image "2" "2" "$compressor"
+
+    echo "I: Testing extracting a selection of files of initrd with $compressor"
+    rm -rf "$TESTDIR/output"
+    dracut-extractinitrd ${DEBUG:+--debug} -D "$TESTDIR/output" "$TESTDIR/initrd.img" \
+        -- kernel/dir1/metadata 'dir0/file*' || {
+        echo >&2 'E: dracut-extractinitrd failed'
+        return 1
+    }
+
+    rm -rf "$TESTDIR/reference"
+    mkdir -p "$TESTDIR/reference/kernel/dir1" "$TESTDIR/reference/dir0"
+    cp "$TESTDIR/input/early1/kernel/dir1/metadata" "$TESTDIR/reference/kernel/dir1/"
+    cp "$TESTDIR/input/main0/dir0/"file* "$TESTDIR/reference/dir0/"
+    diff -r "$TESTDIR/reference" "$TESTDIR/output" || {
+        echo >&2 'E: Output files do not match input'
+        return 1
+    }
+}
+
 assert_equal() {
     local got="$1"
     local expected="$2"
@@ -299,6 +322,7 @@ test_run() {
 
         test_full_extraction "$compressor"
         test_part_extraction "$compressor"
+        test_pattern_extraction "$compressor"
         test_extract_to_stdout "$compressor"
         test_list "$compressor"
         test_sigpipe "$compressor"
