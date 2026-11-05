@@ -40,8 +40,14 @@ if [ "$NBFT_SUPPORTED" ] && [ -e /tmp/valid_nbft_entry_found ]; then
     /usr/sbin/nvme connect-all --nbft
     exit 0
 fi
+NVMF_FABRICS_CONF=
+[ ! -f /etc/nvme/nvme-fabrics.conf ] || NVMF_FABRICS_CONF=1
+for f in /etc/nvme/nvme-fabrics.conf.d/*.conf; do
+    [ ! -f "$f" ] || NVMF_FABRICS_CONF=1
+done
+
 if [ -f /etc/nvme/discovery.conf ] || [ -f /etc/nvme/config.json ] \
-    && [ "$NVMF_HOSTNQN_OK" ]; then
+    || [ "$NVMF_FABRICS_CONF" ] && [ "$NVMF_HOSTNQN_OK" ]; then
     # prio 3: configuration from initrd and/or kernel command line
     # We can get here even if "rd.nvmf.nonbft" was given, thus use --no-nbft
     if [ "$NBFT_SUPPORTED" ]; then

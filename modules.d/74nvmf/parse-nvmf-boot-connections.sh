@@ -227,9 +227,24 @@ if getargbool 0 rd.nonvmf; then
     return 0
 fi
 
+nvmf_remove_static_config() {
+    rm -f /etc/nvme/discovery.conf /etc/nvme/config.json
+    rm -f /etc/nvme/nvme-fabrics.conf
+    rm -rf /etc/nvme/nvme-fabrics.conf.d
+}
+
+# nvme-cli 3 ignores discovery.conf once nvme-fabrics.conf exists
+nvmf_has_fabrics_conf() {
+    [ -n "$nvmf_fabrics_conf" ] && return "$nvmf_fabrics_conf"
+    nvmf_fabrics_conf=1
+    nvme connect-all --help 2>&1 | grep -q 'INI configuration' \
+        && nvmf_fabrics_conf=0
+    return "$nvmf_fabrics_conf"
+}
+
 if getargbool 0 rd.nvmf.nostatic; then
     rm -f /etc/cmdline.d/20-nvmf-args.conf
-    rm -f /etc/nvme/discovery.conf /etc/nvme/config.json
+    nvmf_remove_static_config
 fi
 
 if ! getargbool 0 rd.nvmf.nonbft; then
@@ -287,7 +302,7 @@ parse_nvmf_discover() {
         : > /tmp/nvmf_needs_network
     elif [ "$trtype" = "fc" ]; then
         if [ "$traddr" = "auto" ]; then
-            rm -f /etc/nvme/discovery.conf /etc/nvme/config.json
+            nvmf_remove_static_config
             return 1
         fi
         if [ "$hosttraddr" = "none" ]; then
@@ -298,7 +313,14 @@ parse_nvmf_discover() {
         warn "unsupported transport $trtype"
         return 0
     fi
-    if [ "$trtype" = "fc" ]; then
+    if nvmf_has_fabrics_conf; then
+        controller="transport=$trtype;traddr=$traddr"
+        [ "$trtype" = "fc" ] || controller="$controller;trsvcid=$trsvcid"
+        [ "$hosttraddr" = "none" ] || controller="$controller;host-traddr=$hosttraddr"
+        mkdir -p /etc/nvme/nvme-fabrics.conf.d
+        printf '[Discovery Controller]\ncontroller = %s\n\n' "$controller" \
+            >> /etc/nvme/nvme-fabrics.conf.d/90-dracut-cmdline.conf
+    elif [ "$trtype" = "fc" ]; then
         echo "--transport=$trtype --traddr=$traddr --host-traddr=$hosttraddr" >> /etc/nvme/discovery.conf
     else
         echo "--transport=$trtype --traddr=$traddr --host-traddr=$hosttraddr --trsvcid=$trsvcid" >> /etc/nvme/discovery.conf
