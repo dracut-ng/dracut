@@ -74,6 +74,7 @@ mount_usr() {
                 fsck_usr "$_dev" "$_fs" "$_opts"
                 _fsck_ret=$?
                 [ $_fsck_ret -ne 255 ] && echo $_fsck_ret > /run/initramfs/usr-fsck
+                [ $_fsck_ret -eq 0 ] && : > /run/initramfs/fsck-usr
             fi
         fi
 
