@@ -260,6 +260,8 @@ fi
 /sbin/initqueue --onetime modprobe -b -q nvme_core
 /sbin/initqueue --onetime modprobe -b -q nvme_fabrics
 
+mkdir -p /etc/nvme
+
 parse_nvmf_discover() {
     local args="$1"
 
