@@ -197,10 +197,8 @@ test_nfsv4() {
 }
 
 test_run() {
-    if [[ -s server.pid ]]; then
-        kill -TERM "$(cat "$TESTDIR"/server.pid)"
-        rm -f -- "$TESTDIR"/server.pid
-    fi
+    # Kill a leftover server from a previously interrupted run
+    stop_server
 
     if ! run_server; then
         echo "Failed to start server" 1>&2
@@ -210,10 +208,7 @@ test_run() {
     test_nfsv3
     test_nfsv4
 
-    if [[ -s $TESTDIR/server.pid ]]; then
-        kill -TERM "$(cat "$TESTDIR"/server.pid)"
-        rm -f -- "$TESTDIR"/server.pid
-    fi
+    stop_server
 }
 
 make_server_rootfs() {
@@ -277,10 +272,7 @@ test_setup() {
 }
 
 test_cleanup() {
-    if [[ -s $TESTDIR/server.pid ]]; then
-        kill -TERM "$(cat "$TESTDIR"/server.pid)"
-        rm -f -- "$TESTDIR"/server.pid
-    fi
+    stop_server
 }
 
 # shellcheck disable=SC1090
