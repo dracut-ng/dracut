@@ -100,6 +100,7 @@ if [ "$RD_DEBUG" = "yes" ]; then
     mkfifo /run/initramfs/loginit.pipe
     loginit "$DRACUT_QUIET" < /run/initramfs/loginit.pipe > /dev/console 2>&1 &
     exec > /run/initramfs/loginit.pipe 2>&1
+    cat /proc/cmdline
 else
     exec 0<> /dev/console 1<> /dev/console 2<> /dev/console
 fi
