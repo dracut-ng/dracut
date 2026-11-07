@@ -75,26 +75,26 @@ if [ -z "${DRACUT_SYSTEMD-}" ]; then
 
     warn() {
         check_quiet
-        echo "<28>dracut Warning: $*" > /dev/kmsg
-        echo "dracut Warning: $*" >&2
+        printf "<28>dracut Warning: %s\n" "$*" > /dev/kmsg
+        printf "dracut Warning: %s\n" "$*" >&2
     }
 
     info() {
         check_quiet
-        echo "<30>dracut: $*" > /dev/kmsg
+        printf "<30>dracut: %s\n" "$*" > /dev/kmsg
         if [ "$DRACUT_QUIET" != "yes" ]; then
-            echo "dracut: $*" >&2
+            printf "dracut: %s\n" "$*" >&2
         fi
     }
 
 else
 
     warn() {
-        echo "Warning: $*" >&2
+        printf "Warning: %s\n" "$*" >&2
     }
 
     info() {
-        echo "$*"
+        printf "%s\n" "$*"
     }
 
 fi
@@ -580,10 +580,10 @@ label_uuid_to_dev() {
     _dev="${1#block:}"
     case "$_dev" in
         LABEL=*)
-            echo "/dev/disk/by-label/$(echo "${_dev#LABEL=}" | sed 's,/,\\x2f,g;s, ,\\x20,g')"
+            printf "/dev/disk/by-label/%s\n" "$(echo "${_dev#LABEL=}" | sed 's,/,\\x2f,g;s, ,\\x20,g')"
             ;;
         PARTLABEL=*)
-            echo "/dev/disk/by-partlabel/$(echo "${_dev#PARTLABEL=}" | sed 's,/,\\x2f,g;s, ,\\x20,g')"
+            printf "/dev/disk/by-partlabel/%s\n" "$(echo "${_dev#PARTLABEL=}" | sed 's,/,\\x2f,g;s, ,\\x20,g')"
             ;;
         UUID=*)
             echo "/dev/disk/by-uuid/${_dev#UUID=}"
