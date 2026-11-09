@@ -243,4 +243,7 @@ install() {
         done
     fi
     inst_rules "$moddir/95-nvmf-initqueue.rules"
+    # The pre-OS controllers, disconnected after the root is unmounted
+    inst_hook cleanup 80 "$moddir/nvmf-needshutdown.sh"
+    inst_hook shutdown 45 "$moddir/nvmf-shutdown.sh"
 }
