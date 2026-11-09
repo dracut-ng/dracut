@@ -7,4 +7,4 @@
 
 ACTION=="change", SUBSYSTEM=="fc", ENV{FC_EVENT}=="nvmediscovery", \
       ENV{NVMEFC_HOST_TRADDR}=="*", ENV{NVMEFC_TRADDR}=="*", \
-      RUN+="/sbin/initqueue --onetime --unique --name nvmf-connect-$env{NVMEFC_TRADDR}-$env{NVMEFC_HOST_TRADDR} /usr/sbin/nvme connect-all --transport=fc --traddr=$env{NVMEFC_TRADDR} --host-traddr=$env{NVMEFC_HOST_TRADDR}"
+      RUN+="/sbin/initqueue --onetime --unique --name nvmf-connect-$env{NVMEFC_TRADDR}-$env{NVMEFC_HOST_TRADDR} /sbin/nvmf-autoconnect.sh fc $env{NVMEFC_TRADDR} $env{NVMEFC_HOST_TRADDR}"

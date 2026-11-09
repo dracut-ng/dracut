@@ -999,6 +999,13 @@ rd.nvmf.discover=fc,nn-0x201700a05634f5bf:pn-0x201900a05634f5bf,nn-0x200000109b5
     is to be used rather than regular NVMe discovery. It takes precedence
     over all other _rd.nvmf.discover=_ arguments.
 
+With an nvme-cli whose help of _nvme connect-all --owner_ names
+_pre-os_, the nvmf module connects as the owner _pre-os_, the pre-OS
+environment. nvme then connects with
+_ctrl_loss_tmo=-1_ and records the connections in
+_/run/nvme/pre-os.conf.d_; in the real root, nvme-discoverd keeps them
+connected and never disconnects them.
+
 NBD
 ~~~
 Requires the dracut 'nbd' module.
