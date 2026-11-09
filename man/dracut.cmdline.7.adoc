@@ -1006,6 +1006,11 @@ _ctrl_loss_tmo=-1_ and records the connections in
 _/run/nvme/pre-os.conf.d_; in the real root, nvme-discoverd keeps them
 connected and never disconnects them.
 
+When the initramfs connected controllers with the owner _pre-os_ (or
+_nbft_, as nvme-cli 3.0 to 3.2 record it), the shutdown returns to the
+initramfs, which disconnects them after the root file system is
+unmounted.
+
 NBD
 ~~~
 Requires the dracut 'nbd' module.
