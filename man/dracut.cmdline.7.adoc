@@ -973,6 +973,13 @@ Requires the dracut 'nvmf' module.
     that the network interfaces generated from the NBFT will have regular
     interface names rather than ++nbft0++ etc. *This requires NetworkManager
     1.54.0 or higher*.
++
+Without it, the network interfaces of the NBFT are renamed to ++nbft0++
+etc. With systemd-networkd and an nvme-cli that follows the pre-OS model
+(*nvme connect-all --owner=pre-os*), they keep their names, and ++nbft0++
+etc. are alternative names of them: nvme-cli connects through the
+interface of an NBFT HFI by its MAC address and records the interface's
+name for the OS environment, which keeps the name given in the initramfs.
 
 **rd.nvmf.hostnqn=**__<hostNQN>__::
     NVMe host NQN to use

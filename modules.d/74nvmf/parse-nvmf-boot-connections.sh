@@ -120,6 +120,42 @@ nbft_check_empty_address() {
     esac
 }
 
+# An nvme that follows the pre-OS model finds the
+# interface of an HFI by its MAC address and records it in the connection
+# (host_iface) for the OS environment: the interface keeps its name, the
+# udev of the real root keeps a name given in the initrd (NamePolicy=keep).
+# systemd-networkd matches its Name= against alternative names too, so the
+# HFI gets the alternative name nbftN instead of being renamed to it. The
+# other network modules match interface names only and keep the rename.
+nbft_use_altname() {
+    if [ -z "$nbft_altname" ]; then
+        nbft_altname=no
+        if [ -x /usr/lib/systemd/systemd-networkd ] \
+            && nvme connect-all --help 2>&1 | grep -q 'pre-os'; then
+            nbft_altname=yes
+        fi
+    fi
+    [ "$nbft_altname" = yes ]
+}
+
+# Like set_ifname, but the name is added as an alternative name by a udev
+# rule on the MAC address. A VLAN on the HFI has the same MAC address.
+nbft_set_altname() {
+    local mac="$1" num=-1 n ip
+    for n in /tmp/nbft_altname.*; do
+        [ -e "$n" ] || continue
+        [ "$(cat "$n")" = "$mac" ] && echo "${n#/tmp/nbft_altname.}" && return
+        num=$((num < ${n#/tmp/nbft_altname.nbft} ? ${n#/tmp/nbft_altname.nbft} : num))
+    done
+    num=$((num + 1))
+    echo "$mac" > "/tmp/nbft_altname.nbft$num"
+    ip=$(command -v ip)
+    mkdir -p /etc/udev/rules.d
+    printf 'SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="%s", ENV{DEVTYPE}!="vlan", RUN+="%s link property add dev %%k altname nbft%s"\n' \
+        "$mac" "$ip" "$num" >> /etc/udev/rules.d/64-nbft-altname.rules
+    echo "nbft$num"
+}
+
 nbft_parse_hfi() {
     # false positive of shellcheck - no expansion in variable assignments
     # shellcheck disable=2086
@@ -127,7 +163,11 @@ nbft_parse_hfi() {
     local mac iface ipaddr prefix vlan gateway dns1 dns2 hostname adrfam dhcp
 
     mac=$(nbft_run_jq -r .mac_addr "$hfi_json") || return 1
-    iface=$(set_ifname nbft "$mac")
+    if nbft_use_altname; then
+        iface=$(nbft_set_altname "$mac")
+    else
+        iface=$(set_ifname nbft "$mac")
+    fi
 
     vlan=$(nbft_run_jq .vlan "$hfi_json") || vlan=0
     # treat VLAN zero as "no vlan"
