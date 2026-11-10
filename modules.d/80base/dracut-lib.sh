@@ -396,13 +396,21 @@ list_hooks() {
 }
 
 source_hook() {
-    local _dir
-    _dir=$1
+    local dir f name ret
+    dir=$1
     shift
-    for f in $(list_hooks "$_dir"); do
+    for f in $(list_hooks "$dir"); do
+        name="${f#*/dracut/hooks/*/}"
+        info "Running $name..."
         set -- "$@"
         # shellcheck disable=SC1090
         . "$f"
+        ret=$?
+        if [ $ret -eq 0 ]; then
+            info "Finished $name."
+        else
+            warn "$name failed with exit code $ret."
+        fi
     done
 }
 
