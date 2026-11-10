@@ -122,15 +122,21 @@ nbft_check_empty_address() {
 
 # An nvme that follows the pre-OS model finds the interface of an HFI by
 # its MAC address and records its name for the OS environment, so the
-# interface doesn't need to be renamed to nbftN. systemd-network-generator
-# matches the interface of an ip= by name only, so with systemd-networkd
-# the .network of the HFI is written directly and matches the MAC address.
+# interface doesn't need to be renamed to nbftN:
+#   nm        NetworkManager reads the NBFT itself (as with rd.nvmf.nm), if
+#             its nm-initrd-generator can load the libnvme of the initrd
+#             (module-setup.sh, __nvmf_nm_reads_nbft).
+#   networkd  systemd-network-generator matches the interface of an ip= by
+#             name only, so the .network of the HFI is written directly and
+#             matches the MAC address.
 # Otherwise the interface is renamed and gets an ip=.
 nbft_set_naming() {
     [ -z "$nbft_naming" ] || return 0
     nbft_naming=rename
     nvme connect-all --help 2>&1 | grep -q 'pre-os' || return 0
-    if [ -x /usr/lib/systemd/systemd-networkd ]; then
+    if [ -e /usr/lib/dracut/nvmf-nm-reads-nbft ]; then
+        nbft_naming="nm"
+    elif [ -x /usr/lib/systemd/systemd-networkd ]; then
         nbft_naming=networkd
     fi
 }
@@ -277,7 +283,8 @@ nbft_parse() {
 
     nbft_json=$(nvme nbft show --hfi --output-format=json) || return 0
     n_nbft=$(nbft_run_jq ". | length" "$nbft_json") || return 0
-    if [ "$n_nbft" -gt 0 ] && getargbool 0 rd.nvmf.nm; then
+    nbft_set_naming
+    if [ "$n_nbft" -gt 0 ] && { getargbool 0 rd.nvmf.nm || [ "$nbft_naming" = nm ]; }; then
         # nm-initrd-generator will take care of the interface setup.
         # We set valid_nbft_entry_found to enable netroot (see below).
         : > /tmp/valid_nbft_entry_found
