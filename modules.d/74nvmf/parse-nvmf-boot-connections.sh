@@ -131,13 +131,19 @@ nbft_check_empty_address() {
 #   mac      network-legacy takes a MAC address for the interface of an
 #            ip=; a VLAN on the HFI still needs a name for its parent
 #            (vlan=), so that HFI is renamed.
+#   nm       NetworkManager reads the NBFT itself (as with rd.nvmf.nm) and
+#            matches the HFI's interface by its MAC address, VLANs too: no
+#            ip=, no name. Only when its nm-initrd-generator can load the
+#            initrd's libnvme (module-setup.sh, __nvmf_nm_reads_nbft).
 #   rename   otherwise, and with an older nvme: the interface is renamed to
 #            nbftN (ifname=nbftN:MAC).
 nbft_set_naming() {
     [ -z "$nbft_naming" ] || return 0
     nbft_naming=rename
     nvme connect-all --help 2>&1 | grep -q 'pre-os' || return 0
-    if [ -x /usr/lib/systemd/systemd-networkd ]; then
+    if [ -e /usr/lib/dracut/nvmf-nm-reads-nbft ]; then
+        nbft_naming="nm"
+    elif [ -x /usr/lib/systemd/systemd-networkd ]; then
         nbft_naming=altname
     elif [ -x /sbin/ifup ]; then
         nbft_naming=mac
@@ -258,7 +264,8 @@ nbft_parse() {
 
     nbft_json=$(nvme nbft show --hfi --output-format=json) || return 0
     n_nbft=$(nbft_run_jq ". | length" "$nbft_json") || return 0
-    if [ "$n_nbft" -gt 0 ] && getargbool 0 rd.nvmf.nm; then
+    nbft_set_naming
+    if [ "$n_nbft" -gt 0 ] && { getargbool 0 rd.nvmf.nm || [ "$nbft_naming" = nm ]; }; then
         # nm-initrd-generator will take care of the interface setup.
         # We set valid_nbft_entry_found to enable netroot (see below).
         : > /tmp/valid_nbft_entry_found

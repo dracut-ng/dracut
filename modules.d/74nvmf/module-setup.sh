@@ -207,6 +207,30 @@ end'
     }
 }
 
+# nm-initrd-generator reads the NBFT itself with the libnvme it loads
+# (dlopen, so dracut doesn't see it): libnvme3.so.1 (nvme-cli 3) or
+# libnvme.so.1 (nvme-cli 2). If that library is there, install it and
+# leave a note for parse-nvmf-boot-connections.sh (nbft_set_naming), which
+# then leaves the NBFT's network to NetworkManager.
+__nvmf_nm_reads_nbft() {
+    local _gen _lib _dir
+    for _gen in /usr/libexec/nm-initrd-generator /usr/lib/nm-initrd-generator; do
+        [[ -x "${dracutsysrootdir-}$_gen" ]] && break
+        _gen=
+    done
+    [[ $_gen ]] || return 0
+    for _lib in libnvme3.so.1 libnvme.so.1; do
+        grep -qaF "$_lib" "${dracutsysrootdir-}$_gen" || continue
+        for _dir in $libdirs; do
+            [[ -e "${dracutsysrootdir-}$_dir/$_lib" ]] || continue
+            inst_libdir_file "$_lib"
+            mkdir -p "${initdir}/usr/lib/dracut"
+            echo "$_lib" > "${initdir}/usr/lib/dracut/nvmf-nm-reads-nbft"
+            return 0
+        done
+    done
+}
+
 # called by dracut
 install() {
     if [[ $hostonly_cmdline == "yes" ]]; then
@@ -236,4 +260,8 @@ install() {
     # The pre-OS controllers, disconnected after the root is unmounted
     inst_hook cleanup 80 "$moddir/nvmf-needshutdown.sh"
     inst_hook shutdown 45 "$moddir/nvmf-shutdown.sh"
+
+    if dracut_module_included network-manager; then
+        __nvmf_nm_reads_nbft
+    fi
 }
