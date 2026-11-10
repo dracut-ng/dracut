@@ -353,9 +353,7 @@ entry written with +tries=0+ unless +rd.luks.key=+ supplies a key file. A wrong
 passphrase then prompts again indefinitely, with systemd printing its own
 error each round, instead of dropping into the emergency shell after three
 attempts. This applies whether or not the dracut 'plymouth' module is
-included. The keyboard-layout reporting below is different: a build that
-includes the 'plymouth' module installs neither the ordering nor the
-reporting described there.
+included.
 
 [IMPORTANT]
 ====
@@ -369,12 +367,64 @@ command line is the mitigation for such a device. Note also that per-device
 including an injected +tries=0+. +rd.luks.partuuid=+ and +rd.luks.serial=+ are
 dracut-specific selectors that systemd's generator does not recognize (of the
 device selectors it parses only +rd.luks.uuid=+ and +rd.luks.name=+), so on a
-systemd initrd
-without a matching crypttab entry their udev rules start a
+systemd initrd without a matching crypttab entry their udev rules start a
 systemd-cryptsetup service that systemd never generates. Providing the
 default for natively generated devices is a change that belongs in systemd
 itself, not in the initramfs generator.
 ====
+
+In systemd-based initramfs images, the unit that shows the passphrase
+prompt and reads the keystrokes, systemd-ask-password-console.service, is
+pulled in together with systemd-vconsole-setup.service, which applies the
+complete keyboard configuration (keymap and toggle map) to the console.
+That unit already orders itself after the keyboard setup (After=); the
+added Wants= starts the setup when a passphrase is actually being asked.
+Unlocks that do not read a passphrase from the console (key file, TPM2,
+FIDO2) are not ordered behind the keyboard setup at all, and a missing or
+failing setup never blocks the unlock (Wants= is not Requires=). The
+ordering is deliberately not attached to the systemd-cryptsetup@.service
+instances themselves: systemd-vconsole-setup.service is a oneshot unit
+with no start timeout and waits unboundedly on the console lock and on
+loadkeys/setfont, so an ordering edge from every unlock to the keyboard
+setup could hang all unlocks, including non-interactive ones, whenever
+the console setup wedges.
+
+In systemd-based initramfs images built without the dracut 'plymouth' module,
+once per unlock, before the first passphrase prompt, a line naming the
+keyboard layout is printed. The helper behind it is deliberately
+conservative: it resolves the keymap value from _/etc/vconsole.conf_ only
+(the copy of the host's file that the i18n module places in the image) and
+reports it only when the file reduces to simple, unquoted
++KEYMAP=+__<name>__ lines, the last one winning. Whenever it cannot simply
+determine the layout, a single warning that the typed characters may differ
+from what is printed on the keycaps is printed instead of a name - namely:
+when the file is not in that simple form (a quote, an apostrophe or a
+backslash on any line that is not a +#+ comment, or a carriage return byte
+anywhere in the file - comments included - makes the line structure
+unknowable; only +#+ comments are exempted, not the +;+ comments the
+env-file grammar also accepts, and the backslash rejection extends to
+comments as deliberate conservatism rather than a claim that systemd
+continues comment lines), as does any KEYMAP_TOGGLE assignment (systemd
+passes the toggle map to loadkeys together with the main map, so the KEYMAP
+name alone is not the effective layout) or any other-form KEYMAP assignment
+(extra whitespace, an empty value, trailing text such as an inline comment),
+when the kernel command line names a vconsole keymap or toggle map
+(+vconsole.keymap=+, +vconsole.keymap_toggle=+, the legacy
++vconsole.keymap.toggle=+, and their +rd.+ prefixed spellings, which
+systemd-vconsole-setup applies with priority over the file and which the
+helper does not evaluate), when a +vconsole.keymap+ or
++vconsole.keymap_toggle+ credential may configure one (searched by name in
+the credstore directories, the manager credential stores below
++/run/credentials+, and the importing unit's own $CREDENTIALS_DIRECTORY; a
+toggle credential vetoes even a reported file keymap), when a layout is
+configured but the initrd contains nothing that could have applied it, or
+when the keyboard mode of the console is unknown. When the helper finds no keymap in
+any of the sources it checks, the kernel default layout (`us`) is reported.
+The line appears once
+before the first passphrase prompt of an unlock; retries within the same
+unlock do not repeat it. Neither the line nor the warning asks for any input,
+and the helper only reports the configuration - it never reconfigures the
+keyboard itself. Both are suppressed while plymouth handles the prompt.
 
 crypto LUKS - key on removable device support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

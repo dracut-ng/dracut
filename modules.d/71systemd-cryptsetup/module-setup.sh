@@ -90,6 +90,16 @@ install() {
         mv "$_crypttab_tmp" "$initdir/etc/crypttab" || return 1
     fi
 
+    # Order the console passphrase prompt after the keyboard setup:
+    # systemd-ask-password-console.service (which shows the LUKS prompt and
+    # reads the keystrokes) already has After=systemd-vconsole-setup.service;
+    # the drop-in adds the missing Wants=. Installed unconditionally - the
+    # systemd-ask-password module is a dependency of this module, so the unit
+    # exists in every image; automatic (keyfile/TPM2) unlocks never wait on
+    # the console.
+    inst_simple "$moddir/ask-password-console-ordering.conf" \
+        "$systemdsystemconfdir/systemd-ask-password-console.service.d/90-dracut-vconsole-ordering.conf"
+
     # Install required libraries.
     if [[ ! $USE_SYSTEMD_DLOPEN_DEPS ]]; then
         inst_libdir_file \
