@@ -345,6 +345,37 @@ Requires the dracut 'crypt' module.
     password. This avoid blocking the boot if no password is entered. It does
     not apply to luks key. The default is '0', which means 'forever'.
 
+In systemd-based initramfs images, crypttab entries that are unlocked
+interactively (key file field `none` or `-`) get +tries=0+ unless they already
+carry an explicit +tries=+, +headless=+, or key file setting, and devices that
+are auto-discovered at runtime (with +rd.auto+) get their generated crypttab
+entry written with +tries=0+ unless +rd.luks.key=+ supplies a key file. A wrong
+passphrase then prompts again indefinitely, with systemd printing its own
+error each round, instead of dropping into the emergency shell after three
+attempts. This applies whether or not the dracut 'plymouth' module is
+included. The keyboard-layout reporting below is different: a build that
+includes the 'plymouth' module installs neither the ordering nor the
+reporting described there.
+
+[IMPORTANT]
+====
+This default does not reach devices that systemd-cryptsetup-generator creates
+natively from +rd.luks.uuid=+ when no matching crypttab entry exists in the
+initrd: for those, dracut's udev rule only starts the generated
+systemd-cryptsetup service, and the generated unit keeps systemd's default of
+three attempts. An explicit +rd.luks.options=+__<uuid>__=tries=0 on the kernel
+command line is the mitigation for such a device. Note also that per-device
++rd.luks.options=+ replaces the crypttab options of the matching entry,
+including an injected +tries=0+. +rd.luks.partuuid=+ and +rd.luks.serial=+ are
+dracut-specific selectors that systemd's generator does not recognize (of the
+device selectors it parses only +rd.luks.uuid=+ and +rd.luks.name=+), so on a
+systemd initrd
+without a matching crypttab entry their udev rules start a
+systemd-cryptsetup service that systemd never generates. Providing the
+default for natively generated devices is a change that belongs in systemd
+itself, not in the initramfs generator.
+====
+
 crypto LUKS - key on removable device support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
