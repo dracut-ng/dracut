@@ -124,18 +124,24 @@ nbft_check_empty_address() {
 # interface of an HFI by its MAC address and records it in the connection
 # (host_iface) for the OS environment: the interface keeps its name, the
 # udev of the real root keeps a name given in the initrd (NamePolicy=keep).
-# systemd-networkd matches its Name= against alternative names too, so the
-# HFI gets the alternative name nbftN instead of being renamed to it. The
-# other network modules match interface names only and keep the rename.
-nbft_use_altname() {
-    if [ -z "$nbft_altname" ]; then
-        nbft_altname=no
-        if [ -x /usr/lib/systemd/systemd-networkd ] \
-            && nvme connect-all --help 2>&1 | grep -q 'pre-os'; then
-            nbft_altname=yes
-        fi
+# How the ip= of an HFI names its interface then depends on the network
+# module (nbft_naming):
+#   altname  systemd-networkd matches its Name= against alternative names
+#            too: the HFI gets the alternative name nbftN.
+#   mac      network-legacy takes a MAC address for the interface of an
+#            ip=; a VLAN on the HFI still needs a name for its parent
+#            (vlan=), so that HFI is renamed.
+#   rename   otherwise, and with an older nvme: the interface is renamed to
+#            nbftN (ifname=nbftN:MAC).
+nbft_set_naming() {
+    [ -z "$nbft_naming" ] || return 0
+    nbft_naming=rename
+    nvme connect-all --help 2>&1 | grep -q 'pre-os' || return 0
+    if [ -x /usr/lib/systemd/systemd-networkd ]; then
+        nbft_naming=altname
+    elif [ -x /sbin/ifup ]; then
+        nbft_naming=mac
     fi
-    [ "$nbft_altname" = yes ]
 }
 
 # Like set_ifname, but the name is added as an alternative name by a udev
@@ -163,15 +169,24 @@ nbft_parse_hfi() {
     local mac iface ipaddr prefix vlan gateway dns1 dns2 hostname adrfam dhcp
 
     mac=$(nbft_run_jq -r .mac_addr "$hfi_json") || return 1
-    if nbft_use_altname; then
-        iface=$(nbft_set_altname "$mac")
-    else
-        iface=$(set_ifname nbft "$mac")
-    fi
 
     vlan=$(nbft_run_jq .vlan "$hfi_json") || vlan=0
     # treat VLAN zero as "no vlan"
     [ "$vlan" -ne 0 ] || vlan=
+
+    nbft_set_naming
+    case $nbft_naming in
+        altname) iface=$(nbft_set_altname "$mac") ;;
+        mac)
+            if [ "$vlan" ]; then
+                iface=$(set_ifname nbft "$mac")
+            else
+                # ip= splits at ':', network-legacy takes the BOOTIF form
+                iface=$(echo "$mac" | tr ':' '-')
+            fi
+            ;;
+        *) iface=$(set_ifname nbft "$mac") ;;
+    esac
 
     [ ! -e /tmp/net."${iface}${vlan:+.$vlan}".has_ibft_config ] || return 0
 
