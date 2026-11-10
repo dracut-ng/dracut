@@ -61,6 +61,45 @@ install() {
         "$systemdsystemunitdir"/sysinit.target.wants/cryptsetup.target \
         "$systemdsystemunitdir"/initrd-root-device.target.wants/remote-cryptsetup.target
 
+    # Default interactive LUKS unlocks in the initrd to unlimited retries
+    # (crypttab tries=0): a wrong passphrase prompts again instead of dropping
+    # into the emergency shell. This is crypttab plumbing and applies
+    # regardless of plymouth, matching the runtime-generated entries in
+    # 70crypt/crypt-run-generator.sh. Entries with an explicit tries= or
+    # headless= option and entries unlocked with a key file keep their
+    # configured behavior.
+    if [[ -s $initdir/etc/crypttab ]]; then
+        local _crypttab_tmp
+        _crypttab_tmp="$initdir/etc/crypttab.dracut-prepare.$$"
+        awk '
+            /^[[:space:]]*(#|$)/ { print; next }
+            {
+                if (NF == 2)
+                    $3 = "-"
+                _opts = (NF >= 4) ? $4 : ""
+                _skip = 0
+                _n = split(_opts, _opt, ",")
+                for (_i = 1; _i <= _n; _i++)
+                    if (_opt[_i] ~ /^tries=/ || _opt[_i] ~ /^headless=/)
+                        _skip = 1
+                if (!_skip && ($3 == "-" || $3 == "none"))
+                    $4 = (_opts == "") ? "tries=0" : _opts ",tries=0"
+                print
+            }
+        ' "$initdir/etc/crypttab" > "$_crypttab_tmp" || return 1
+        mv "$_crypttab_tmp" "$initdir/etc/crypttab" || return 1
+    fi
+
+    # Order the console passphrase prompt after the keyboard setup:
+    # systemd-ask-password-console.service (which shows the LUKS prompt and
+    # reads the keystrokes) already has After=systemd-vconsole-setup.service;
+    # the drop-in adds the missing Wants=. Installed unconditionally - the
+    # systemd-ask-password module is a dependency of this module, so the unit
+    # exists in every image; automatic (keyfile/TPM2) unlocks never wait on
+    # the console.
+    inst_simple "$moddir/ask-password-console-ordering.conf" \
+        "$systemdsystemconfdir/systemd-ask-password-console.service.d/90-dracut-vconsole-ordering.conf"
+
     # Install required libraries.
     if [[ ! $USE_SYSTEMD_DLOPEN_DEPS ]]; then
         inst_libdir_file \
