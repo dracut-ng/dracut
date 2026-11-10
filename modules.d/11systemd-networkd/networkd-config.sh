@@ -5,6 +5,20 @@ command -v getcmdline > /dev/null || . /lib/dracut-lib.sh
 # Just in case we're running before it
 systemctl start systemd-network-generator.service
 
+# Again, with what the cmdline hooks added to /etc/cmdline.d. Into a
+# scratch root: before v254 the generator doesn't replace its units.
+_root=/run/dracut-network-generator
+for _gen in /usr/lib/systemd/systemd-network-generator \
+    /lib/systemd/systemd-network-generator; do
+    [ -x "$_gen" ] || continue
+    rm -rf "$_root"
+    SYSTEMD_PROC_CMDLINE="$(getcmdline)" "$_gen" --root="$_root"
+    [ -d "$_root/run/systemd" ] && cp -R "$_root/run/systemd/." /run/systemd/
+    rm -rf "$_root"
+    break
+done
+unset _gen _root
+
 # Customizations for systemd-network-generator generated networks.
 # We need to request certain DHCP options, and there is no way to
 # tell the generator to add those.
