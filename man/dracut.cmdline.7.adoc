@@ -977,10 +977,14 @@ Requires the dracut 'nvmf' module.
     1.54.0 or higher*.
 +
 Without it, the network interfaces of the NBFT are renamed to ++nbft0++
-etc. With systemd-networkd and an nvme-cli that follows the pre-OS model
-(*nvme connect-all --owner=pre-os*), they keep their names: the network
-configuration of an NBFT interface matches it by its MAC address, and a
-VLAN interface on it is named ++nbft0.10++ etc.
+etc. With an nvme-cli that follows the pre-OS model
+(*nvme connect-all --owner=pre-os*), they keep their names with
+NetworkManager and systemd-networkd. With NetworkManager, _rd.nvmf.nm_ is
+then the default when its nm-initrd-generator can load the libnvme of the
+initramfs (libnvme3.so.1 for nvme-cli 3), and the library is installed
+for it; otherwise the interfaces are renamed. With systemd-networkd, the
+network configuration of an NBFT interface matches it by its MAC address,
+and a VLAN interface on it is named ++nbft0.10++ etc.
 
 **rd.nvmf.hostnqn=**__<hostNQN>__::
     NVMe host NQN to use
