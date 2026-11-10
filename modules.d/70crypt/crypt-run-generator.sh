@@ -22,7 +22,14 @@ if [ -n "${DRACUT_SYSTEMD-}" ] || strstr "$(cryptsetup --help)" "allow-discards"
     fi
 fi
 
-echo "$luks $dev - timeout=0,$allowdiscards" >> /etc/crypttab
+cryptopts="timeout=0"
+[ "$allowdiscards" != "-" ] && cryptopts="$cryptopts,$allowdiscards"
+# Default interactive unlocks in the initrd to unlimited retries; devices
+# unlocked with a key file (rd.luks.key=) keep the default retry count.
+if ! getargs rd.luks.key > /dev/null; then
+    cryptopts="$cryptopts,tries=0"
+fi
+echo "$luks $dev - $cryptopts" >> /etc/crypttab
 
 if command -v systemctl > /dev/null; then
     systemctl daemon-reload
