@@ -197,7 +197,9 @@ example:
 **--omit-drivers** _<list of kernel modules>_::
     Specify a space-separated list of kernel modules not to add to the
     initramfs.
-    The kernel modules have to be specified without the ".ko" suffix. This
+    The kernel modules have to be specified without the ".ko" suffix. Each
+    entry is an extended regular expression that has to match the whole module
+    name, so "nvme.*" omits every module whose name starts with "nvme". This
     parameter can be specified multiple times.
 +
 [NOTE]
