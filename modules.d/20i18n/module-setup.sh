@@ -150,11 +150,27 @@ install() {
     }
 
     install_all_kbd() {
-        local _src _line
+        local _src _line _nullglob_on
+        local -a _files
 
         for _src in "${KBDSUBDIRS[@]}"; do
+            [[ -d "${dracutsysrootdir-}${kbddir}/$_src" ]] || continue
+            # skip only structurally empty directories: a test on the first
+            # expanded entry ([[ -e ${_files[0]} ]]) would also be false when
+            # that entry is a dangling symlink and would wrongly skip the
+            # whole directory. Expand with a scoped nullglob and test the
+            # array length instead: with nullglob an unmatched glob yields
+            # zero entries, while the quoted prefix stays literal, so glob
+            # characters in a sysroot path (e.g. "sysroot[1]") are not read
+            # as a pattern.
+            shopt -q nullglob
+            _nullglob_on=$?
+            shopt -s nullglob
+            _files=("${dracutsysrootdir-}${kbddir}/$_src"/*)
+            ((_nullglob_on == 0)) || shopt -u nullglob
+            ((${#_files[@]} > 0)) || continue
             inst_dir "${kbddir}/$_src"
-            $DRACUT_CP -L -t "${initdir}/${kbddir}/$_src" "${dracutsysrootdir-}${kbddir}/$_src"/*
+            $DRACUT_CP -L -t "${initdir}/${kbddir}/$_src" "${_files[@]}"
         done
 
         # remove unnecessary files
