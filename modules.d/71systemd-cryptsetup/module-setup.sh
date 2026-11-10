@@ -61,6 +61,17 @@ install() {
         "$systemdsystemunitdir"/sysinit.target.wants/cryptsetup.target \
         "$systemdsystemunitdir"/initrd-root-device.target.wants/remote-cryptsetup.target
 
+    # Without the plymouth module, hook in /sbin/dracut-crypt-prepare, which
+    # announces the console keymap once before an interactive passphrase
+    # prompt (purely informational, it never touches the keyboard). With the
+    # plymouth module included, it is NOT installed: the feature is gated
+    # here, not just the output, so a plymouth image has no layout line.
+    if ! dracut_module_included "plymouth"; then
+        inst_script "$moddir/dracut-crypt-prepare.sh" /sbin/dracut-crypt-prepare
+        inst_simple "$moddir/cryptsetup-report.conf" \
+            "$systemdsystemconfdir/systemd-cryptsetup@.service.d/90-dracut-crypt-report.conf"
+    fi
+
     # Install required libraries.
     if [[ ! $USE_SYSTEMD_DLOPEN_DEPS ]]; then
         inst_libdir_file \
