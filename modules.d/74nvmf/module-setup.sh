@@ -10,6 +10,15 @@ __nvmf_has_nbft() {
     [[ $found ]]
 }
 
+__nvmf_has_fabrics_conf() {
+    local f
+    [ -f "${dracutsysrootdir-}/etc/nvme/nvme-fabrics.conf" ] && return 0
+    for f in "${dracutsysrootdir-}"/etc/nvme/nvme-fabrics.conf.d/*.conf; do
+        [ -f "$f" ] && return 0
+    done
+    return 1
+}
+
 # called by dracut
 check() {
     local -A nvmf_trtypes
@@ -53,7 +62,8 @@ check() {
         require_kernel_modules "${!nvmf_trtypes[@]}" || return 1
         if [ ! -f /sys/class/fc/fc_udev_device/nvme_discovery ] \
             && [ ! -f /etc/nvme/discovery.conf ] \
-            && [ ! -f /etc/nvme/config.json ] && ! __nvmf_has_nbft; then
+            && [ ! -f /etc/nvme/config.json ] \
+            && ! __nvmf_has_fabrics_conf && ! __nvmf_has_nbft; then
             echo "No discovery arguments present"
             return 255
         fi
@@ -77,7 +87,7 @@ installkernel() {
         local mac_re
 
         # mac_re is a list of MAC addresses joined with "|", suitable as regexp
-        mac_re=$(nvme nbft show -H -o json \
+        mac_re=$(nvme nbft show --hfi --output-format=json \
             | jq -r '[.[].hfi[].mac_addr] | join("|")')
         [[ $mac_re ]] || return 0
 
@@ -126,7 +136,7 @@ cmdline() {
         [[ $trtype == tcp && $nvmf_nbft_mode == nbft ]] \
             && __nvmf_has_nbft && return 0
 
-        nvme list-subsys "${PWD##*/}" -o json | jq -j '
+        nvme list-subsys "${PWD##*/}" --output-format=json | jq -j '
 if type == "array" then .[] else . end |
 .Subsystems[]? |
 .Paths[]? |
@@ -186,7 +196,7 @@ end'
         # builtin looks for keys only, not values.
         # The '+ [{}]' avoids a "null" result for systems without NBFT.
         # The "add" at the end combines an array of objects into one object.
-        _nbft_subsystems=$(nvme nbft show -s -o json \
+        _nbft_subsystems=$(nvme nbft show --subsystem --output-format=json \
             | jq '[.[].subsystem[] |
                                    select(.transport == "tcp") |
                                    {(.traddr + "," + .trsvcid): 0}] + [{}] |
@@ -216,6 +226,11 @@ install() {
     inst_hook cmdline 92 "$moddir/parse-nvmf-boot-connections.sh"
     inst_simple -H "/etc/nvme/discovery.conf"
     inst_simple -H "/etc/nvme/config.json"
-    inst_rules 71-nvmf-iopolicy-netapp.rules
+    inst_simple -H "/etc/nvme/nvme-fabrics.conf"
+    local _conf
+    for _conf in "${dracutsysrootdir-}"/etc/nvme/nvme-fabrics.conf.d/*.conf; do
+        [[ -f $_conf ]] && inst_simple -H "${_conf#"${dracutsysrootdir-}"}"
+    done
+    inst_rules 71-nvmf-iopolicy-netapp.rules 71-nvmf-netapp.rules
     inst_rules "$moddir/95-nvmf-initqueue.rules"
 }
