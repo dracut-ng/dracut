@@ -20,7 +20,7 @@ nroot="$2"
 NEWROOT="$3"
 
 # If it's not nbd we don't continue
-[ "${nroot%%:*}" = "nbd" ] || return
+[ "${nroot%%:*}" = "nbd" ] || return 1
 
 nroot=${nroot#nbd:}
 nbdserver=${nroot%%:*}

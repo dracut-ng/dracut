@@ -126,10 +126,10 @@ ifdown() {
 setup_net() {
     local netif="$1" f="" gw_ip="" netroot_ip="" iface="" IFACES=""
     local _p
-    [ -e /tmp/net."$netif".did-setup ] && return
+    [ -e /tmp/net."$netif".did-setup ] && return 0
     [ -z "$DO_VLAN" ] \
         && [ -e /sys/class/net/"$netif"/address ] \
-        && [ -e "/tmp/net.$(cat /sys/class/net/"$netif"/address).did-setup" ] && return
+        && [ -e "/tmp/net.$(cat /sys/class/net/"$netif"/address).did-setup" ] && return 0
     [ -e "/tmp/net.ifaces" ] && read -r IFACES < /tmp/net.ifaces
     [ -z "$IFACES" ] && IFACES="$netif"
     # run the scripts written by ifup
@@ -226,7 +226,7 @@ set_ifname() {
     local name="$1" mac="$2" num=-1 n=""
     # if it's already set, return the existing name
     for n in $(getargs ifname=); do
-        strstr "$n" "$mac" && echo "${n%%:*}" && return
+        strstr "$n" "$mac" && echo "${n%%:*}" && return 0
     done
     [ ! -f "/tmp/set_ifname_$name" ] || read -r num < "/tmp/set_ifname_$name"
     # otherwise, pick a new name and use that
