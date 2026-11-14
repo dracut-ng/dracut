@@ -973,6 +973,19 @@ Requires the dracut 'nvmf' module.
     that the network interfaces generated from the NBFT will have regular
     interface names rather than ++nbft0++ etc. *This requires NetworkManager
     1.54.0 or higher*.
++
+Without it, the network interfaces of the NBFT are renamed to ++nbft0++
+etc. With an nvme-cli that follows the pre-OS model
+(*nvme connect-all --owner=pre-os*), they keep their names: nvme-cli
+connects through the interface of an NBFT HFI by its MAC address and
+records the interface's name for the OS environment, which keeps the name
+given in the initramfs. With NetworkManager, _rd.nvmf.nm_ is then the
+default when its nm-initrd-generator can load the libnvme of the
+initramfs (libnvme3.so.1 for nvme-cli 3), and the library is installed
+for it; otherwise the interfaces are renamed. With systemd-networkd,
+++nbft0++ etc. are alternative names of the interfaces; with
+network-legacy, the _ip=_ of an HFI names its interface by the MAC
+address, except for an HFI with a VLAN, which is renamed as before.
 
 **rd.nvmf.hostnqn=**__<hostNQN>__::
     NVMe host NQN to use
@@ -998,6 +1011,18 @@ rd.nvmf.discover=fc,nn-0x201700a05634f5bf:pn-0x201900a05634f5bf,nn-0x200000109b5
     This special syntax determines that Fibre Channel autodiscovery
     is to be used rather than regular NVMe discovery. It takes precedence
     over all other _rd.nvmf.discover=_ arguments.
+
+With an nvme-cli whose help of _nvme connect-all --owner_ names
+_pre-os_, the nvmf module connects as the owner _pre-os_, the pre-OS
+environment. nvme then connects with
+_ctrl_loss_tmo=-1_ and records the connections in
+_/run/nvme/pre-os.conf.d_; in the real root, nvme-discoverd keeps them
+connected and never disconnects them.
+
+When the initramfs connected controllers with the owner _pre-os_ (or
+_nbft_, as nvme-cli 3.0 to 3.2 record it), the shutdown returns to the
+initramfs, which disconnects them after the root file system is
+unmounted.
 
 NBD
 ~~~

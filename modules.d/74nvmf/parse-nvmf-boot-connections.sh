@@ -20,7 +20,7 @@
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 command -v is_ip > /dev/null || . /lib/net-lib.sh
 
-## Sample NBFT output from nvme show-nbft -H -s -d -o json
+## Sample NBFT output from nvme nbft show --hfi --subsystem --discovery --output-format=json
 # [
 #   {
 #     "filename":"/sys/firmware/acpi/tables/NBFT",
@@ -120,6 +120,54 @@ nbft_check_empty_address() {
     esac
 }
 
+# An nvme that follows the pre-OS model finds the
+# interface of an HFI by its MAC address and records it in the connection
+# (host_iface) for the OS environment: the interface keeps its name, the
+# udev of the real root keeps a name given in the initrd (NamePolicy=keep).
+# How the ip= of an HFI names its interface then depends on the network
+# module (nbft_naming):
+#   altname  systemd-networkd matches its Name= against alternative names
+#            too: the HFI gets the alternative name nbftN.
+#   mac      network-legacy takes a MAC address for the interface of an
+#            ip=; a VLAN on the HFI still needs a name for its parent
+#            (vlan=), so that HFI is renamed.
+#   nm       NetworkManager reads the NBFT itself (as with rd.nvmf.nm) and
+#            matches the HFI's interface by its MAC address, VLANs too: no
+#            ip=, no name. Only when its nm-initrd-generator can load the
+#            initrd's libnvme (module-setup.sh, __nvmf_nm_reads_nbft).
+#   rename   otherwise, and with an older nvme: the interface is renamed to
+#            nbftN (ifname=nbftN:MAC).
+nbft_set_naming() {
+    [ -z "$nbft_naming" ] || return 0
+    nbft_naming=rename
+    nvme connect-all --help 2>&1 | grep -q 'pre-os' || return 0
+    if [ -e /usr/lib/dracut/nvmf-nm-reads-nbft ]; then
+        nbft_naming="nm"
+    elif [ -x /usr/lib/systemd/systemd-networkd ]; then
+        nbft_naming=altname
+    elif [ -x /sbin/ifup ]; then
+        nbft_naming=mac
+    fi
+}
+
+# Like set_ifname, but the name is added as an alternative name by a udev
+# rule on the MAC address. A VLAN on the HFI has the same MAC address.
+nbft_set_altname() {
+    local mac="$1" num=-1 n ip
+    for n in /tmp/nbft_altname.*; do
+        [ -e "$n" ] || continue
+        [ "$(cat "$n")" = "$mac" ] && echo "${n#/tmp/nbft_altname.}" && return
+        num=$((num < ${n#/tmp/nbft_altname.nbft} ? ${n#/tmp/nbft_altname.nbft} : num))
+    done
+    num=$((num + 1))
+    echo "$mac" > "/tmp/nbft_altname.nbft$num"
+    ip=$(command -v ip)
+    mkdir -p /etc/udev/rules.d
+    printf 'SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="%s", ENV{DEVTYPE}!="vlan", RUN+="%s link property add dev %%k altname nbft%s"\n' \
+        "$mac" "$ip" "$num" >> /etc/udev/rules.d/64-nbft-altname.rules
+    echo "nbft$num"
+}
+
 nbft_parse_hfi() {
     # false positive of shellcheck - no expansion in variable assignments
     # shellcheck disable=2086
@@ -127,11 +175,24 @@ nbft_parse_hfi() {
     local mac iface ipaddr prefix vlan gateway dns1 dns2 hostname adrfam dhcp
 
     mac=$(nbft_run_jq -r .mac_addr "$hfi_json") || return 1
-    iface=$(set_ifname nbft "$mac")
 
     vlan=$(nbft_run_jq .vlan "$hfi_json") || vlan=0
     # treat VLAN zero as "no vlan"
     [ "$vlan" -ne 0 ] || vlan=
+
+    nbft_set_naming
+    case $nbft_naming in
+        altname) iface=$(nbft_set_altname "$mac") ;;
+        mac)
+            if [ "$vlan" ]; then
+                iface=$(set_ifname nbft "$mac")
+            else
+                # ip= splits at ':', network-legacy takes the BOOTIF form
+                iface=$(echo "$mac" | tr ':' '-')
+            fi
+            ;;
+        *) iface=$(set_ifname nbft "$mac") ;;
+    esac
 
     [ ! -e /tmp/net."${iface}${vlan:+.$vlan}".has_ibft_config ] || return 0
 
@@ -201,9 +262,10 @@ nbft_parse() {
     local nbft_json n_nbft all_hfi_json n_hfi
     local j=-1 i
 
-    nbft_json=$(nvme nbft show -H -o json) || return 0
+    nbft_json=$(nvme nbft show --hfi --output-format=json) || return 0
     n_nbft=$(nbft_run_jq ". | length" "$nbft_json") || return 0
-    if [ "$n_nbft" -gt 0 ] && getargbool 0 rd.nvmf.nm; then
+    nbft_set_naming
+    if [ "$n_nbft" -gt 0 ] && { getargbool 0 rd.nvmf.nm || [ "$nbft_naming" = nm ]; }; then
         # nm-initrd-generator will take care of the interface setup.
         # We set valid_nbft_entry_found to enable netroot (see below).
         : > /tmp/valid_nbft_entry_found
@@ -227,9 +289,24 @@ if getargbool 0 rd.nonvmf; then
     return 0
 fi
 
+nvmf_remove_static_config() {
+    rm -f /etc/nvme/discovery.conf /etc/nvme/config.json
+    rm -f /etc/nvme/nvme-fabrics.conf
+    rm -rf /etc/nvme/nvme-fabrics.conf.d
+}
+
+# nvme-cli 3 ignores discovery.conf once nvme-fabrics.conf exists
+nvmf_has_fabrics_conf() {
+    [ -n "$nvmf_fabrics_conf" ] && return "$nvmf_fabrics_conf"
+    nvmf_fabrics_conf=1
+    nvme connect-all --help 2>&1 | grep -q 'INI configuration' \
+        && nvmf_fabrics_conf=0
+    return "$nvmf_fabrics_conf"
+}
+
 if getargbool 0 rd.nvmf.nostatic; then
     rm -f /etc/cmdline.d/20-nvmf-args.conf
-    rm -f /etc/nvme/discovery.conf /etc/nvme/config.json
+    nvmf_remove_static_config
 fi
 
 if ! getargbool 0 rd.nvmf.nonbft; then
@@ -244,6 +321,8 @@ fi
 /sbin/initqueue --onetime modprobe -b -q nvme_tcp
 /sbin/initqueue --onetime modprobe -b -q nvme_core
 /sbin/initqueue --onetime modprobe -b -q nvme_fabrics
+
+mkdir -p /etc/nvme
 
 parse_nvmf_discover() {
     local args="$1"
@@ -287,7 +366,7 @@ parse_nvmf_discover() {
         : > /tmp/nvmf_needs_network
     elif [ "$trtype" = "fc" ]; then
         if [ "$traddr" = "auto" ]; then
-            rm -f /etc/nvme/discovery.conf /etc/nvme/config.json
+            nvmf_remove_static_config
             return 1
         fi
         if [ "$hosttraddr" = "none" ]; then
@@ -298,7 +377,14 @@ parse_nvmf_discover() {
         warn "unsupported transport $trtype"
         return 0
     fi
-    if [ "$trtype" = "fc" ]; then
+    if nvmf_has_fabrics_conf; then
+        controller="transport=$trtype;traddr=$traddr"
+        [ "$trtype" = "fc" ] || controller="$controller;trsvcid=$trsvcid"
+        [ "$hosttraddr" = "none" ] || controller="$controller;host-traddr=$hosttraddr"
+        mkdir -p /etc/nvme/nvme-fabrics.conf.d
+        printf '[Discovery Controller]\ncontroller = %s\n\n' "$controller" \
+            >> /etc/nvme/nvme-fabrics.conf.d/90-dracut-cmdline.conf
+    elif [ "$trtype" = "fc" ]; then
         echo "--transport=$trtype --traddr=$traddr --host-traddr=$hosttraddr" >> /etc/nvme/discovery.conf
     else
         echo "--transport=$trtype --traddr=$traddr --host-traddr=$hosttraddr --trsvcid=$trsvcid" >> /etc/nvme/discovery.conf
