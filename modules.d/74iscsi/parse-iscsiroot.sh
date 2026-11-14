@@ -98,12 +98,6 @@ if ! [ -e /sys/module/iscsi_tcp ]; then
     modprobe -b -q iscsi_tcp || die "iscsiroot requested but kernel/initrd does not support iscsi"
 fi
 
-modprobe -b -q qla4xxx
-modprobe -b -q cxgb3i
-modprobe -b -q cxgb4i
-modprobe -b -q bnx2i
-modprobe -b -q be2iscsi
-
 if [ -n "$netroot" ] && [ "$root" != "/dev/root" ] && [ "$root" != "dhcp" ]; then
     if ! getargbool 1 rd.neednet > /dev/null || ! getarg "ip="; then
         /sbin/initqueue --unique --onetime --settled /sbin/iscsiroot dummy "'$(escape "$netroot")'" "'$NEWROOT'"
