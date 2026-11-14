@@ -10,7 +10,7 @@ for root in $(getargs rootfallback=); do
         continue
     fi
 
-    if mount "$root" /sysroot; then
+    if /bin/mount "$root" /sysroot; then
         info "Mounted rootfallback $root"
         exit 0
     else
