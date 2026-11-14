@@ -345,6 +345,22 @@ Requires the dracut 'crypt' module.
     password. This avoid blocking the boot if no password is entered. It does
     not apply to luks key. The default is '0', which means 'forever'.
 
+In systemd-based initramfs images, the unit that shows the passphrase
+prompt and reads the keystrokes, systemd-ask-password-console.service, is
+pulled in together with systemd-vconsole-setup.service, which applies the
+complete keyboard configuration (keymap and toggle map) to the console.
+That unit already orders itself after the keyboard setup (After=); the
+added Wants= starts the setup when a passphrase is actually being asked.
+Unlocks that do not read a passphrase from the console (key file, TPM2,
+FIDO2) are not ordered behind the keyboard setup at all, and a missing or
+failing setup never blocks the unlock (Wants= is not Requires=). The
+ordering is deliberately not attached to the systemd-cryptsetup@.service
+instances themselves: systemd-vconsole-setup.service is a oneshot unit
+with no start timeout and waits unboundedly on the console lock and on
+loadkeys/setfont, so an ordering edge from every unlock to the keyboard
+setup could hang all unlocks, including non-interactive ones, whenever
+the console setup wedges.
+
 crypto LUKS - key on removable device support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
