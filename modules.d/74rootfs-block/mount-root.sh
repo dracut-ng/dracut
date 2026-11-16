@@ -4,7 +4,7 @@ command -v getarg > /dev/null || . /lib/dracut-lib.sh
 command -v det_fs > /dev/null || . /lib/fs-lib.sh
 
 mount_root() {
-    local _rflags_ro
+    local _ret _rflags_ro
     # sanity - determine/fix fstype
     rootfs=$(det_fs "${root#block:}" "$fstype")
 
@@ -74,6 +74,8 @@ mount_root() {
         && ! getargbool 0 rd.skipfsck; then
         umount "$NEWROOT"
         fsck_single "${root#block:}" "$rootfs" "$rflags" "$fsckoptions"
+        _ret=$?
+        [ $_ret -eq 0 ] && : > /run/initramfs/fsck-root
     fi
 
     echo "${root#block:} $NEWROOT $rootfs ${rflags:-defaults} 0 ${rootfsck:-0}" >> /etc/fstab
