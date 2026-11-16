@@ -14,6 +14,16 @@ else
     }
 fi
 
+# Some distributions ship the kcapi-hasher multi-call binary without the
+# sha512hmac alias, in which case the hash name has to be passed explicitly.
+do_sha512hmac() {
+    if command -v sha512hmac > /dev/null; then
+        sha512hmac "$@"
+    else
+        kcapi-hasher -n sha512hmac "$@"
+    fi
+}
+
 # Checks if a systemd-based UKI is running and ESP UUID is set
 is_uki() {
     [ -f /sys/firmware/efi/efivars/StubFeatures-4a67b082-0a4c-41cf-b6c7-440b29bb8c4f ] \
@@ -85,7 +95,7 @@ do_rhevh_check() {
 
     # If we're on RHEV-H, the kernel is in /run/initramfs/live/vmlinuz0
     HMAC_SUM_ORIG=$(while read -r a _ || [ -n "$a" ]; do printf "%s\n" "$a"; done < "$NEWROOT/boot/.vmlinuz-${KERNEL}.hmac")
-    HMAC_SUM_CALC=$(sha512hmac "$kpath" | while read -r a _ || [ -n "$a" ]; do printf "%s\n" "$a"; done || return 1)
+    HMAC_SUM_CALC=$(do_sha512hmac "$kpath" | while read -r a _ || [ -n "$a" ]; do printf "%s\n" "$a"; done || return 1)
     if [ -z "$HMAC_SUM_ORIG" ] || [ -z "$HMAC_SUM_CALC" ] || [ "${HMAC_SUM_ORIG}" != "${HMAC_SUM_CALC}" ]; then
         warn "HMAC sum mismatch"
         return 1
@@ -118,7 +128,7 @@ do_uki_check() {
         local UKIHMAC=."$UKI".hmac
 
         fips_info "checking $UKIHMAC"
-        (cd /boot/EFI/Linux/ && sha512hmac -c "$UKIHMAC") || return 1
+        (cd /boot/EFI/Linux/ && do_sha512hmac -c "$UKIHMAC") || return 1
         uki_checked=1
     done
 
@@ -227,7 +237,7 @@ do_fips() {
                 return 1
             fi
 
-            (cd "${BOOT_IMAGE_HMAC%/*}" && sha512hmac -c "${BOOT_IMAGE_HMAC}") || return 1
+            (cd "${BOOT_IMAGE_HMAC%/*}" && do_sha512hmac -c "${BOOT_IMAGE_HMAC}") || return 1
         fi
     fi
 
