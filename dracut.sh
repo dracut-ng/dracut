@@ -3489,6 +3489,8 @@ umask 077
 SBAT_DEFAULT="sbat,1,SBAT Version,sbat,1,https://github.com/rhboot/shim/blob/main/SBAT.md"
 sbat_out=$uefi_outdir/uki.sbat
 
+uname_out=$uefi_outdir/uname.txt
+
 clean_sbat_string() {
     local inp=$1
     local temp=$uefi_outdir/temp.sbat
@@ -3566,8 +3568,13 @@ if [[ $uefi == yes ]]; then
     get_sbat_string "$kernel_image" kernel.sbat
     get_sbat_string "$uefi_stub" stub.sbat
 
+    echo -n "$kernel" > "$uname_out"
+
     uefi_sbat_offs="${offs}"
     offs=$((offs + $(stat -Lc%s "$sbat_out")))
+    offs=$((offs + "$align" - offs % "$align"))
+    uefi_uname_offs="${offs}"
+    offs=$((offs + $(stat -Lc%s "$uname_out")))
     offs=$((offs + "$align" - offs % "$align"))
     uefi_linux_offs="${offs}"
     offs=$((offs + $(stat -Lc%s "$kernel_image")))
@@ -3628,6 +3635,7 @@ if [[ $uefi == yes ]]; then
             ${uefi_cmdline:+--add-section .cmdline="$uefi_cmdline" --change-section-vma .cmdline=$(printf 0x%x "$uefi_cmdline_offs")} \
             ${uefi_splash_image:+--add-section .splash="$uefi_splash_image" --change-section-vma .splash=$(printf 0x%x "$uefi_splash_offs")} \
             --add-section .sbat="$sbat_out" --change-section-vma .sbat="$(printf 0x%x "$uefi_sbat_offs")" \
+            --add-section .uname="$uname_out" --change-section-vma .uname="$(printf 0x%x "$uefi_uname_offs")" \
             --add-section .linux="$kernel_image" --change-section-vma .linux="$(printf 0x%x "$uefi_linux_offs")" \
             --add-section .initrd="${DRACUT_TMPDIR}/initramfs.img" --change-section-vma .initrd="$(printf 0x%x "$uefi_initrd_offs")" \
             --image-base="$(printf 0x%x "$base_image")" \
