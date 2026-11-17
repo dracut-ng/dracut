@@ -120,18 +120,88 @@ nbft_check_empty_address() {
     esac
 }
 
+# An nvme that follows the pre-OS model finds the interface of an HFI by
+# its MAC address and records its name for the OS environment, so the
+# interface doesn't need to be renamed to nbftN. systemd-network-generator
+# matches the interface of an ip= by name only, so with systemd-networkd
+# the .network of the HFI is written directly and matches the MAC address.
+# Otherwise the interface is renamed and gets an ip=.
+nbft_set_naming() {
+    [ -z "$nbft_naming" ] || return 0
+    nbft_naming=rename
+    nvme connect-all --help 2>&1 | grep -q 'pre-os' || return 0
+    if [ -x /usr/lib/systemd/systemd-networkd ]; then
+        nbft_naming=networkd
+    fi
+}
+
+# nbftN of the HFI with the MAC address $1: it names the files and the
+# VLAN interface, not the interface of the HFI.
+nbft_networkd_name() {
+    local mac="$1" num=-1 n
+    for n in /tmp/nbft_networkd.nbft*; do
+        [ -e "$n" ] || continue
+        [ "$(cat "$n")" = "$mac" ] && echo "${n#/tmp/nbft_networkd.}" && return
+        n=${n#/tmp/nbft_networkd.nbft}
+        [ "$n" -le "$num" ] || num=$n
+    done
+    num=$((num + 1))
+    echo "$mac" > "/tmp/nbft_networkd.nbft$num"
+    echo "nbft$num"
+}
+
+# Like systemd-network-generator writes it for an ip=, but matched by the
+# MAC address. A VLAN on the HFI has the same MAC address.
+nbft_networkd_hfi() {
+    local dir=/run/systemd/network link="$iface"
+
+    mkdir -p "$dir"
+    [ -e "$dir/69-$iface.network" ] \
+        || printf '[Match]\nMACAddress=%s\nKind=!vlan\n' "$mac" > "$dir/69-$iface.network"
+    if [ "$vlan" ]; then
+        link="$iface.$vlan"
+        printf '\n[Network]\nVLAN=%s\n' "$link" >> "$dir/69-$iface.network"
+        printf '[NetDev]\nKind=vlan\nName=%s\n\n[VLAN]\nId=%s\n' "$link" "$vlan" \
+            > "$dir/69-$link.netdev"
+        printf '[Match]\nName=%s\n' "$link" > "$dir/69-$link.network"
+    fi
+
+    {
+        printf '\n[Network]\n'
+        case $proto in
+            dhcp) echo "DHCP=ipv4" ;;
+            dhcp6) echo "DHCP=ipv6" ;;
+            *)
+                echo "LinkLocalAddressing=no"
+                echo "IPv6AcceptRA=no"
+                ;;
+        esac
+        [ -z "$dns1" ] || echo "DNS=$dns1"
+        [ -z "$dns2" ] || echo "DNS=$dns2"
+        [ -z "$hostname" ] || printf '\n[DHCP]\nHostname=%s\n' "$hostname"
+        [ -z "$ipaddr" ] || printf '\n[Address]\nAddress=%s/%s\n' "$ipaddr" "$prefix"
+        [ -z "$gateway" ] || printf '\n[Route]\nGateway=%s\n' "$gateway"
+    } >> "$dir/69-$link.network"
+}
+
 nbft_parse_hfi() {
     # false positive of shellcheck - no expansion in variable assignments
     # shellcheck disable=2086
     local hfi_json=$1
-    local mac iface ipaddr prefix vlan gateway dns1 dns2 hostname adrfam dhcp
+    local mac iface ipaddr prefix vlan gateway dns1 dns2 hostname dhcp proto
 
     mac=$(nbft_run_jq -r .mac_addr "$hfi_json") || return 1
-    iface=$(set_ifname nbft "$mac")
 
     vlan=$(nbft_run_jq .vlan "$hfi_json") || vlan=0
     # treat VLAN zero as "no vlan"
     [ "$vlan" -ne 0 ] || vlan=
+
+    nbft_set_naming
+    if [ "$nbft_naming" = networkd ]; then
+        iface=$(nbft_networkd_name "$mac")
+    else
+        iface=$(set_ifname nbft "$mac")
+    fi
 
     [ ! -e /tmp/net."${iface}${vlan:+.$vlan}".has_ibft_config ] || return 0
 
@@ -141,10 +211,10 @@ nbft_parse_hfi() {
     if [ $? -eq 0 ] && [ "$dhcp" ] && [ "$dhcp" != null ]; then
         case $dhcp in
             *:*)
-                echo ip="$iface${vlan:+.$vlan}:dhcp6"
+                proto=dhcp6
                 ;;
             *.*.*.*)
-                echo ip="$iface${vlan:+.$vlan}:dhcp"
+                proto=dhcp
                 ;;
             *)
                 warn "Invalid value for dhcp_server_ipaddr: $dhcp"
@@ -152,15 +222,11 @@ nbft_parse_hfi() {
                 ;;
         esac
     else
+        proto=none
         ipaddr=$(nbft_run_jq -r .ipaddr "$hfi_json") || return 1
 
         case $ipaddr in
-            *.*.*.*)
-                adrfam=ipv4
-                ;;
-            *:*)
-                adrfam=ipv6
-                ;;
+            *.*.*.* | *:*) ;;
             *)
                 warn "invalid address: $ipaddr"
                 return 1
@@ -169,12 +235,10 @@ nbft_parse_hfi() {
         prefix=$(nbft_run_jq -r .subnet_mask_prefix "$hfi_json")
         # Need to check $? here as he above is an assignment
         # shellcheck disable=2181
-        if [ $? -ne 0 ] && [ "$adrfam" = ipv6 ]; then
-            prefix=128
-        fi
-        # Use brackets for IPv6
-        if [ "$adrfam" = ipv6 ]; then
-            ipaddr="[$ipaddr]"
+        if [ $? -ne 0 ]; then
+            case $ipaddr in
+                *:*) prefix=128 ;;
+            esac
         fi
 
         gateway=$(nbft_check_empty_address \
@@ -184,12 +248,22 @@ nbft_parse_hfi() {
         dns2=$(nbft_check_empty_address \
             "$(nbft_run_jq -r .secondary_dns_ipaddr "$hfi_json")")
         hostname=$(nbft_run_jq -r .host_name "$hfi_json" 2> /dev/null) || hostname=
+    fi
 
+    if [ "$nbft_naming" = networkd ]; then
+        nbft_networkd_hfi
+    elif [ "$proto" != none ]; then
+        echo "ip=$iface${vlan:+.$vlan}:$proto"
+    else
+        # Use brackets for IPv6
+        case $ipaddr in
+            *:*) ipaddr="[$ipaddr]" ;;
+        esac
         echo "ip=$ipaddr::$gateway:$prefix:$hostname:$iface${vlan:+.$vlan}:none${dns1:+:$dns1}${dns2:+:$dns2}"
     fi
 
     if [ "$vlan" ]; then
-        echo "vlan=$iface.$vlan:$iface"
+        [ "$nbft_naming" = networkd ] || echo "vlan=$iface.$vlan:$iface"
         echo "$mac" > "/tmp/net.$iface.$vlan.has_ibft_config"
     else
         echo "$mac" > "/tmp/net.$iface.has_ibft_config"
