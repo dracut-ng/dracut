@@ -228,6 +228,10 @@ install() {
     inst_script "${moddir}/nbftroot.sh" /sbin/nbftroot
 
     inst_multiple nvme jq
+    # nvme-cli 3.3 loads its commands from plugin modules: connect-all,
+    # nbft show and list-subsys
+    inst_libdir_file "nvme-cli/*/plugins/cmds-fabrics.so" \
+        "nvme-cli/*/plugins/cmds-nbft.so" "nvme-cli/*/plugins/cmds-list.so"
     inst_hook cmdline 92 "$moddir/parse-nvmf-boot-connections.sh"
     inst_simple -H "/etc/nvme/discovery.conf"
     inst_simple -H "/etc/nvme/config.json"
