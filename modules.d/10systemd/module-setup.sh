@@ -32,6 +32,7 @@ install() {
         exit 1
     fi
 
+    inst_molly_guard_diverted
     inst_multiple -o \
         "$systemdutildir"/systemd \
         "$systemdutildir"/systemd-cgroups-agent \
