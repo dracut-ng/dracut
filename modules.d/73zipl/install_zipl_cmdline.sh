@@ -11,7 +11,7 @@ fi
 
 [ -d ${MNT} ] || mkdir -p ${MNT}
 
-if ! mount -o ro "${DEV}" ${MNT}; then
+if ! /bin/mount -o ro "${DEV}" ${MNT}; then
     echo "Failed to mount ${MNT}"
     : > /tmp/install.zipl.cmdline-done
     exit 1

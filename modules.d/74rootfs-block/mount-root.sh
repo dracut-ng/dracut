@@ -80,10 +80,10 @@ mount_root() {
 
     if ! ismounted "$NEWROOT"; then
         info "Mounting ${root#block:} with -o ${rflags}"
-        mount "$NEWROOT" 2>&1 | vinfo
+        /bin/mount "$NEWROOT" 2>&1 | vinfo
     elif ! are_lists_eq , "$rflags" "$_rflags_ro" defaults; then
         info "Remounting ${root#block:} with -o ${rflags}"
-        mount -o remount "$NEWROOT" 2>&1 | vinfo
+        /bin/mount -o remount "$NEWROOT" 2>&1 | vinfo
     fi
 }
 
