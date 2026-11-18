@@ -204,6 +204,13 @@ Store host-specific kernel command-line arguments in the initramfs when
 set to "yes". If left unset, it automatically enables when **hostonly="yes"**
 (unless running inside a chroot or inside a container). (default=unset)
 
+*sysfs_firmware=*"__{yes|no}__"::
+When set to "yes" and **hostonly** is enabled, install only the firmware files
+that the running kernel has actually loaded, as reported by the sysfs entries
+in `/sys/class/firmware/requestedN`. This requires a kernel that exposes this
+information. If the sysfs entries are not available, falls back to the default
+per-module firmware installation. (default=no)
+
 *hostonly_nics+=*" [__<nic>__[ __<nic>__ ...]] "::
 Only enable listed NICs in the initramfs. The list can be empty, so other
 modules can install only the necessary network drivers.

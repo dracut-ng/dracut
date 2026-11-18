@@ -587,6 +587,7 @@ fscks=
 fstab_lines=()
 fw_dir=
 hostonly_cmdline=
+sysfs_firmware=
 kernel_only=
 kmsgloglvl=
 libdirs=
@@ -1446,6 +1447,8 @@ esac
 hostonly=${hostonly-}
 hostonly_mode=${hostonly_mode-}
 
+sysfs_firmware=${sysfs_firmware-}
+
 if [[ $reproducible == yes ]] && [[ -z ${SOURCE_DATE_EPOCH-} ]]; then
     SOURCE_DATE_EPOCH=$(stat -c %Y "$dracutbasedir/dracut-functions.sh")
     export SOURCE_DATE_EPOCH
@@ -1591,12 +1594,12 @@ dracut_instmods() {
 
     if $DRACUT_INSTALL \
         ${dracutsysrootdir:+-r "$dracutsysrootdir"} \
-        ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${hostonly:+-H} ${omit_drivers:+-N "$omit_drivers"} ${srcmods:+--kerneldir "$srcmods"} -m "$@"; then
+        ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${hostonly:+-H} ${sysfs_firmware:+--sysfs-firmware} ${omit_drivers:+-N "$omit_drivers"} ${srcmods:+--kerneldir "$srcmods"} -m "$@"; then
         return 0
     else
         _ret=$?
         if ((_silent == 0)); then
-            derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${hostonly:+-H} ${omit_drivers:+-N "$omit_drivers"} ${srcmods:+--kerneldir "$srcmods"} -m "$@"
+            derror FAILED: "$DRACUT_INSTALL" ${dracutsysrootdir:+-r "$dracutsysrootdir"} ${initdir:+-D "$initdir"} ${loginstall:+-L "$loginstall"} ${hostonly:+-H} ${sysfs_firmware:+--sysfs-firmware} ${omit_drivers:+-N "$omit_drivers"} ${srcmods:+--kerneldir "$srcmods"} -m "$@"
         fi
         return "$_ret"
     fi
