@@ -77,6 +77,7 @@ static bool arg_resolvelazy = false;
 static bool arg_resolvedeps = false;
 static bool arg_hostonly = false;
 static bool arg_kerneldir = false;
+static bool arg_sysfs_firmware = false;
 static bool no_xattr = false;
 static char *destrootdir = NULL;
 static char *sysrootdir = NULL;
@@ -1619,6 +1620,7 @@ static void usage(int status)
                "                      $(</sys/module/firmware_class/parameters/path),\n"
                "                      /lib/firmware/updates/$(uname -r), /lib/firmware/updates\n"
                "                      /lib/firmware/$(uname -r), /lib/firmware)\n"
+               "  --sysfs-firmware  Use sysfs requested firmware entries for hostonly firmware\n"
                "  --silent          Don't display error messages for kernel module install\n"
                "  --modalias        Only generate module list from /sys/devices modalias list\n"
                "  -o --optional     If kernel module does not exist, do not fail\n"
@@ -1649,6 +1651,7 @@ static int parse_argv(int argc, char *argv[])
                 ARG_FIRMWAREDIRS,
                 ARG_DEBUG,
                 ARG_JSON_SUPPORTED,
+                ARG_SYSFS_FIRMWARE,
         };
 
         static struct option const options[] = {
@@ -1677,6 +1680,7 @@ static int parse_argv(int argc, char *argv[])
                 {"kerneldir", required_argument, NULL, ARG_KERNELDIR},
                 {"firmwaredirs", required_argument, NULL, ARG_FIRMWAREDIRS},
                 {"json-supported", no_argument, NULL, ARG_JSON_SUPPORTED},
+                {"sysfs-firmware", no_argument, NULL, ARG_SYSFS_FIRMWARE},
                 {"dry-run", no_argument, NULL, 'n'},
                 {NULL, 0, NULL, 0}
         };
@@ -1793,6 +1797,9 @@ static int parse_argv(int argc, char *argv[])
                         puts("JSON is not supported");
                         return -1;
 #endif
+                case ARG_SYSFS_FIRMWARE:
+                        arg_sysfs_firmware = true;
+                        break;
                 case 'n':
                         arg_dry_run = true;
                         break;
@@ -2099,6 +2106,85 @@ static int install_firmware(struct kmod_module *mod)
         return 0;
 }
 
+static bool sysfs_firmware_available(void)
+{
+        struct dirent *de;
+        bool found = false;
+        _cleanup_free_ char *path = NULL;
+
+        _asprintf(&path, "%s/sys/class/firmware", sysrootdir ?: "");
+
+        _cleanup_closedir_ DIR *dir = opendir(path);
+        if (!dir)
+                return false;
+
+        while ((de = readdir(dir)) != NULL) {
+                if (strncmp(de->d_name, "requested", 9) == 0) {
+                        found = true;
+                        break;
+                }
+        }
+
+        return found;
+}
+
+static int install_sysfs_firmware(void)
+{
+        struct dirent *de;
+        _cleanup_free_ char *fwdir = NULL;
+
+        _asprintf(&fwdir, "%s/sys/class/firmware", sysrootdir ?: "");
+
+        _cleanup_closedir_ DIR *dir = opendir(fwdir);
+        if (!dir) {
+                log_debug("Cannot open %s: %m", fwdir);
+                return -1;
+        }
+
+        while ((de = readdir(dir)) != NULL) {
+                _cleanup_free_ char *fw_name = NULL;
+                _cleanup_free_ char *attr_path = NULL;
+                char **q;
+                bool found = false;
+                char buf[PATH_MAX];
+
+                if (strncmp(de->d_name, "requested", 9) != 0)
+                        continue;
+
+                _asprintf(&attr_path, "%s/%s", fwdir, de->d_name);
+
+                _cleanup_fclose_ FILE *f = fopen(attr_path, "re");
+                if (!f) {
+                        log_debug("Failed to read %s", attr_path);
+                        continue;
+                }
+                if (!fgets(buf, sizeof(buf), f))
+                        continue;
+
+                buf[strcspn(buf, "\n")] = '\0';
+                fw_name = strdup(buf);
+                if (!fw_name || !*fw_name)
+                        continue;
+
+                log_debug("Sysfs firmware: %s (from %s)", fw_name, attr_path);
+
+                STRV_FOREACH(q, firmwaredirs) {
+                        _cleanup_free_ char *fwpath = NULL;
+
+                        _asprintf(&fwpath, "%s/%s", *q, fw_name);
+                        if (install_firmware_fullpath(fwpath, true) == 0) {
+                                found = true;
+                                break;
+                        }
+                }
+                if (!found)
+                        log_info("Missing firmware %s (requested via %s)",
+                                 fw_name, attr_path);
+        }
+
+        return 0;
+}
+
 static bool check_module_symbols(struct kmod_module *mod)
 {
         struct kmod_list *itr = NULL;
@@ -2351,7 +2437,8 @@ static int install_dependent_module(struct kmod_ctx *ctx, struct kmod_module *mo
                 _cleanup_kmod_module_unref_list_ struct kmod_list *modweak = NULL;
 #endif
                 log_debug("dracut_install '%s' '%s' OK", path, &path[kerneldirlen]);
-                install_firmware(mod);
+                if (!(arg_sysfs_firmware && arg_hostonly))
+                        install_firmware(mod);
                 modlist = kmod_module_get_dependencies(mod);
                 *err = install_dependent_modules(ctx, modlist, suppliers_paths);
                 if (*err == 0) {
@@ -2473,7 +2560,8 @@ static int install_module(struct kmod_ctx *ctx, struct kmod_module *mod)
                         log_error("dracut_install '%s' ERROR", kmod_module_get_name(mod));
                 return ret;
         }
-        install_firmware(mod);
+        if (!(arg_sysfs_firmware && arg_hostonly))
+                install_firmware(mod);
 
         Hashmap *suppliers = find_suppliers_paths_for_module(name);
         modlist = kmod_module_get_dependencies(mod);
@@ -2638,6 +2726,9 @@ static int install_modules(int argc, char **argv)
                 }
 
         }
+
+        if (arg_sysfs_firmware)
+                install_sysfs_firmware();
 
         for (i = 0; i < argc; i++) {
                 int r = 0;
@@ -3056,6 +3147,14 @@ int main(int argc, char **argv)
         if (parse_dlopen_features() < 0) {
                 r = EXIT_FAILURE;
                 goto finish1;
+        }
+
+        if (arg_sysfs_firmware) {
+                if (!arg_module || !sysfs_firmware_available()) {
+                        arg_sysfs_firmware = false;
+                } else {
+                        log_debug("Sysfs requested firmware available, using them for hostonly firmware");
+                }
         }
 
         if (arg_module) {
