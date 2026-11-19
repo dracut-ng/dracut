@@ -53,6 +53,11 @@ fi
 for p in $(getargs ip=); do
     ip_to_var "$p"
 
+    # The sysfs form of a MAC address, as for BOOTIF=: ifup's state files use it.
+    case "$dev" in
+        ??-??-??-??-??-??) dev=$(fix_bootif "$dev") ;;
+    esac
+
     # make first device specified the BOOTDEV
     if [ -n "$NEEDBOOTDEV" ] && [ -z "$BOOTDEV" ] && [ -n "$dev" ]; then
         BOOTDEV="$dev"
@@ -102,9 +107,14 @@ for p in $(getargs ip=); do
         IFACES="$IFACES $dev"
 
         # Interface should exist
-        if [ ! -e "/sys/class/net/$dev" ]; then
-            warn "Network interface '$dev' does not exist"
-        fi
+        case "$dev" in
+            ??:??:??:??:??:??) ;;
+            *)
+                if [ ! -e "/sys/class/net/$dev" ]; then
+                    warn "Network interface '$dev' does not exist"
+                fi
+                ;;
+        esac
     fi
 
     # Do we need to check for specific options?
