@@ -417,6 +417,14 @@ static int cp(const char *src, const char *dst)
                                                 log_info("Failed to chown %s: %m", dst);
                                 }
 
+                        /* chown may drop SUID/SGID, so reapply mode */
+                        if (fchmod(dest_desc, sb.st_mode & ~S_IFMT) != 0) {
+                                if (geteuid() == 0)
+                                        log_error("Failed to chmod %s: %m", dst);
+                                else
+                                        log_info("Failed to chmod %s: %m", dst);
+                        }
+
                         if (geteuid() == 0 && !no_xattr) {
                                 if (copy_xattr(dest_desc, source_desc) != 0)
                                         log_error("Failed to copy xattr %s: %m", dst);
