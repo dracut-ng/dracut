@@ -41,6 +41,14 @@ if [[ -f ${KERNEL_IMAGE%/*}/$IMAGE ]]; then
         && exit 0
 fi
 
+# Skip kernel installation if zfs has not been built yet
+if (grep ' / ' /proc/mounts | grep -q zfs) && ! modinfo zfs -k "${KERNEL_VERSION}" &>/dev/null
+then
+     [[ $KERNEL_INSTALL_VERBOSE == 1 ]] && echo \
+        "root is zfs, but the zfs module is missing, please build the zfs module and retry"
+    exit 77
+fi
+
 if [ -n "$KERNEL_INSTALL_CONF_ROOT" ]; then
     if [ -f "$KERNEL_INSTALL_CONF_ROOT/cmdline" ]; then
         read -r -d '' -a BOOT_OPTIONS < "$KERNEL_INSTALL_CONF_ROOT/cmdline"
