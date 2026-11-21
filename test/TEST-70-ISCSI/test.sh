@@ -109,10 +109,7 @@ test_run() {
     fi
     do_test_run
     ret=$?
-    if [[ -s $TESTDIR/server.pid ]]; then
-        kill -TERM "$(cat "$TESTDIR"/server.pid)"
-        rm -f -- "$TESTDIR"/server.pid
-    fi
+    stop_server
     return $ret
 }
 
@@ -192,10 +189,7 @@ test_setup() {
 }
 
 test_cleanup() {
-    if [[ -s $TESTDIR/server.pid ]]; then
-        kill -TERM "$(cat "$TESTDIR"/server.pid)"
-        rm -f -- "$TESTDIR"/server.pid
-    fi
+    stop_server
 }
 
 # shellcheck disable=SC1090
