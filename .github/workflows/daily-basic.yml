@@ -1,6 +1,8 @@
 ---
 name: Daily Tests - basic
 
+# testing
+
 on:  # yamllint disable-line rule:truthy
     schedule:
         - cron: '00 13 * * *'   # every day at 13:00 UTC

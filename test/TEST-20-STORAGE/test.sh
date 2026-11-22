@@ -43,6 +43,11 @@ client_run() {
     if ! [[ $test_name =~ "degraded" ]]; then
         # only add disk2 if RAID is NOT degraded
         qemu_add_drive disk_args "$TESTDIR/${disk}-2.img" disk2
+    else
+        # Without systemd (no mdadm-last-resort), degraded arrays are only
+        # started by the initqueue timeout hooks, which run after 2/3 of
+        # rd.retry (default 180s). Shorten it to keep the test runtime sane.
+        client_opts+=" rd.retry=30"
     fi
 
     if [ "$TEST_FSTYPE" = "zfs" ]; then
