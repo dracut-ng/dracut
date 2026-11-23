@@ -17,9 +17,6 @@ USE_LVM=
 HAVE_RAID=
 HAVE_CRYPT=
 if [ "$TEST_FSTYPE" != "zfs" ] && [ "$TEST_FSTYPE" != "btrfs" ]; then
-    # test fips mode
-    [ -f /usr/share/crypto-policies/default-fips-config ] && TEST_KERNEL_CMDLINE+=" fips=1 rd.fips.skipkernel boot=LABEL=dracut "
-
     export USE_LVM=1
     command -v mdadm > /dev/null && export HAVE_RAID=1
     command -v cryptsetup > /dev/null && export HAVE_CRYPT=1
@@ -66,7 +63,23 @@ client_run() {
     client_test_end
 }
 
+# In FIPS mode the kernel panics when loading a module whose signature
+# cannot be verified, so only test fips mode if the kernel modules are signed.
+kernel_modules_signed() {
+    local kver mod
+    kver=$(determine_kernel_version "$TESTDIR"/initramfs.testing)
+    mod=$(find "/lib/modules/$kver/kernel" -name '*.ko*' -print -quit 2> /dev/null)
+    [ -n "$mod" ] && [ -n "$(modinfo -F sig_id "$mod" 2> /dev/null)" ]
+}
+
 test_run() {
+    # test fips mode
+    # The fips hooks only run if the kernel reports FIPS mode via
+    # /proc/sys/crypto/fips_enabled, otherwise they warn and continue.
+    if kernel_modules_signed; then
+        TEST_KERNEL_CMDLINE+=" fips=1 rd.fips.skipkernel boot=LABEL=dracut "
+    fi
+
     # ignore crypttab with rd.luks.crypttab=0 and RAID with rd.md=0
     client_run "$TEST_FSTYPE" "disk" "rd.auto=1 rd.luks.crypttab=0 rd.md=0"
 
