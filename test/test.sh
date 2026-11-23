@@ -35,8 +35,12 @@ fi
     for T in ${TESTS}; do find . -depth -type d -name "TEST-*${T}*" -exec echo {} \; | cut -d\- -f2 | tr '\n' ' '; done
 )
 
+# only allocate a TTY if there is one, e.g. not when run from CI or a script
+TTY_ARG=
+[ -t 0 ] && TTY_ARG=-t
+
 # clear previous test run
-TARGETS='clean all install check' "$PODMAN" run --rm -it \
+TARGETS='clean all install check' "$PODMAN" run --rm -i $TTY_ARG \
     --device=/dev/kvm --privileged \
     -e V -e NO_KVM -e TESTS -e TEST_RUN_ID -e TARGETS -e MAKEFLAGS -e USE_NETWORK -e TEST_DRACUT_ARGS ${TEST_FSTYPE:+-e TEST_FSTYPE} -e TEST_CONTAINER_COMMAND \
     -v "$PWD"/:/z \
