@@ -294,6 +294,146 @@ Creates initial ramdisk images for preloading modules
   --uefi-splash-image [FILE]
                         Use [FILE] as a splash image when creating an UEFI
                          executable. Requires bitmap (.bmp) image format.
+  --uefi-signing-provider [PROVIDER]
+                        Use [PROVIDER] as the OpenSSL provider when loading the
+                         private key for signing the UEFI executable for
+                         Secure Boot, or for producing PCR 11 signatures.
+                         Optional parameter when using "systemd-sbsign" as the
+                         signing tool. Incompatible with
+                         --uefi-signing-engine.
+  --uefi-signing-engine [ENGINE]
+                        Use [ENGINE] as the legacy OpenSSL engine when loading
+                         the private key for signing the UEFI executable for
+                         Secure Boot, or for producing PCR 11 signatures.
+                         Optional parameter when using "sbsign" or
+                         "systemd-sbsign" as the signing tool. Incompatible
+                         with --uefi-signing-provider. Engines are deprecated
+                         from OpenSSL 3.0, prefer using --uefi-signing-provider
+                         when possible.
+  --uefi-cert-provider [PROVIDER]
+                        Use [PROVIDER] as the OpenSSL provider when loading the
+                         certificate for signing the UEFI executable for
+                         Secure Boot, or for producing PCR 11 signatures.
+                         Optional parameter when using "systemd-sbsign" as the
+                         signing tool.
+  --uefi-secureboot-tool [TOOL]
+                        Use [TOOL] as the signing tool when signing the created
+                         UEFI executable. Supported tools are "sbsign",
+                         "pesign", and "systemd-sbsign". [TOOL] specified must
+                         be installed first. If unset, a supported tool will
+                         automatically be set based on the other Secure Boot
+                         configuration set.
+  --uefi-secureboot-cert [FILE/URI]
+                        Use [FILE/URI] as the certificate to sign the created UEFI
+                         executable. Requires a corresponding
+                         --uefi-secureboot-key to be set in addition. Required
+                         when using "sbsign", or "systemd-sbsign". May also be
+                         a URI if using "systemd-sbsign" with
+                         --uefi-cert-provider. If --uefi-secureboot-tool is
+                         unset with --uefi-secureboot-key provided, "sbsign" is
+                         inferred as the signing tool, unless
+                         --uefi-signing-provider/engine or --uefi-cert-provider
+                         is set, then "systemd-sbsign" is inferred.
+  --uefi-secureboot-key [FILE/URI]
+                        Use [FILE/URI] as the private key to sign the created
+                         UEFI executable. Requires a corresponding certificate
+                         to be set in addition. Required when using sbsign, or
+                         "systemd-sbsign". May also be a URI if using
+                         "systemd-sbsign" with --uefi-signing-provider/engine.
+                         If --uefi-secureboot-tool is unset with
+                         --uefi-secureboot-cert provided, "sbsign" is inferred
+                         as the signing tool, unless
+                         --uefi-signing-provider/engine or --uefi-cert-provider
+                         is set, then "systemd-sbsign" is inferred.
+  --uefi-secureboot-cert-name [NAME]
+                        Use [NAME] as the certificate nickname in the NSS key
+                         database to use when signing the created UEFI
+                         executable. Required when using "pesign".
+                         If --uefi-secureboot-tool is unset, "pesign" is
+                         inferred as the signing tool.
+  --uefi-secureboot-cert-dir [DIRECTORY]
+                        The directory for the NSS key database to use when
+                         signing the created UEFI executable. Optional when
+                         using "pesign", and is set to the "pesign" default when
+                         unset.
+  --uefi-pcr-private-key [FILE/URI]
+                        Use [FILE/URI] as the private part of a key pair,
+                         that is used to produce a PCR 11 signature to embed
+                         into the UEFI executable. May also be a URI, but only
+                         if --uefi-signing-provider/engine is set. May be
+                         specified multiple times.
+  --uefi-pcr-public-key [FILE]
+                        Use [FILE] as the public part of a key pair. Used to
+                         produce a PCR 11 signature to embed into the UEFI
+                         executable. If unset, a public key will
+                         automatically be derived from --uefi-pcr_private_key
+                         or --uefi-pcr-cert. May be multiple times, but must be
+                         specified as many times as each
+                         --uefi-pcr-private-key. The first specified or
+                         derived public key will always be embedded in the UEFI
+                         executable. Incompatible with --uefi-pcr-cert.
+  --uefi-pcr-cert [FILE/URI]
+                        Use [FILE/URI] as the corresponding certificate
+                         of the private key. Used to produce a PCR 11
+                         signature to embed into the UEFI executable. It can
+                         be used in place of a public key, as it will be
+                         automatically derived from the certificate.
+                         May also be a URI, but only if a certificate provider
+                         is set. May be specified multiple times, but must be
+                         specified as many times as each
+                         --uefi-pcr-private-key. A public key is automatically
+                         derived from the first specified certificate and
+                         embedded into the UEFI executable. Incompatible with
+                         --uefi-pcr-public-key.
+  --uefi-pcr-phases [PHASE_PATHS]
+                        Use [PHASE_PATHS] as a comma-separated list of phase
+                         paths to sign a policy for. Each path will be signed
+                         with a provided --uefi-pcr-private-key in the same
+                         order. Paths must contain valid names to phases,
+                         i.e. "enter-initrd", "leave-initrd", "sysinit",
+                         "ready", "shutdown", and "final". Paths must use colon
+                         to signify phase transitions, i.e.
+                         "enter-initrd:leave-initrd". May be specified multiple
+                         times, but must be specified as many times as each
+                         --uefi-pcr-private-key. If unset, the default of
+                         "systemd-measure" is used.
+  --uefi-pcr-policyref [NAME]
+                        Use [NAME] as the policy reference name for the policy
+                         specified with --uefi-pcr-phases in order. May be
+                         specified multiple times, but must be specified as
+                         many times as each --uefi-pcr-private-key. If unset,
+                         policies defined with --uefi-pcr-phases (or
+                         "systemd-measure" default) will remain with no
+                         reference. Providing --uefi-pcr-policyref= will
+                         explicitly set the policy with no reference name, and
+                         is useful if the policy is not meant to have a
+                         reference name. E.g. "systemd-creds" may only bind to
+                         policies with no reference name.
+
+  --uefi-pcr-banks [BANKS]
+                        Use [BANKS] as a comma-separated list of TPM 2.0 banks
+                         to use when producing a PCR 11 signature, e.g.
+                         "sha1,sha256". A bank is either "sha1", "sha256",
+                         "sha384" or "sha512". If unset, banks will be inferred
+                         from the currently running system.
+  --uefi-pcr-initrd-policy
+                        Produce an additional PCR 11 signature that are only
+                         satisfied from expected PCR values during the
+                         "enter-initrd" phase, with policy reference "initrd".
+                         This is a requirement for systemd to be able to
+                         initialize NvPCR values from the embedded signature,
+                         but may also be useful for binding a decryption key
+                         to a PCR policy that is only valid for the initrd
+                         phase of booting, e.g. the decryption key for the root
+                         volume. This is the same as providing:
+                         --uefi-pcr-phases=enter-initrd with
+                         --uefi-pcr-policyref=initrd, given that
+                         --uefi-pcr-private-key is the first provided, or
+                         uses the same key as the first provided.
+  --no-uefi-pcr-initrd-policy
+                        Do not produce an additional PCR 11 signature that are
+                         only satisfied from expected PCR values during the
+                         "enter-initrd" phase.
   --kernel-image [FILE] Location of the kernel image.
   --sbat [PARAMETERS]   The SBAT parameters to be added to .sbat.
                          The string "sbat,1,SBAT Version,sbat,1,
@@ -484,6 +624,22 @@ rearrange_params() {
             --long no-ukify \
             --long uefi-stub: \
             --long uefi-splash-image: \
+            --long uefi-signing-provider: \
+            --long uefi-signing-engine: \
+            --long uefi-cert-provider: \
+            --long uefi-secureboot-tool: \
+            --long uefi-secureboot-cert: \
+            --long uefi-secureboot-key: \
+            --long uefi-secureboot-cert-name: \
+            --long uefi-secureboot-cert-dir: \
+            --long uefi-pcr-private-key: \
+            --long uefi-pcr-public-key: \
+            --long uefi-pcr-cert: \
+            --long uefi-pcr-phases: \
+            --long uefi-pcr-policyref: \
+            --long uefi-pcr-banks: \
+            --long uefi-pcr-initrd-policy \
+            --long no-uefi-pcr-initrd-policy \
             --long kernel-image: \
             --long sbat: \
             --long no-hostonly-i18n \
@@ -939,6 +1095,78 @@ while :; do
                     PARMS_TO_STORE+=" '$2'"
                     shift
                     ;;
+                --uefi-signing-provider)
+                    uefi_signing_provider_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-signing-engine)
+                    uefi_signing_engine_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-cert-provider)
+                    uefi_cert_provider_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-secureboot-tool)
+                    uefi_secureboot_tool_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-secureboot-cert)
+                    uefi_secureboot_cert_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-secureboot-key)
+                    uefi_secureboot_key_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-secureboot-cert-name)
+                    uefi_secureboot_cert_name_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-secureboot-cert-dir)
+                    uefi_secureboot_cert_dir_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-pcr-private-key)
+                    uefi_pcr_private_keys_l+=("$2")
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-pcr-public-key)
+                    uefi_pcr_public_keys_l+=("$2")
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-pcr-cert)
+                    uefi_pcr_certs_l+=("$2")
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-pcr-phases)
+                    uefi_pcr_policies_l+=("$2")
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-pcr-policyref)
+                    uefi_pcr_policyrefs_l+=("$2")
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-pcr-banks)
+                    uefi_pcr_banks_l="$2"
+                    PARMS_TO_STORE+=" '$2'"
+                    shift
+                    ;;
+                --uefi-pcr-initrd-policy) uefi_pcr_initrd_policy_l="yes" ;;
+                --no-uefi-pcr-initrd-policy) uefi_pcr_initrd_policy_l="no" ;;
                 --kernel-image)
                     kernel_image_l="$2"
                     PARMS_TO_STORE+=" '$2'"
@@ -1139,6 +1367,19 @@ done
 
 export SYSTEMCTL=${SYSTEMCTL:-systemctl}
 
+# these options need to be converted in to arrays from the config file for simultaneous index access
+# shellcheck disable=SC2162
+[[ $uefi_pcr_private_keys ]] && read -a uefi_pcr_private_keys <<< "${uefi_pcr_private_keys}"
+# shellcheck disable=SC2162
+[[ $uefi_pcr_public_keys ]] && read -a uefi_pcr_public_keys <<< "${uefi_pcr_public_keys}"
+# shellcheck disable=SC2162
+[[ $uefi_pcr_certs ]] && read -a uefi_pcr_certs <<< "${uefi_pcr_certs}"
+# shellcheck disable=SC2162
+[[ $uefi_pcr_policies ]] && read -a uefi_pcr_policies <<< "${uefi_pcr_policies}"
+# shellcheck disable=SC2162
+[[ $uefi_pcr_policyrefs ]] && read -a uefi_pcr_policyrefs <<< "${uefi_pcr_policyrefs}" \
+    && uefi_pcr_policyrefs=("${uefi_pcr_policyrefs[@]#name:}")
+
 # these options add to the stuff in the config file
 ((${#add_dracutmodules_l[@]})) && add_dracutmodules+=" ${add_dracutmodules_l[*]} "
 ((${#omit_dracutmodules_l[@]})) && omit_dracutmodules+=" ${omit_dracutmodules_l[*]} "
@@ -1150,6 +1391,12 @@ export SYSTEMCTL=${SYSTEMCTL:-systemctl}
 ((${#remove_items_l[@]})) && remove_items+=" ${remove_items_l[*]} "
 ((${#install_optional_items_l[@]})) && install_optional_items+=" ${install_optional_items_l[*]} "
 ((${#hostonly_nics_l[@]})) && hostonly_nics+=" ${hostonly_nics_l[*]} "
+((${#uefi_pcr_private_keys_l[@]})) && uefi_pcr_private_keys+=("${uefi_pcr_private_keys_l[@]}")
+# shellcheck disable=SC2207
+((${#uefi_pcr_public_keys_l[@]})) && uefi_pcr_public_keys+=($(path_rel_to_abs "${uefi_pcr_public_keys_l[@]}"))
+((${#uefi_pcr_certs_l[@]})) && uefi_pcr_certs+=("${uefi_pcr_certs_l[@]}")
+((${#uefi_pcr_policies_l[@]})) && uefi_pcr_policies+=("${uefi_pcr_policies_l[@]}")
+((${#uefi_pcr_policyrefs_l[@]})) && uefi_pcr_policyrefs+=("${uefi_pcr_policyrefs_l[@]}")
 
 # these options override the stuff in the config file
 ((${#dracutmodules_l[@]})) && dracutmodules="${dracutmodules_l[*]}"
@@ -1218,6 +1465,16 @@ drivers_dir="${drivers_dir%"${drivers_dir##*[!/]}"}"
 [[ $ukify_l ]] && ukify=$ukify_l
 [[ $uefi_stub_l ]] && uefi_stub=$(path_rel_to_abs "$uefi_stub_l")
 [[ $uefi_splash_image_l ]] && uefi_splash_image=$(path_rel_to_abs "$uefi_splash_image_l")
+[[ $uefi_signing_provider_l ]] && uefi_signing_provider="$uefi_signing_provider_l"
+[[ $uefi_signing_engine_l ]] && uefi_signing_engine="$uefi_signing_engine_l"
+[[ $uefi_cert_provider_l ]] && uefi_cert_provider="$uefi_cert_provider_l"
+[[ $uefi_secureboot_tool_l ]] && uefi_secureboot_tool="$uefi_secureboot_tool_l"
+[[ $uefi_secureboot_cert_l ]] && uefi_secureboot_cert="$uefi_secureboot_cert_l"
+[[ $uefi_secureboot_key_l ]] && uefi_secureboot_key="$uefi_secureboot_key_l"
+[[ $uefi_secureboot_cert_name_l ]] && uefi_secureboot_cert_name="$uefi_secureboot_cert_name_l"
+[[ $uefi_secureboot_cert_dir_l ]] && uefi_secureboot_cert_dir=$(path_rel_to_abs "$uefi_secureboot_cert_dir_l")
+[[ $uefi_pcr_banks_l ]] && uefi_pcr_banks="$uefi_pcr_banks_l"
+[[ $uefi_pcr_initrd_policy_l ]] && uefi_pcr_initrd_policy="$uefi_pcr_initrd_policy_l"
 [[ $kernel_image_l ]] && kernel_image=$(path_rel_to_abs "$kernel_image_l")
 [[ $sbat_l ]] && sbat="$sbat_l"
 [[ $machine_id_l ]] && machine_id="$machine_id_l"
@@ -1255,16 +1512,6 @@ if ! [[ $outfile ]]; then
     fi
 
     if [[ $uefi == "yes" ]]; then
-        if [[ -n $uefi_secureboot_key && -z $uefi_secureboot_cert ]] || [[ -z $uefi_secureboot_key && -n $uefi_secureboot_cert ]]; then
-            dfatal "Need 'uefi_secureboot_key' and 'uefi_secureboot_cert' both to be set."
-            exit 1
-        fi
-
-        if [[ -n $uefi_secureboot_key && -n $uefi_secureboot_cert ]] && ! command -v sbsign &> /dev/null; then
-            dfatal "Need 'sbsign' to create a signed UEFI executable."
-            exit 1
-        fi
-
         BUILD_ID=$(cat "${dracutsysrootdir-}"/etc/os-release "${dracutsysrootdir-}"/usr/lib/os-release \
             | while read -r line || [[ $line ]]; do
                 [[ $line =~ BUILD_ID\=* ]] && eval "$line" && echo "$BUILD_ID" && break
@@ -3505,7 +3752,276 @@ get_sbat_string() {
     clean_sbat_string "$out"
 }
 
+get_pcr_banks() {
+    if [[ ! -d /sys/class/tpm/"${1}" ]]; then
+        return 1
+    fi
+    local algo
+    for algo in /sys/class/tpm/"${1}"/pcr-*; do
+        algo=${algo##*/}
+        echo "${algo#*-}"
+    done
+}
+
+resolve_file_or_uri() {
+    local var_name
+    local type
+    local path
+    var_name="$1"
+    type="$2"
+    input=${!var_name}
+    path="${dracutsysrootdir-}$(path_rel_to_abs "$input")"
+
+    if [[ -f $path && -s $path ]]; then
+        # treat as file first, in case an existing file name happens to look like a URI
+        printf -v "$var_name" '%s' "$path"
+        return 0
+    elif [[ $type == "provider" && $input =~ ^[A-Za-z][A-Za-z0-9+.-]*: ]] || [[ $type == "engine" ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
 if [[ $uefi == yes ]]; then
+    if [[ -n $uefi_signing_provider && -n $uefi_signing_engine ]]; then
+        dfatal "'uefi_signing_provider' and 'uefi_signing_engine' cannot both be set."
+        exit 1
+    fi
+
+    # maintains backwards-compatibility with configurations using the old 'uefi_secureboot_engine'
+    if [[ -n $uefi_signing_engine && -n $uefi_secureboot_engine ]]; then
+        dfatal "'uefi_signing_engine' and 'uefi_secureboot_engine' cannot both be set. Prefer 'uefi_signing_engine', as the latter is deprecated."
+        exit 1
+    elif [[ -n $uefi_secureboot_engine ]]; then
+        dwarn "Setting 'uefi_signing_engine' to the value of 'uefi_secureboot_engine', as the latter is deprecated."
+        uefi_signing_engine=$uefi_secureboot_engine
+    fi
+
+    if [[ -n $uefi_secureboot_key && -z $uefi_secureboot_cert ]] || [[ -z $uefi_secureboot_key && -n $uefi_secureboot_cert ]]; then
+        dfatal "Need 'uefi_secureboot_key' and 'uefi_secureboot_cert' both to be set."
+        exit 1
+    fi
+
+    if [[ -z $uefi_secureboot_cert_name && -n $uefi_secureboot_cert_dir ]]; then
+        dfatal "Need 'uefi_secureboot_cert_name' to be set when 'uefi_secureboot_cert_dir is set."
+        exit 1
+    fi
+
+    if [[ -z $uefi_secureboot_tool ]]; then
+        if [[ -n $uefi_secureboot_key && -n $uefi_secureboot_cert ]]; then
+            if [[ -z $uefi_signing_provider && -z $uefi_cert_provider ]]; then
+                uefi_secureboot_tool=sbsign
+            elif [[ -n $uefi_signing_provider || -n $uefi_cert_provider ]]; then
+                uefi_secureboot_tool=systemd-sbsign
+            fi
+        elif [[ -n $uefi_secureboot_cert_name ]]; then
+            uefi_secureboot_tool=pesign
+        fi
+
+        if [[ -n $uefi_secureboot_tool ]]; then
+            dinfo "*** Automatically setting '${uefi_secureboot_tool}' as the Secure Boot signing tool inferred from the set configuration ***"
+        fi
+    fi
+
+    if [[ -n $uefi_secureboot_tool ]]; then
+        if [[ ! $uefi_secureboot_tool =~ ^(sbsign|pesign|systemd-sbsign)$ ]]; then
+            dfatal "${uefi_secureboot_tool} is not a supported signing tool."
+            exit 1
+        elif { [[ $uefi_secureboot_tool == "systemd-sbsign" && ! -x "${dracutsysrootdir-}${systemdutildir}/systemd-sbsign" ]] && ! command -v systemd-sbsign; } \
+            || { [[ $uefi_secureboot_tool != "systemd-sbsign" ]] && ! command -v "$uefi_secureboot_tool" &> /dev/null; }; then
+            dfatal "Need '$uefi_secureboot_tool' to create a signed executable."
+            exit 1
+        fi
+    fi
+
+    if [[ $uefi_secureboot_tool =~ ^(sbsign|systemd-sbsign)$ && -z $uefi_secureboot_key && -z $uefi_secureboot_cert ]]; then
+        dfatal "'uefi_secureboot_key' and 'uefi_secureboot_cert' needs to be set when using signing tool '${uefi_secureboot_tool}'"
+        exit 1
+    elif [[ ! $uefi_secureboot_tool =~ ^(sbsign|systemd-sbsign)$ && -n $uefi_secureboot_key && -n $uefi_secureboot_cert ]]; then
+        dfatal "Cannot use 'uefi_secureboot_key' and 'uefi_secureboot_cert' with signing tool '${uefi_secureboot_tool}'"
+        exit 1
+    fi
+
+    if [[ $uefi_secureboot_tool == "pesign" && -z $uefi_secureboot_cert_name ]]; then
+        dfatal "'uefi_secureboot_cert_name' needs to be set to use signing tool '${uefi_secureboot_tool}'"
+        exit 1
+    elif [[ $uefi_secureboot_tool != "pesign" ]] && [[ -n $uefi_secureboot_cert_name || -n $uefi_secureboot_cert_dir ]]; then
+        dfatal "Cannot use 'uefi_secureboot_cert_name' or 'uefi_secureboot_cert_dir' with signing tool '${uefi_secureboot_tool}'"
+        exit 1
+    fi
+
+    # input validation
+    case $uefi_secureboot_tool in
+        sbsign)
+            if ! resolve_file_or_uri \
+                "uefi_secureboot_key" \
+                "${uefi_signing_engine:+engine}"; then
+                if [[ -z $uefi_signing_engine ]]; then
+                    dfatal "'uefi_secureboot_key' must be set to a path of a non-empty file when using ${uefi_secureboot_tool}."
+                    exit 1
+                fi
+            fi
+
+            if ! resolve_file_or_uri \
+                "uefi_secureboot_cert"; then
+                dfatal "'uefi_secureboot_cert' must be set to a path of a non-empty file when using ${uefi_secureboot_tool}."
+                exit 1
+            fi
+            ;;
+        systemd-sbsign)
+            if ! resolve_file_or_uri \
+                "uefi_secureboot_key" \
+                "${uefi_signing_provider:+provider}" \
+                "${uefi_signing_engine:+engine}"; then
+                if [[ -n $uefi_signing_provider ]]; then
+                    dfatal "'uefi_secureboot_key' must be set to a valid URI or a path of a non-empty file when using ${uefi_secureboot_tool} with a signing provider."
+                    exit 1
+                elif [[ -z $uefi_signing_engine ]]; then
+                    dfatal "'uefi_secureboot_key' must be set to a path of a non-empty file when using ${uefi_secureboot_tool}."
+                    exit 1
+                fi
+            fi
+
+            if ! resolve_file_or_uri \
+                "uefi_secureboot_cert" \
+                "${uefi_cert_provider:+provider}"; then
+                if [[ -n $uefi_cert_provider ]]; then
+                    dfatal "'uefi_secureboot_cert' must be set to a valid URI or a path of a non-empty file when using ${uefi_secureboot_tool} with a certificate provider."
+                    exit 1
+                else
+                    dfatal "'uefi_secureboot_cert' must be set to a path of a non-empty file when using ${uefi_secureboot_tool}."
+                    exit 1
+                fi
+            fi
+
+            ;;
+        pesign)
+            if [[ -n $uefi_secureboot_cert_dir && ! -d "${dracutsysrootdir-}${uefi_secureboot_cert_dir}" ]]; then
+                dfatal "Need 'uefi_secureboot_cert_dir' to be set to a directory."
+                exit 1
+            elif [[ -n $uefi_secureboot_cert_dir ]]; then
+                uefi_secureboot_cert_dir="${dracutsysrootdir-}${uefi_secureboot_cert_dir}"
+            fi
+            ;;
+    esac
+
+    if ((${#uefi_pcr_public_keys[@]})) && ((${#uefi_pcr_private_keys[@]} != ${#uefi_pcr_public_keys[@]})); then
+        dfatal "Number of keys in 'uefi_pcr_private_keys' must match the number of keys in 'uefi_pcr_public_keys'"
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_certs[@]})) && ((${#uefi_pcr_private_keys[@]} != ${#uefi_pcr_certs[@]})); then
+        dfatal "Number of keys in 'uefi_pcr_private_keys' must match the number of keys in 'uefi_pcr_certs'"
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_policies[@]})) && ((${#uefi_pcr_private_keys[@]} != ${#uefi_pcr_policies[@]})); then
+        dfatal "Number of keys in 'uefi_pcr_private_keys' must match the number of phase paths in 'uefi_pcr_policies'"
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_policyrefs[@]})) && ((${#uefi_pcr_private_keys[@]} != ${#uefi_pcr_policyrefs[@]})); then
+        dfatal "Number of keys in 'uefi_pcr_private_keys' must match the number of policy reference names in 'uefi_pcr_policyrefs'"
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_public_keys[@]} && ${#uefi_pcr_certs[@]})); then
+        dfatal "'uefi_pcr_public_keys' and 'uefi_pcr_certs' cannot both be set."
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_private_keys[@]})) \
+        && { ! command -v systemd-measure &> /dev/null && [[ ! -x "${dracutsysrootdir-}${systemdutildir}/systemd-measure" ]]; }; then
+        dfatal "Need 'systemd-measure' to produce a TPM PCR 11 signature to embed into a UEFI executable."
+        exit 1
+    fi
+
+    if { ((${#uefi_pcr_private_keys[@]} && !${#uefi_pcr_public_keys[@]})) || ((${#uefi_pcr_certs[@]})); } \
+        && { ! command -v systemd-keyutil &> /dev/null && [[ ! -x "${dracutsysrootdir-}${systemdutildir}/systemd-keyutil" ]]; }; then
+        dfatal "Need 'systemd-keyutil' to produce a TPM PCR 11 signature to embed into a UEFI executable."
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_private_keys[@]} && !${#uefi_pcr_certs[@]})) && [[ -n $uefi_signing_provider || -n $uefi_signing_engine ]]; then
+        dfatal "Need 'uefi_pcr_certs' to be set when 'uefi_signing_provider' or 'uefi_signing_engine' is set."
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_private_keys[@]} && !${#uefi_pcr_certs[@]})) && [[ -n $uefi_cert_provider ]]; then
+        dfatal "Need 'uefi_pcr_certs' to be set when 'uefi_cert_provider' is set."
+        exit 1
+    fi
+
+    if ((${#uefi_pcr_private_keys[@]})) && [[ ! -d /sys/class/tpm/tpm0 ]]; then
+        dfatal "Need a TPM 2.0 device to produce a signed PCR 11 signature."
+        exit 1
+    fi
+
+    for ((i = 0; i < ${#uefi_pcr_private_keys[@]}; i++)); do
+        if ! resolve_file_or_uri \
+            "uefi_pcr_private_keys[$i]" \
+            "${uefi_signing_provider:+provider}" \
+            "${uefi_signing_engine:+engine}"; then
+            dfatal "Invalid key found in 'uefi_pcr_private_keys'"
+            if [[ -n $uefi_signing_provider ]]; then
+                dfatal "'${uefi_pcr_private_keys[$i]}' is not a valid URI or a path of a non-empty file."
+                exit 1
+            elif [[ -z $uefi_signing_engine ]]; then
+                dfatal "'${uefi_pcr_private_keys[$i]}' is not a valid path of a non-empty file."
+                exit 1
+            fi
+        fi
+    done
+
+    for ((i = 0; i < ${#uefi_pcr_certs[@]}; i++)); do
+        if ! resolve_file_or_uri \
+            "uefi_pcr_certs[$i]" \
+            "${uefi_cert_provider:+provider}"; then
+            if [[ -n $uefi_cert_provider ]]; then
+                dfatal "Invalid certificate found in 'uefi_pcr_certs'"
+                dfatal "'${uefi_pcr_certs[$i]}' is not a valid URI or a path of a non-empty file."
+                exit 1
+            else
+                dfatal "Invalid certificate found in 'uefi_pcr_certs'"
+                dfatal "'${uefi_pcr_certs[$i]}' is not a valid path to a non-empty file."
+                exit 1
+            fi
+        fi
+    done
+
+    for ((i = 0; i < ${#uefi_pcr_public_keys[@]}; i++)); do
+        if [[ ! -s "${dracutsysrootdir-}${uefi_pcr_public_keys[$i]}" ]]; then
+            dfatal "Invalid public key found in 'uefi_pcr_public_keys'"
+            dfatal "'${uefi_pcr_public_keys[$i]}' is not a valid path to a non-empty file."
+            exit 1
+        else
+            uefi_pcr_public_keys[i]="${dracutsysrootdir-}${uefi_pcr_public_keys[i]}"
+        fi
+    done
+
+    if [[ $uefi_secureboot_tool != "systemd-sbsign" && -n $uefi_signing_provider ]] && ((!${#uefi_pcr_private_keys[@]})); then
+        dwarn "Ignoring 'uefi_signing_provider' as no relevant Secure Boot or PCR 11 signature configuration is found."
+    fi
+
+    if [[ ! $uefi_secureboot_tool =~ ^(sbsign|systemd-sbsign)$ && -n $uefi_signing_engine ]] && ((!${#uefi_pcr_private_keys[@]})); then
+        dwarn "Ignoring 'uefi_signing_engine' as no relevant Secure Boot or PCR 11 signature configuration is found."
+    fi
+
+    if [[ $uefi_secureboot_tool != "systemd-sbsign" && -n $uefi_cert_provider ]] && ((!${#uefi_pcr_certs[@]})); then
+        dwarn "Ignoring 'uefi_cert_provider' as no relevant Secure Boot or PCR 11 signature configuration is found."
+    fi
+
+    if [[ -n $uefi_pcr_banks ]] && ((!${#uefi_pcr_private_keys[@]})); then
+        dwarn "Ignoring 'uefi_pcr_banks' as no relevant PCR 11 signature configuration is found."
+    fi
+
+    if ((${#uefi_pcr_private_keys[@]})) && [[ $uefi_pcr_initrd_policy != "no" ]]; then
+        uefi_pcr_initrd_policy="yes"
+    else
+        unset uefi_pcr_initrd_policy
+    fi
+
     if [[ $kernel_cmdline ]]; then
         echo -n "$kernel_cmdline" > "$uefi_outdir/cmdline.txt"
     elif [[ $hostonly_cmdline == yes ]]; then
@@ -3573,6 +4089,149 @@ if [[ $uefi == yes ]]; then
     offs=$((offs + $(stat -Lc%s "$kernel_image")))
     offs=$((offs + "$align" - offs % "$align"))
     uefi_initrd_offs="${offs}"
+    offs=$((offs + $(stat -Lc%s "${DRACUT_TMPDIR}/initramfs.img")))
+    offs=$((offs + "$align" - offs % "$align"))
+
+    if ((${#uefi_pcr_public_keys[@]})); then
+        pcrpkey="${uefi_pcr_public_keys[0]}"
+    elif ((${#uefi_pcr_certs[@]})); then
+        dinfo "*** Extracting public key from certificate ***"
+        # shellcheck disable=SC2206
+        keyutil_args=(
+            extract-public
+            ${uefi_pcr_certs[0]:+--certificate "${uefi_pcr_certs[0]}"}
+            ${uefi_cert_provider:+--certificate-source "provider:${uefi_cert_provider}"}
+        )
+    elif ((${#uefi_pcr_private_keys[@]})); then
+        dinfo "*** Extracting public key from private key ***"
+        # shellcheck disable=SC2206
+        keyutil_args=(
+            extract-public
+            ${uefi_pcr_private_keys[0]:+--private-key "${uefi_pcr_private_keys[0]}"}
+            ${uefi_signing_provider:+--private-key-source "provider:${uefi_signing_provider}"}
+            ${uefi_signing_engine:+--private-key-source "engine:${uefi_signing_engine}"}
+        )
+
+        if [[ -n $uefi_signing_engine || -n $uefi_signing_provider ]]; then
+            keyutils_args+=(
+                ${uefi_pcr_certs[0]:+--certificate "${uefi_pcr_certs[0]}"}
+                ${uefi_cert_provider:+--certificate-source "provider:${uefi_cert_provider}"}
+            )
+        fi
+    fi
+
+    if ((${#keyutil_args[@]})); then
+        systemd_keyutil=$(command -v systemd-keyutil)
+        if [[ -z $systemd_keyutil ]]; then
+            systemd_keyutil="${dracutsysrootdir-}${systemdutildir}/systemd-keyutil"
+        fi
+
+        pcrpkey="$uefi_outdir/pcrpkey.pem"
+        if ! $systemd_keyutil "${keyutil_args[@]}" > "$pcrpkey"; then
+            dfatal "Failed to extract public key."
+            exit 1
+        fi
+        dinfo "*** Public key extraction done ***"
+    fi
+
+    if [[ -n $pcrpkey ]]; then
+        uefi_pcrpkey_offs=${offs}
+        offs=$((offs + $(stat -Lc%s "$pcrpkey")))
+        offs=$((offs + "$align" - offs % "$align"))
+    fi
+
+    if { ! command -v ukify &> /dev/null || [[ $ukify == "no" ]]; } && ((${#uefi_pcr_private_keys[@]})); then
+        dinfo "*** Computing systemd-measure TPM2 PCR 11 signature ***"
+
+        systemd_measure=$(command -v systemd-measure)
+        if [[ -z $systemd_measure ]]; then
+            systemd_measure="${dracutsysrootdir-}${systemdutildir}/systemd-measure"
+        fi
+
+        base_measure_parameters=(
+            sign
+            --linux "$kernel_image"
+            --initrd "${DRACUT_TMPDIR}/initramfs.img"
+            --sbat "$sbat_out"
+            ${uefi_osrelease:+--osrel "$uefi_osrelease"}
+            ${uefi_cmdline:+--cmdline "$uefi_cmdline"}
+            ${uefi_splash_image:+--splash "$uefi_splash_image"}
+            --pcrpkey "$pcrpkey"
+        )
+
+        # TODO: add feature to change TPM device, when systemd-measure actually implements its '--tpm2-device' option
+        if [[ -z $uefi_pcr_banks ]]; then
+            mapfile -t tmp_banks < <(get_pcr_banks "tpm0")
+            banks=$(
+                IFS='!'
+                echo "${tmp_banks[*]}"
+            )
+            banks=${banks//\!/ --bank }
+            base_measure_parameters+=(--bank "${banks}")
+        else
+            for bank in ${uefi_pcr_banks//,/ }; do
+                base_measure_parameters+=(--bank "${bank}")
+            done
+        fi
+
+        uefi_pcr_signature="${uefi_outdir}/tpm2-pcr-signature.json"
+
+        for ((i = 0; i < ${#uefi_pcr_private_keys[@]}; i++)); do
+            extra_measure_parameters=(
+                --private-key="${uefi_pcr_private_keys[i]}"
+                ${uefi_signing_provider:+--private-key-source "provider:${uefi_signing_provider}"}
+                ${uefi_signing_engine:+--private-key-source "engine:${uefi_signing_engine}"}
+                ${uefi_pcr_certs[i]:+--certificate "${uefi_pcr_certs[i]}"}
+                ${uefi_cert_provider:+--certificate-source "provider:${uefi_cert_provider}"}
+                ${uefi_pcr_public_keys[i]:+--public-key "${uefi_pcr_public_keys[i]}"}
+                ${uefi_pcr_policyrefs[i]+--policyref "${uefi_pcr_policyrefs[i]}"}
+            )
+
+            for phase_path in ${uefi_pcr_policies[i]//,/ }; do
+                extra_measure_parameters+=(--phase "${phase_path}")
+            done
+
+            # workaround, as systemd-measure fails if --append argument and ouput redirection share the same file
+            if [[ -s $uefi_pcr_signature ]]; then
+                mv "${uefi_pcr_signature}" "${uefi_pcr_signature}.bak"
+                extra_measure_parameters+=(--append "${uefi_pcr_signature}.bak")
+            fi
+
+            if ((maxloglvl >= 5)) && ((verbosity_mod_l >= 0)); then
+                ddebug "${systemd_measure} ${base_measure_parameters[*]} ${extra_measure_parameters[*]} > ${uefi_pcr_signature}"
+            fi
+
+            if ! $systemd_measure "${base_measure_parameters[@]}" "${extra_measure_parameters[@]}" > "${uefi_pcr_signature}"; then
+                dfatal "Failed to produce PCR 11 signature."
+                exit 1
+            fi
+        done
+
+        if [[ -n $uefi_pcr_initrd_policy ]]; then
+            dinfo "*** Producing additional PCR 11 signature with initrd policy reference ***"
+
+            mv "${uefi_pcr_signature}" "${uefi_pcr_signature}.bak"
+            extra_measure_parameters=(--phase enter-initrd
+                --policyref initrd
+                --append "${uefi_pcr_signature}.bak"
+                --private-key "${uefi_pcr_private_keys[0]}"
+            )
+            if ((maxloglvl >= 5)) && ((verbosity_mod_l >= 0)); then
+                ddebug "${systemd_measure} ${base_measure_parameters[*]} ${extra_measure_parameters[*]} > ${uefi_pcr_signature}"
+            fi
+
+            if ! $systemd_measure "${base_measure_parameters[@]}" "${extra_measure_parameters[@]}" > "${uefi_pcr_signature}"; then
+                dfatal "Failed to produce PCR 11 signature with initrd policy reference."
+                exit 1
+            fi
+        fi
+
+        if ((maxloglvl >= 5)) && ((verbosity_mod_l >= 0)); then
+            cat "${uefi_pcr_signature}" | ddebug
+        fi
+
+        uefi_pcrpsig_offs=${offs}
+    fi
 
     base_image=$(pe_get_image_base "$uefi_stub")
     if [[ $? -eq 1 ]]; then
@@ -3595,20 +4254,55 @@ if [[ $uefi == yes ]]; then
             echo "$sbat" | sed "/${SBAT_DEFAULT//\//\\/}/d" >> "$ukify_sbat"
         fi
 
-        if ukify build \
-            --linux "$kernel_image" \
-            --initrd "${DRACUT_TMPDIR}/initramfs.img" \
-            --uname "$kernel" \
-            ${uefi_cmdline:+--cmdline @"$uefi_cmdline"} \
-            ${uefi_osrelease:+--os-release @"$uefi_osrelease"} \
-            ${uefi_splash_image:+--splash "$uefi_splash_image"} \
-            --stub "$uefi_stub" \
-            ${ukify_sbat:+--sbat @"$ukify_sbat"} \
-            ${uefi_secureboot_engine:+--signing-engine "$uefi_secureboot_engine"} \
-            ${uefi_secureboot_key:+--secureboot-private-key "$uefi_secureboot_key"} \
-            ${uefi_secureboot_cert:+--secureboot-certificate "$uefi_secureboot_cert"} \
-            --output "${uefi_outdir}/linux.efi"; then
+        if ((${#uefi_pcr_private_keys[@]})) && [[ -z $uefi_pcr_banks ]]; then
+            mapfile -t tmp_banks < <(get_pcr_banks "tpm0")
+            uefi_pcr_banks=$(
+                IFS=,
+                echo "${tmp_banks[*]}"
+            )
+        fi
 
+        base_ukify_parameters=(
+            build
+            --linux "$kernel_image"
+            --initrd "${DRACUT_TMPDIR}/initramfs.img"
+            --uname "$kernel"
+            ${uefi_cmdline:+--cmdline @"$uefi_cmdline"}
+            ${uefi_osrelease:+--os-release @"$uefi_osrelease"}
+            ${uefi_splash_image:+--splash "$uefi_splash_image"}
+            --stub "$uefi_stub"
+            ${ukify_sbat:+--sbat @"$ukify_sbat"}
+            ${uefi_signing_engine:+--signing-engine "$uefi_signing_engine"}
+            ${uefi_signing_provider:+--signing-provider "$uefi_signing_provider"}
+            ${uefi_secureboot_key:+--secureboot-private-key "$uefi_secureboot_key"}
+            ${uefi_secureboot_cert:+--secureboot-certificate "$uefi_secureboot_cert"}
+            ${uefi_secureboot_cert_name:+--secureboot-certificate-name "$uefi_secureboot_cert_name"}
+            ${uefi_secureboot_cert_dir:+--secureboot-certificate-dir "$uefi_secureboot_cert_dir"}
+            ${uefi_secureboot_tool:+--signtool "$uefi_secureboot_tool" --sign-kernel}
+            ${uefi_cert_provider:+--certificate-provider "$uefi_cert_provider"}
+            ${pcrpkey:+--pcrpkey "${pcrpkey}"}
+            ${uefi_pcr_initrd_policy:+--sign-initrd-pcrs}
+            ${uefi_pcr_banks:+--pcr-banks "${uefi_pcr_banks}"}
+            --output "${uefi_outdir}/linux.efi"
+        )
+
+        # systemd-ukify bug workaround
+        if [[ -z $uefi_secureboot_tool ]] && [[ -n $uefi_signing_provider || -n $uefi_cert_provider ]]; then
+            base_ukify_parameters+=(--signtool systemd-sbsign)
+        fi
+
+        extra_ukify_parameters=()
+        for ((i = 0; i < ${#uefi_pcr_private_keys[@]}; i++)); do
+            extra_ukify_parameters+=(
+                ${uefi_pcr_private_keys[i]:+--pcr-private-key "${uefi_pcr_private_keys[i]}"}
+                ${uefi_pcr_public_keys[i]:+--pcr-public-key "${uefi_pcr_public_keys[i]}"}
+                ${uefi_pcr_certs[i]:+--pcr-certificate "${uefi_pcr_certs[i]}"}
+                ${uefi_pcr_policies[i]:+--phases "${uefi_pcr_policies[i]}"}
+                ${uefi_pcr_policyrefs[i]+--policyref "${uefi_pcr_policyrefs[i]}"}
+            )
+        done
+
+        if ukify "${base_ukify_parameters[@]}" "${extra_ukify_parameters[@]}"; then
             if cp --reflink=auto "${uefi_outdir}/linux.efi" "$outfile"; then
                 dinfo "*** Creating UEFI image file '$outfile' done ***"
             else
@@ -3630,17 +4324,57 @@ if [[ $uefi == yes ]]; then
             --add-section .sbat="$sbat_out" --change-section-vma .sbat="$(printf 0x%x "$uefi_sbat_offs")" \
             --add-section .linux="$kernel_image" --change-section-vma .linux="$(printf 0x%x "$uefi_linux_offs")" \
             --add-section .initrd="${DRACUT_TMPDIR}/initramfs.img" --change-section-vma .initrd="$(printf 0x%x "$uefi_initrd_offs")" \
+            ${pcrpkey:+--add-section .pcrpkey="$pcrpkey" --change-section-vma .pcrpkey=$(printf 0x%x "$uefi_pcrpkey_offs")} \
+            ${uefi_pcr_signature:+--add-section .pcrsig="$uefi_pcr_signature" --change-section-vma .pcrsig=$(printf 0x%x "$uefi_pcrpsig_offs")} \
             --image-base="$(printf 0x%x "$base_image")" \
             "$tmp_uefi_stub" "${uefi_outdir}/linux.efi"; then
-            if [[ -n ${uefi_secureboot_key} && -n ${uefi_secureboot_cert} ]]; then
-                if sbsign \
-                    ${uefi_secureboot_engine:+--engine "$uefi_secureboot_engine"} \
-                    --key "${uefi_secureboot_key}" \
-                    --cert "${uefi_secureboot_cert}" \
-                    --output "$outfile" "${uefi_outdir}/linux.efi" \
-                    && sbverify --cert "${uefi_secureboot_cert}" "$outfile" > /dev/null 2>&1; then
-                    dinfo "*** Creating signed UEFI image file '$outfile' done ***"
-                else
+            if [[ -n ${uefi_secureboot_key} && -n ${uefi_secureboot_cert} ]] \
+                || [[ $uefi_secureboot_cert_name ]]; then
+                dinfo "*** Creating signed UEFI image file '$outfile' done ***"
+                case $uefi_secureboot_tool in
+                    sbsign)
+                        if sbsign \
+                            ${uefi_signing_engine:+--engine "$uefi_signing_engine"} \
+                            --key "${uefi_secureboot_key}" \
+                            --cert "${uefi_secureboot_cert}" \
+                            --output "$outfile" "${uefi_outdir}/linux.efi" \
+                            && sbverify --cert "${uefi_secureboot_cert}" "$outfile" > /dev/null 2>&1; then
+                            _signed=true
+                        fi
+                        ;;
+                    systemd-sbsign)
+                        systemd_sbsign=$(command -v systemd-sbsign)
+                        if [[ -z $systemd_sbsign ]]; then
+                            systemd_sbsign="${dracutsysrootdir-}${systemdutildir}/systemd-sbsign"
+                        fi
+
+                        # no verification done as systemd-sbsign does not yet support that
+                        if $systemd_sbsign \
+                            sign \
+                            --private-key "$uefi_secureboot_key" \
+                            --certificate "$uefi_secureboot_cert" \
+                            ${uefi_cert_provider:+--certificate-source "provider:${uefi_cert_provider}"} \
+                            ${uefi_signing_engine:+--private-key-source "engine:${uefi_signing_engine}"} \
+                            ${uefi_signing_provider:+--private-key-source "provider:${uefi_signing_provider}"} \
+                            "${uefi_outdir}/linux.efi" \
+                            --output "$outfile"; then
+                            _signed=true
+                        fi
+                        ;;
+                    pesign)
+                        if pesign \
+                            --sign \
+                            --force \
+                            ${uefi_secureboot_cert_dir:+--certdir "$uefi_secureboot_cert_dir"} \
+                            --certificate "${uefi_secureboot_cert_name}" \
+                            --in "${uefi_outdir}/linux.efi" \
+                            --out "$outfile" > /dev/null 2>&1 \
+                            && [[ ! "$(pesign -S --in "${outfile}")" =~ 'No signatures found' ]]; then
+                            _signed=true
+                        fi
+                        ;;
+                esac
+                if [[ -z $_signed ]]; then
                     rm -f -- "$outfile"
                     dfatal "*** Creating signed UEFI image file '$outfile' failed ***"
                     exit 1
