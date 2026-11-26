@@ -59,6 +59,7 @@ RUN xbps-install -Syu xbps && xbps-install -yu \
     plymouth \
     python3 \
     qemu \
+    ruby \
     ruby-asciidoctor \
     squashfs-tools \
     systemd-boot-efistub \
