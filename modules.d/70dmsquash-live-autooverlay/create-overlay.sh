@@ -1,13 +1,10 @@
 #!/bin/sh
 
+[ "$RD_DEBUG" = yes ] && set -x
+PS4='+ $(read -r u _ </proc/uptime; echo "$u") ${BASH_SOURCE-$0}@$LINENO${FUNCNAME:+ $FUNCNAME()}: '
+
 command -v getarg > /dev/null || . /lib/dracut-lib.sh
 command -v get_rd_overlay > /dev/null || . /lib/overlayfs-lib.sh
-
-if getargbool 0 rd.live.debug; then
-    exec > /tmp/create-overlay.$$.out
-    exec 2>> /tmp/create-overlay.$$.out
-    set -x
-fi
 
 gatherData() {
     overlay=$(get_rd_overlay)
