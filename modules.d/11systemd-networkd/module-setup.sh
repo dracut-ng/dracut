@@ -72,6 +72,14 @@ install() {
     inst_hook cmdline 99 "$moddir"/networkd-config.sh
     inst_hook initqueue/settled 99 "$moddir"/networkd-run.sh
 
+    if ! dracut_module_included "systemd-resolved"; then
+        inst_script "$moddir"/networkd-resolv.sh /usr/lib/dracut/networkd-resolv.sh
+        inst_simple "$moddir"/initrd-resolvconf.path "$systemdsystemunitdir"/initrd-resolvconf.path
+        inst_simple "$moddir"/initrd-resolvconf.service "$systemdsystemunitdir"/initrd-resolvconf.service
+        $SYSTEMCTL -q --root "$initdir" enable initrd-resolvconf.path
+        ln_r /run/initramfs/resolv.conf /etc/resolv.conf
+    fi
+
     # Enable systemd type units
     for i in \
         systemd-networkd.service \
