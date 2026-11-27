@@ -1,0 +1,8 @@
+[Unit]
+Description=Populate /run/initramfs/resolv.conf from systemd-networkd state
+DefaultDependencies=no
+Before=nss-lookup.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/dracut/networkd-resolv.sh

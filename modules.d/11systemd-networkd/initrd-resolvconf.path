@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch systemd-networkd state for DNS updates
+DefaultDependencies=no
+Before=paths.target systemd-networkd.service
+
+[Path]
+PathModified=/run/systemd/netif/state
+
+[Install]
+WantedBy=sysinit.target
