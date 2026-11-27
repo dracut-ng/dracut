@@ -532,6 +532,15 @@ static int library_install(const char *src, const char *lib)
         return ret;
 }
 
+static bool path_in_dir(const char *path, const char *prefix, size_t prefixlen)
+{
+        return prefixlen
+               && strncmp(path, prefix, prefixlen) == 0
+               && (path[prefixlen] == '/' || path[prefixlen] == '\0');
+}
+
+#define path_in_sysrootdir(path) path_in_dir(path, sysrootdir, sysrootdirlen)
+
 static char *get_real_file(const char *src, bool fullyresolve)
 {
         struct stat sb;
@@ -542,7 +551,7 @@ static char *get_real_file(const char *src, bool fullyresolve)
         _cleanup_free_ char *abspath = NULL;
 
         if (sysrootdirlen) {
-                if (strncmp(src, sysrootdir, sysrootdirlen) == 0) {
+                if (path_in_sysrootdir(src)) {
                         fullsrcpath = src;
                 } else {
                         _asprintf(&fullsrcpath_a, "%s/%s",
@@ -1396,14 +1405,14 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
         const char *src, *dst;
 
         if (sysrootdirlen) {
-                if (strncmp(orig_src, sysrootdir, sysrootdirlen) == 0) {
+                if (path_in_sysrootdir(orig_src)) {
                         src = orig_src + sysrootdirlen;
                         fullsrcpath = strdup(orig_src);
                 } else {
                         src = orig_src;
                         _asprintf(&fullsrcpath, "%s%s", sysrootdir, src);
                 }
-                if (strncmp(orig_dst, sysrootdir, sysrootdirlen) == 0)
+                if (path_in_sysrootdir(orig_dst))
                         dst = orig_dst + sysrootdirlen;
                 else
                         dst = orig_dst;
@@ -1461,7 +1470,7 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
 
                 if (resolvedeps && S_ISREG(sb.st_mode)) {
                         log_debug("'%s' already exists, but checking for any deps", fulldstpath);
-                        if (sysrootdirlen && (strncmp(fulldstpath, sysrootdir, sysrootdirlen) == 0))
+                        if (path_in_sysrootdir(fulldstpath))
                                 ret = resolve_deps(fulldstpath + sysrootdirlen, NULL);
                         else
                                 ret = resolve_deps(fullsrcpath, NULL);
@@ -1547,7 +1556,7 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
 
                 if (resolvedeps) {
                         /* ensure fullsrcpath contains sysrootdir */
-                        if (sysrootdirlen && (strncmp(fullsrcpath, sysrootdir, sysrootdirlen) == 0))
+                        if (path_in_sysrootdir(fullsrcpath))
                                 ret += resolve_deps(fullsrcpath + sysrootdirlen, NULL);
                         else
                                 ret += resolve_deps(fullsrcpath, NULL);
