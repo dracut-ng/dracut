@@ -61,7 +61,7 @@ install() {
 
     inst_multiple rmmod insmod mount uname umount grep sed cut find sort cat tail tr
 
-    inst_multiple -o sha512hmac
+    inst_multiple -o sha512hmac kcapi-hasher
 
     inst_simple /etc/system-fips
 
