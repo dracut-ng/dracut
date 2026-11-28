@@ -81,6 +81,8 @@ static bool no_xattr = false;
 static char *destrootdir = NULL;
 static char *sysrootdir = NULL;
 static size_t sysrootdirlen = 0;
+static char *dracutdir = NULL;
+static size_t dracutdirlen = 0;
 static char *kerneldir = NULL;
 static size_t kerneldirlen = 0;
 static char **firmwaredirs = NULL;
@@ -532,6 +534,16 @@ static int library_install(const char *src, const char *lib)
         return ret;
 }
 
+static bool path_in_dir(const char *path, const char *prefix, size_t prefixlen)
+{
+        return prefixlen
+               && strncmp(path, prefix, prefixlen) == 0
+               && (path[prefixlen] == '/' || path[prefixlen] == '\0');
+}
+
+#define path_in_dracutdir(path) path_in_dir(path, dracutdir, dracutdirlen)
+#define path_in_sysrootdir(path) path_in_dir(path, sysrootdir, sysrootdirlen)
+
 static char *get_real_file(const char *src, bool fullyresolve)
 {
         struct stat sb;
@@ -542,7 +554,7 @@ static char *get_real_file(const char *src, bool fullyresolve)
         _cleanup_free_ char *abspath = NULL;
 
         if (sysrootdirlen) {
-                if (strncmp(src, sysrootdir, sysrootdirlen) == 0) {
+                if (path_in_sysrootdir(src) || path_in_dracutdir(src)) {
                         fullsrcpath = src;
                 } else {
                         _asprintf(&fullsrcpath_a, "%s/%s",
@@ -1435,14 +1447,17 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
         const char *src, *dst;
 
         if (sysrootdirlen) {
-                if (strncmp(orig_src, sysrootdir, sysrootdirlen) == 0) {
+                if (path_in_sysrootdir(orig_src)) {
                         src = orig_src + sysrootdirlen;
                         fullsrcpath = strdup(orig_src);
                 } else {
                         src = orig_src;
-                        _asprintf(&fullsrcpath, "%s%s", sysrootdir, src);
+                        if (path_in_dracutdir(orig_src))
+                                fullsrcpath = strdup(orig_src);
+                        else
+                                _asprintf(&fullsrcpath, "%s%s", sysrootdir, src);
                 }
-                if (strncmp(orig_dst, sysrootdir, sysrootdirlen) == 0)
+                if (path_in_sysrootdir(orig_dst))
                         dst = orig_dst + sysrootdirlen;
                 else
                         dst = orig_dst;
@@ -1500,7 +1515,7 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
 
                 if (resolvedeps && S_ISREG(sb.st_mode)) {
                         log_debug("'%s' already exists, but checking for any deps", fulldstpath);
-                        if (sysrootdirlen && (strncmp(fulldstpath, sysrootdir, sysrootdirlen) == 0))
+                        if (path_in_sysrootdir(fulldstpath))
                                 ret = resolve_deps(fulldstpath + sysrootdirlen, NULL);
                         else
                                 ret = resolve_deps(fullsrcpath, NULL);
@@ -1586,7 +1601,7 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
 
                 if (resolvedeps) {
                         /* ensure fullsrcpath contains sysrootdir */
-                        if (sysrootdirlen && (strncmp(fullsrcpath, sysrootdir, sysrootdirlen) == 0))
+                        if (path_in_sysrootdir(fullsrcpath))
                                 ret += resolve_deps(fullsrcpath + sysrootdirlen, NULL);
                         else
                                 ret += resolve_deps(fullsrcpath, NULL);
@@ -1626,9 +1641,9 @@ static int dracut_install(const char *orig_src, const char *orig_dst, bool isdir
 static void usage(int status)
 {
         /*                                                                                */
-        printf("Usage: %s -D DESTROOTDIR [-r SYSROOTDIR] [OPTION]... -a SOURCE...\n"
-               "or: %s -D DESTROOTDIR [-r SYSROOTDIR] [OPTION]... SOURCE DEST\n"
-               "or: %s -D DESTROOTDIR [-r SYSROOTDIR] [OPTION]... -m KERNELMODULE [KERNELMODULE …]\n"
+        printf("Usage: %s -D DESTROOTDIR [-r SYSROOTDIR [-B DRACUTDIR]] [OPTION]... -a SOURCE...\n"
+               "or: %s -D DESTROOTDIR [-r SYSROOTDIR [-B DRACUTDIR]] [OPTION]... SOURCE DEST\n"
+               "or: %s -D DESTROOTDIR [-r SYSROOTDIR [-B DRACUTDIR]] [OPTION]... -m KERNELMODULE [KERNELMODULE …]\n"
                "\n"
                "Install SOURCE (from rootfs or SYSROOTDIR) to DEST in DESTROOTDIR with all needed dependencies.\n"
                "\n"
@@ -1639,6 +1654,9 @@ static void usage(int status)
                "\n"
                "  -D --destrootdir  Install all files to DESTROOTDIR as the root\n"
                "  -r --sysrootdir   Install all files from SYSROOTDIR\n"
+               "  -B --dracutdir    Allow installing files from the dracut installation\n"
+               "                    at DRACUTDIR in addition to SYSROOTDIR (needed when\n"
+               "                    using dracut installed outside SYSROOTDIR)\n"
                "  -a --all          Install all SOURCE arguments to DESTROOTDIR\n"
                "  -o --optional     If SOURCE does not exist, do not fail\n"
                "  -d --dir          SOURCE is a directory\n"
@@ -1717,10 +1735,11 @@ static int parse_argv(int argc, char *argv[])
                 {"firmwaredirs", required_argument, NULL, ARG_FIRMWAREDIRS},
                 {"json-supported", no_argument, NULL, ARG_JSON_SUPPORTED},
                 {"dry-run", no_argument, NULL, 'n'},
+                {"dracutdir", required_argument, NULL, 'B'},
                 {NULL, 0, NULL, 0}
         };
 
-        while ((c = getopt_long(argc, argv, "madfhlL:oD:Hr:Rp:P:s:S:N:vn", options, NULL)) != -1) {
+        while ((c = getopt_long(argc, argv, "madfhlL:oD:Hr:Rp:P:s:S:N:vnB:", options, NULL)) != -1) {
                 switch (c) {
                 case ARG_VERSION:
                         puts(PROGRAM_VERSION_STRING);
@@ -1835,6 +1854,17 @@ static int parse_argv(int argc, char *argv[])
                 case 'n':
                         arg_dry_run = true;
                         break;
+                case 'B':
+                        dracutdir = optarg;
+                        dracutdirlen = strlen(dracutdir);
+                        if (dracutdirlen < 1) {
+                                log_error("dracutdir is set but empty!");
+                                exit(EXIT_FAILURE);
+                        }
+                        /* ignore trailing '/' */
+                        if (dracutdir[dracutdirlen-1] == '/')
+                                dracutdirlen--;
+                        break;
                 default:
                         usage(EXIT_FAILURE);
                 }
@@ -1884,6 +1914,10 @@ static int parse_argv(int argc, char *argv[])
                                                         NULL);
                         }
                 }
+        }
+
+        if (dracutdirlen > 0 && sysrootdirlen == 0) {
+                log_warning("dracutdir is set without sysrootdir, will be ignored");
         }
 
         if (!optind || optind == argc) {
