@@ -100,20 +100,7 @@ install() {
             [[ $_mapper == \#* ]] && continue
             [[ $_dev ]] || continue
 
-            # like in fstab, the tag value may be quoted: UUID="..."
-            if [[ $_dev == *=\"*\" ]] || [[ $_dev == *=\'*\' ]]; then
-                _val=${_dev#*=}
-                _dev="${_dev%%=*}=${_val:1:${#_val}-2}"
-            fi
-
-            [[ $_dev == PARTUUID=* ]] \
-                && _dev="/dev/disk/by-partuuid/${_dev#PARTUUID=}"
-
-            [[ $_dev == UUID=* ]] \
-                && _dev="/dev/disk/by-uuid/${_dev#UUID=}"
-
-            [[ $_dev == ID=* ]] \
-                && _dev="/dev/disk/by-id/${_dev#ID=}"
+            _dev=$(expand_persistent_dev "$_dev")
 
             echo "$_dev $(blkid "$_dev" -s UUID -o value)" >> "${initdir}/etc/block_uuid.map"
 
