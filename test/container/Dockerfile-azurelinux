@@ -2,7 +2,7 @@
 # - fcoe-utils (x86_64 kernel doesn't support it)
 # - NetworkManager (Azure Linux primarily uses systemd-networkd)
 
-FROM mcr.microsoft.com/azurelinux-beta/base/core:4.0
+FROM mcr.microsoft.com/azurelinux/core:4
 
 # export
 ARG TARGETARCH
