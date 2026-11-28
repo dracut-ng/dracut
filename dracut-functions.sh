@@ -320,7 +320,17 @@ get_persistent_dev() {
 }
 
 expand_persistent_dev() {
-    local _dev=$1
+    local _dev=$1 _val
+
+    # like in fstab, the tag value may be quoted: UUID="..."
+    case "$_dev" in
+        LABEL=* | UUID=* | PARTUUID=* | PARTLABEL=* | ID=*)
+            _val=${_dev#*=}
+            if [[ $_val == \"*\" ]] || [[ $_val == \'*\' ]]; then
+                _dev="${_dev%%=*}=${_val:1:${#_val}-2}"
+            fi
+            ;;
+    esac
 
     case "$_dev" in
         LABEL=*)
@@ -338,6 +348,9 @@ expand_persistent_dev() {
             ;;
         PARTLABEL=*)
             _dev="/dev/disk/by-partlabel/${_dev#PARTLABEL=}"
+            ;;
+        ID=*)
+            _dev="/dev/disk/by-id/${_dev#ID=}"
             ;;
     esac
     printf "%s" "$_dev"
