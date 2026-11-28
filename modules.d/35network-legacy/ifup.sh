@@ -107,7 +107,7 @@ do_dhcp() {
 }
 
 load_ipv6() {
-    [ -d /proc/sys/net/ipv6 ] && return
+    [ -d /proc/sys/net/ipv6 ] && return 0
     modprobe ipv6
     i=0
     while [ ! -d /proc/sys/net/ipv6 ]; do
