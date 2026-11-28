@@ -14,12 +14,17 @@
 # - fips
 # - ignition
 # - dbus-broker
-# - network: network-manager
+# - network: network-manager, systemd-networkd (Azure Linux)
+
+# Not installed on Azure Linux
+# - fcoe-utils (x86_64 kernel doesn't support it)
 
 ARG DISTRIBUTION=fedora
 ARG REGISTRY=registry.fedoraproject.org
+# name of the image in the registry, if it differs from DISTRIBUTION
+ARG IMAGE=${DISTRIBUTION}
 
-FROM ${REGISTRY}/${DISTRIBUTION}
+FROM ${REGISTRY}/${IMAGE}
 
 # export ARG
 ARG DISTRIBUTION
@@ -35,17 +40,36 @@ if [[ "${DISTRIBUTION}" =~ "centos:" ]]; then \
 else \
     dnf -y install --setopt=install_weak_deps=False \
     btrfs-progs \
-    dhcp-server \
     gnupg2 \
     gnupg2-gpg-agent \
-    nbd \
     qemu \
+; fi
+
+# packages not available on Azure Linux, or installed to keep test coverage different
+RUN \
+if [[ "${DISTRIBUTION}" =~ "azurelinux:" ]]; then \
+    dnf -y install --setopt=install_weak_deps=False \
+    asciidoc \
+    dhcpcd \
+    systemd-networkd \
+; else \
+    dnf -y install --setopt=install_weak_deps=False \
+    3cpio \
+    asciidoctor \
+    fcoe-utils \
+    plymouth \
+; fi
+
+# packages not available on Azure Linux and CentOS
+RUN \
+if [[ ! "${DISTRIBUTION}" =~ ^(azurelinux|centos): ]]; then \
+    dnf -y install --setopt=install_weak_deps=False \
+    dhcp-server \
+    nbd \
     scsi-target-utils \
 ; fi
 
 RUN dnf -y install --setopt=install_weak_deps=False \
-    3cpio \
-    asciidoctor \
     bash-completion \
     bluez \
     busybox \
@@ -60,7 +84,6 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     dracut-live \
     e2fsprogs \
     erofs-utils \
-    fcoe-utils \
     fuse3 \
     gcc \
     ignition \
@@ -71,6 +94,7 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     kbd \
     kdump-utils \
     kernel \
+    kexec-tools \
     kmod-devel \
     libfido2 \
     libkcapi-hmaccalc \
@@ -86,7 +110,6 @@ RUN dnf -y install --setopt=install_weak_deps=False \
     openssl \
     parted \
     pcsc-lite \
-    plymouth \
     python3 \
     qemu-kvm \
     rng-tools \

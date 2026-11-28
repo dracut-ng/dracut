@@ -44,9 +44,10 @@ jobs:
                       runner: ubuntu-24.04-arm
                       tag: arm
                 config:
-                    - dockerfile: Dockerfile-azurelinux
+                    - dockerfile: Dockerfile-fedora
                       tag: azurelinux:latest
-                      registry: mcr.microsoft.com
+                      registry: mcr.microsoft.com/azurelinux
+                      image: core:4
                       platforms: ['amd', 'arm']
                     - dockerfile: Dockerfile-fedora
                       tag: centos:latest
@@ -102,6 +103,7 @@ jobs:
                   build-args: |
                       DISTRIBUTION=${{ matrix.config.tag }}
                       REGISTRY=${{ matrix.config.registry }}
+                      IMAGE=${{ matrix.config.image || matrix.config.tag }}
                       OPTION=${{ matrix.config.option }}
             - name: Create and Push Multi-Arch Manifest
               if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
