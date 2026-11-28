@@ -618,7 +618,7 @@ fn archive_loop<R: BufRead, W: Seek + Write>(
 
 fn params_usage(params: &[Argument]) {
     argument::print_help("dracut-cpio", "OUTPUT", params);
-    println!("\nExample: find fs-tree/ | dracut-cpio archive.cpio\n");
+    println!("\nExample: cd fs-tree && find . -print0 | dracut-cpio -0 ../archive.cpio\n");
 }
 
 fn params_process(props: &mut ArchiveProperties) -> argument::Result<PathBuf> {
