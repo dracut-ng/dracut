@@ -357,15 +357,112 @@ _/lib/systemd/boot/efi/linux<EFI-MACHINE-TYPE-NAME>.efi.stub_.
 Specifies the UEFI stub loader's splash image. Requires bitmap (**.bmp**)
 image format.
 
-*uefi_secureboot_cert=*"_<file>_", *uefi_secureboot_key=*"_<file>_"::
-Specifies a certificate and corresponding key, which are used to sign the
-created UEFI executable.
-Requires both certificate and key need to be specified and _sbsign_ to be
-installed.
+*uefi_signing_provider*="__<provider>__"::
+Specifies an OpenSSL __<provider>__ when loading the private key for signing
+the UEFI executable for Secure Boot, or for producing PCR 11 signatures.
+Optional parameter when using "systemd-sbsign" as the signing tool.
+Incompatible with "uefi_signing_engine".
 
-*uefi_secureboot_engine=*"_parameter_"::
-Specifies an engine to use when signing the created UEFI
-executable. E.g. "pkcs11"
+*uefi_signing_engine=*"__<engine>__"::
+Specifies a legacy OpenSSL __<engine>__ when loading the private key for
+signing the UEFI executable for Secure Boot, or for producing PCR 11
+signatures. Optional parameter when using "sbsign" or "systemd-sbsign" as the
+signing tool. Incompatible with "uefi_signing_provider". Engines are deprecated
+from OpenSSL 3.0, prefer using "uefi_singing_provider" when possible.
+
+*uefi_cert_provider=*"__<provider>__"::
+Specifies an OpenSSL provider when loading the certificate for signing the UEFI
+executable for Secure Boot, or for producing PCR 11 signatures.
+Optional parameter when using "systemd-sbsign" as the signing tool.
+
+*uefi_secureboot_tool=*__{sbsign|systemd-sbsign|pesign}__::
+Specifies a signing tool when signing the created UEFI executable.
+The tool specified must be installed first. If unset, a supported tool will
+automatically be set based on the other Secure Boot configuration set.
+
+*uefi_secureboot_cert=*"__<file/uri>__", *uefi_secureboot_key=*"__<file/uri>__"::
+Specifies a certificate and corresponding key, which are used to sign the
+created UEFI executable. Required when using "sbsign", "systemd-sbsign".
+May also be a URI if using "systemd-sbsign" with a signing provider or engine.
+If "uefi_secureboot_tool" is unset with both "uefi_secureboot_key" and
+"uefi_secureboot_cert" set, "sbsign" is inferred as the signing tool,
+unless "uefi_signing_provider/engine" or "uefi_cert_provider" is set,
+then "systemd-sbsign" is inferred.
+
+*uefi_secureboot_cert_name=*"__<name>__", *uefi_secureboot_cert_dir=*"__<directory>__"::
+Specifies a certificate nick__<name>__ in the NSS key database to use when
+signing the created UEFI executable, with a __<directory>__ for the NSS key
+database (optional). Required when using "pesign". An unset __<directory>__
+means that the default of "pesign" will be used. If *uefi_secureboot_tool* is
+unset, specifying "uefi_secureboot_cert_name" will infer "pesign" as the
+signing tool.
+
+*uefi_pcr_private_keys+=*" __<file/uri>__ "::
+Specifies a space-separated list of private parts of key pairs, that is
+used to produce a PCR 11 signature to embed into the UEFI executable.
+May also be a URI, but only if "uefi_signing_provider" or
+"uefi_signing_engine" is set.
+
+*uefi_pcr_public_keys+=*" __<file>__ "::
+Specifies a space-separated list of public parts of key pairs.
+Used to produce a PCR 11 signature to embed into the UEFI executable.
+It unset, public keys will automatically be derived from
+"uefi_pcr_private_keys" or "uefi_pcr_certs". If set, "uefi_pcr_public_keys"
+must have as many entries as "uefi_pcr_private_keys".
+The first specified or derived public key will always be embedded in the UEFI
+executable. Incompatible with "uefi_pcr_certs".
+
+*uefi_pcr_certs+=*" __<file/uri>__ "::
+Specifies a space-separated list of corresponding certificate of a private key. Used to produce a
+PCR 11 signature to embed into the UEFI executable. It can be set in place
+of a public key, as it will be automatically derived from the certificate.
+May also be a URI, but only if "uefi_cert_provider" is set. If set,
+"uefi_pcr_certs" must have as many entries as "uefi_pcr_private_keys".
+A public key is automatically derived from the first specified certificate and
+embedded into the UEFI executable. Incompatible with "uefi_pcr_public_keys".
+
+*uefi_pcr_policies+=*" __<phase>[:<phase>..]++[,<phase>[:<phase>..]++..]++__ "::
+Specifies a space-separated list of policies defined by a comma-separated
+list of __<phase>__ paths to sign that policy for. Each policy is signed with a
+specified private key in "uefi_pcr_private_keys" by order of definition.
+Paths must contain valid names to phases, i.e. "enter-initrd", "leave-initrd",
+"sysinit", "ready", "shutdown", and "final". Paths must use colon to signify
+phase transitions, e.g. "enter-initrd:leave-initrd"
+If set, "uefi_pcr_policies" must have as many entries as "uefi_pcr_private_keys".
+If unset, the default of *systemd-measure(1)* is used.
+
+*uefi_pcr_policyref+=* name:__<name>__ "::
+Specifies a space-separated policy reference names for each policy specified with
+"uefi_pcr_policies" in order of definition. If set, "uefi_pcr_policies" must
+have as many entries as "uefi_pcr_private_keys".
+If unset, policies defined with "uefi_pcr_policies"
+(or *systemd-measure(1)* default) will remain with no reference.
+Each __<name>__ has a prefix of "name:", as to be able to explicitly specify an
+empty __<name>__ with " name: ", and is useful if the policy is not meant to
+have a reference name. E.g. "systemd-creds" may only bind to policies with no
+reference name. Not using "name:" as a prefix also works, but not for empty
+reference names.
+
+*uefi_pcr_banks=*"__<bank>[,<bank>...]++__"::
+Specifies a comma-separated list of TPM 2.0 banks to use when producing a
+PCR 11 signature, e.g. "sha1,sha256". A __<bank>__ is either "sha1", "sha256",
+"sha384" or "sha512". If unset, banks will be inferred from the currently
+running system.
+
+*uefi_pcr_initrd_policy=*"__{yes|no}__"::
+Produce an additional PCR 11 signature that are only satisfied from
+expected PCR values during the "enter-initrd" phase, with policy reference
+"initrd".
+This is a requirement for systemd to be able to initialize NvPCR values from
+the signature, but may also be useful for binding a decryption key to a PCR
+policy that is only valid for the initrd phase of booting,
+e.g. the decryption key for the root volume.
+This is the same as providing:
+*uefi_pcr_polcies+=*" enter-initrd " with *uefi_pcr_policyref+=*" initrd ",
+provided that that the private key either is the first specified key or the
+same as the first specified private key in "uefi_pcr_private_keys"
++
+(default=yes).
 
 *kernel_image=*"_<file>_"::
 Specifies the kernel image, which to include in the UEFI executable. The
