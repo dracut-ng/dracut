@@ -340,7 +340,7 @@ push_user_devs() {
 }
 
 check_conf_file() {
-    if grep -H -e '^[^#]*[+]=\("[^ ]\|.*[^ ]"\)' "$@"; then
+    if grep -H -E '^[^#]*[+]="([^[:space:]"]|(([^"\\]|\\.)*([^[:space:]\\]|\\[^[:space:]]))")' "$@"; then
         printf '\ndracut[W]: <key>+=" <values> ": <values> should have surrounding white spaces!\n' >&2
         printf 'dracut[W]: This will lead to unwanted side effects! Please fix the configuration file.\n\n' >&2
     fi

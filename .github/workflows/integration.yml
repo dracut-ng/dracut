@@ -97,6 +97,7 @@ jobs:
                     - "50"
                     - "80"
                     - "83"
+                    - "84"
                 exclude:
                     # https://github.com/void-linux/void-packages/issues/62317
                     - container: void:latest
