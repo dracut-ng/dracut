@@ -174,5 +174,3 @@ unset lvmwritten
 unset lvmfilter
 
 udevadm settle
-
-need_shutdown

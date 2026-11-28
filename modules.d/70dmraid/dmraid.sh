@@ -41,6 +41,4 @@ if [ -n "$DM_RAIDS" ] || getargbool 0 rd.auto; then
             udevsettle
         done
     fi
-
-    need_shutdown
 fi
