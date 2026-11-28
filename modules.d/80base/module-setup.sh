@@ -51,7 +51,7 @@ install() {
         reboot \
         sysctl
 
-    inst_binary "${dracutbasedir}/dracut-util" "/usr/bin/dracut-util"
+    inst_binary "${DRACUT_RUNTIMEDIR}/dracut-util" "/usr/bin/dracut-util"
 
     ln -s dracut-util "${initdir}/usr/bin/dracut-getarg"
     ln -s dracut-util "${initdir}/usr/bin/dracut-getargs"
