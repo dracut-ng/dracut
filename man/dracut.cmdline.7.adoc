@@ -345,6 +345,19 @@ Requires the dracut 'crypt' module.
     password. This avoid blocking the boot if no password is entered. It does
     not apply to luks key. The default is '0', which means 'forever'.
 
+In systemd-based initramfs images built without the dracut 'plymouth'
+module, once per unlock, before the first passphrase prompt, a
+best-effort line naming the keyboard layout is printed to the console.
+The name is taken from +vconsole.keymap=+ (or its +rd.+ prefixed
+spelling) on the kernel command line, or failing that from the last
++KEYMAP=+ line of _/etc/vconsole.conf_ with one layer of surrounding
+quotes stripped. When neither source names a layout, nothing is
+printed. The line is informational only: it reports the configuration,
+not the keyboard state - toggle maps, credentials, quoting beyond the
+simple form and keymaps that failed to load are not detected and may be
+misreported - it never reconfigures the keyboard, and it can never
+block or fail the unlock.
+
 crypto LUKS - key on removable device support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
