@@ -309,8 +309,9 @@ optional <dst>, but without installing its dependencies or .hmac file.
 
 options:
 
--H:: log all installed files to _/lib/dracut/hostonly-files_, so they can be
-removed if **rd.hostonly** is passed on the kernel command line.
+-H:: in hostonly mode, log the file to _/lib/dracut/hostonly-files_, so it can
+be removed if **rd.hostonly** is passed on the kernel command line. When not in
+hostonly mode, skip the file and return failure.
 
 ==== inst_multiple [-H] [-o] <file> [ <file> ...]
 

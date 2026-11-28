@@ -1155,8 +1155,9 @@ inst_simple() {
             _hostonly_install="-H"
             shift
         else
+            # Nothing was installed, so report failure.
             ddebug "skipping install of '$2', not in hostonly mode"
-            return 0
+            return 1
         fi
     fi
     [[ -e ${dstdir}/"${2:-$1}" ]] && return 0 # already there
