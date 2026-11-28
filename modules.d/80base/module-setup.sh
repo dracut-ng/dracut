@@ -41,6 +41,7 @@ install() {
         tr \
         umount
 
+    inst_molly_guard_diverted
     inst_multiple -o \
         chown \
         findmnt \

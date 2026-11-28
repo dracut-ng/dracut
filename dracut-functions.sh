@@ -1195,6 +1195,20 @@ inst_multiple() {
     fi
 }
 
+# molly-guard diverts halt, poweroff and reboot to <cmd>.no-molly-guard and
+# puts a wrapper in their place. The wrapper cannot find the diverted command
+# in the initramfs, so install the diverted command under the usual name.
+# Call this before anything else installs halt, poweroff or reboot.
+inst_molly_guard_diverted() {
+    local _cmd _bin
+    for _cmd in halt poweroff reboot; do
+        _bin=$(find_binary "$_cmd.no-molly-guard") \
+            || _bin=$(find_binary "$_cmd.no-molly-guard.usr-is-merged") \
+            || continue
+        inst "$_bin" "$(find_binary "$_cmd")"
+    done
+}
+
 # install function specialized for hooks
 # $1 = type of hook, $2 = hook priority (lower runs first), $3 = hook
 # All hooks should be POSIX/SuS compliant, they will be sourced by init.
